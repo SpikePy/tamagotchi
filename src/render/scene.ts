@@ -8,8 +8,8 @@ export const SCREEN_W = 64;
 export const SCREEN_H = 48;
 const FLOOR_Y = 40;
 
-// Körbchen links im Raum
-const BASKET_X = 1;
+// Körbchen unter dem Fenster
+const BASKET_X = 37;
 const BASKET_Y = FLOOR_Y - 6;
 const BASKET_CX = BASKET_X + 11;
 const BASKET_COLORS: ColorMap = { o: '#4a2f17', a: '#b5824a', c: '#8a5a2b', b: '#d9a86a', p: '#6c8fd1' };
@@ -44,17 +44,27 @@ const SUNRISE = 7;
 const SUNSET = 20;
 const STARS: [number, number][] = [[2, 2], [8, 1], [15, 3], [19, 7], [4, 9], [12, 6], [17, 12], [6, 13]];
 const PLANT_COLORS: ColorMap = { g: '#4d9a3a', l: '#7cc45a', d: '#2f6b2a', o: '#3a2a1a', t: '#c0623a', s: '#e07a4a' };
+// große Zimmerpflanze links auf dem Boden
+const PLANT_X = 1;
 const PLANT_LEAVES = [
-  '..l.g..',
-  '.lg.gl.',
-  'lgg.ggl',
-  '.dglgd.',
-  '..dgd..',
+  '.....l....',
+  '..l.lgl...',
+  '.lgl.g..l.',
+  '.lgl.g.lgl',
+  'lggl.g.lgl',
+  '.lggdgdgl.',
+  '..lgdgdl..',
+  '...dgggd..',
+  '....dgd...',
+  '.....d....',
 ];
 const PLANT_POT = [
-  'osssso',
-  '.otto.',
-  '.otto.',
+  '.oooooooo.',
+  '.osssssso.',
+  '..otttto..',
+  '..otttto..',
+  '..otttto..',
+  '...oooo...',
 ];
 
 type FxKind = 'food' | 'candy' | 'pill' | 'heart' | 'angry' | 'sparkle';
@@ -136,7 +146,7 @@ export class Scene {
     // Zzz (über dem Dunkel, damit man es sieht)
     if (p.stage !== 'egg' && p.asleep) {
       const spr = sp.sprites[p.stage];
-      const zx = BASKET_CX + spr[0].length / 2;
+      const zx = Math.min(BASKET_CX + spr[0].length / 2, SCREEN_W - 12);
       const k = Math.floor(t / 600) % 3;
       for (let i = 0; i <= k; i++) drawMap(ctx, ICONS.z.map, ICONS.z.colors, zx + i * 4, FLOOR_Y - spr.length - i * 5);
     }
@@ -211,21 +221,23 @@ export class Scene {
     ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 2);
   }
 
-  /** Topfpflanze auf dem Fensterbrett, Blätter wiegen sich leicht */
+  /** Zimmerpflanze links auf dem Boden, die oberen Blätter wiegen sich leicht */
   private drawPlant(t: number) {
     const sway = Math.round(Math.sin(t / 900)); // -1..1
-    const potX = WIN.x + WIN.w - 4;
-    const potY = WIN.y + WIN.h - 3;
-    drawMap(this.ctx, PLANT_LEAVES, PLANT_COLORS, potX - 1 + sway, potY - PLANT_LEAVES.length);
-    drawMap(this.ctx, PLANT_POT, PLANT_COLORS, potX, potY);
+    const potY = FLOOR_Y + 1 - PLANT_POT.length;
+    const top = potY - PLANT_LEAVES.length;
+    drawMap(this.ctx, PLANT_LEAVES.slice(0, 5), PLANT_COLORS, PLANT_X + sway, top);
+    drawMap(this.ctx, PLANT_LEAVES.slice(5), PLANT_COLORS, PLANT_X, top + 5);
+    drawMap(this.ctx, PLANT_POT, PLANT_COLORS, PLANT_X, potY);
   }
 
   private drawPoops(p: Pet, t: number) {
     const ctx = this.ctx;
     const cleaning = t < this.cleaningUntil;
     p.poops.slice(0, 6).forEach((_, i) => {
-      const x = 50 + (i % 2) * 7 - (cleaning ? (this.cleaningUntil - t) / 20 : 0);
-      const y = FLOOR_Y - Math.floor(i / 2) * 2 + (i % 2);
+      // zwischen Pflanze und Körbchen, 3 nebeneinander, dann eine zweite Reihe
+      const x = 13 + (i % 3) * 7 + (Math.floor(i / 3) % 2) * 3 + (cleaning ? (this.cleaningUntil - t) / 20 : 0);
+      const y = FLOOR_Y + 1 - Math.floor(i / 3) * 2 + (i % 2);
       drawMap(ctx, ICONS.poop.map, ICONS.poop.colors, x, y);
       if (!cleaning) {
         // Stinkewölkchen
@@ -290,8 +302,8 @@ export class Scene {
     const fx = this.fx && t < this.fx.until ? this.fx : null;
     const eating = fx && (fx.kind === 'food' || fx.kind === 'candy') && t - fx.start < EAT_MS;
 
-    const from = 24;
-    const to = Math.max(from + 4, 49 - w);
+    const from = 12;
+    const to = Math.max(from + 8, 58 - w);
     let x: number;
     let flip = false;
     if (eating) {

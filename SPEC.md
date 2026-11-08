@@ -167,14 +167,14 @@ Die Hauptansicht zeigt das Tier in seinem Zuhause, die Haufen und alle Statussym
 
 Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
-**Einrichtung:** Links im Raum steht ein **Körbchen**. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum.
+**Einrichtung:** Das **Körbchen** steht rechts unter dem Fenster. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Die Haufen landen zwischen Pflanze und Körbchen.
 
 **Fenster:** An der Wand hängt ein großes Fenster, durch das man die echte Tageszeit sieht:
 - Die **Sonne** wandert zwischen 7 und 20 Uhr im Bogen durchs Fenster. Sie geht links unten auf, steht mittags oben und geht rechts unten unter.
 - Morgens und abends ist der Himmel **orange**, in der Dämmerung blassblau.
 - Nachts zieht der **Mond** seinen Bogen, dazu leuchten Sterne.
 
-**Pflanze:** Auf dem Fensterbrett steht eine **Topfpflanze**, deren Blätter sich leicht wiegen.
+**Pflanze:** Links auf dem Boden steht eine große **Zimmerpflanze** im Topf, deren obere Blätter sich leicht wiegen.
 
 **Animationen:**
 - **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.
