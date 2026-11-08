@@ -242,14 +242,14 @@ export function petMap(sprite: Sprite, look: PetLook): string[] {
 export function petSprite(
   sp: SpeciesDef,
   pet: { stage: Stage; variant: Variant; look?: Look | null },
-  opts: { eyesClosed?: boolean; sleeping?: boolean; gaze?: number; stretch?: 0 | 1 } = {},
+  opts: { eyesClosed?: boolean; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1 } = {},
 ) {
   const look = pet.look ?? null;
   const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
   const sprite = opts.stretch !== undefined
     ? stretchSprite(breed?.sleep ?? sp.sleep, opts.stretch)
     : opts.sleeping
-    ? sleepSprite(breed?.sleep ?? sp.sleep, pet.stage === 'teen' || pet.stage === 'adult')
+    ? sleepSprite(breed?.sleep ?? sp.sleep, !opts.sleepSmall && (pet.stage === 'teen' || pet.stage === 'adult'))
     : look?.sex === 'm' && breed?.maleSprites && (pet.stage === 'teen' || pet.stage === 'adult')
       ? breed.maleSprites[pet.stage]
       : (breed?.sprites ?? sp.sprites)[pet.stage === 'egg' ? 'baby' : pet.stage];

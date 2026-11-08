@@ -5,7 +5,7 @@ import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, RES, drawMap, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
 import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
-import { COOP_PERCH_Y, GROUND_Y, PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
+import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds } from './weather';
 
 export const SCREEN_W = 64;
@@ -421,8 +421,8 @@ export class Scene {
 
     // Zzz (über dem Dunkel, damit man es sieht)
     if (p.stage !== 'egg' && p.asleep) {
-      const sl = petSprite(sp, p, { sleeping: true });
-      const zx = Math.min(BASKET_CX + sl.w / 2 - 4, SCREEN_W - 12);
+      const sl = petSprite(sp, p, { sleeping: true, sleepSmall: this.env === 'forest' });
+      const zx = this.env === 'forest' ? DEN.cx + DEN.half - 1 : Math.min(BASKET_CX + sl.w / 2 - 4, SCREEN_W - 12);
       const k = Math.floor(t / 600) % 3;
       for (let i = 0; i <= k; i++) drawMap(ctx, ICONS.z.map, ICONS.z.colors, zx + i * 4, FLOOR_Y - sl.h - 6 - i * 5);
     }
@@ -756,17 +756,37 @@ export class Scene {
     const ctx = this.ctx;
     // schlafend: eingerollte Schlafpose, liegt im Körbchen bzw. in der Höhle
     const sleeping = p.asleep && !hatching;
-    const { map, colors: pal, w, h } = petSprite(sp, p, { sleeping });
-    const x = Math.round(BASKET_CX - w / 2);
+    const inDen = sleeping && this.env === 'forest'; // Fuchs liegt IN der Baumhöhle
+    const { map, colors: pal, w, h } = petSprite(sp, p, { sleeping, sleepSmall: inDen });
+    // in der Höhle: Kopf (links im Sprite) an den linken Rand der Öffnung, Rest verschwindet im Dunkeln
+    const x = inDen ? DEN.cx - DEN.half + 0.5 : Math.round(BASKET_CX - w / 2);
     const k = hatching ? (t - this.hatchStart) / HATCH_MS : 1;
     // beim Schlüpfen taucht es langsam aus der Schale auf
     const rise = hatching ? Math.round(Math.min(1, k * 2) * 3) - 3 : 0;
-    const bottom = sleeping ? (this.env === 'room' ? BASKET_Y + BASKET_FRONT_DY : this.env === 'farm' ? COOP_PERCH_Y - 0.5 : FLOOR_Y - 1) : FLOOR_Y;
+    const bottom = sleeping
+      ? this.env === 'room'
+        ? BASKET_Y + BASKET_FRONT_DY
+        : this.env === 'farm'
+          ? COOP_PERCH_Y - 0.5
+          : this.env === 'forest'
+            ? DEN.base - 1
+            : FLOOR_Y - 1
+      : FLOOR_Y;
     // sanftes Atmen im Schlaf
     const breathe = sleeping && Math.floor(t / 1800) % 2 === 0 ? 0.5 : 0;
     const y = bottom - h + 1 - rise + breathe;
-    drawMap(ctx, map, pal, x, y);
-    this.petBox = { x, y, w, h };
+    if (inDen) {
+      ctx.save();
+      clipToDen(ctx);
+      drawMap(ctx, map, pal, x, y);
+      ctx.fillStyle = 'rgba(30,16,8,0.25)'; // im Bau ist es schattig
+      ctx.fillRect(DEN.cx - DEN.half, DEN.top, DEN.half * 2 + 1, DEN.base - DEN.top + 1);
+      ctx.restore();
+      this.petBox = { x: DEN.cx - DEN.half, y: DEN.top, w: DEN.half * 2, h: DEN.base - DEN.top };
+    } else {
+      drawMap(ctx, map, pal, x, y);
+      this.petBox = { x, y, w, h };
+    }
 
     if (hatching) {
       const egg = eggMap();

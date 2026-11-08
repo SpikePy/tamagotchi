@@ -348,8 +348,8 @@ function inEllipse(x: number, y: number, rx: number, ry: number, cy = NEST_BASE)
 const trunkHalf = (y: number) => (y < 37 ? 7 : 7 + Math.round((y - 36) * 1.5));
 const TRUNK_TOP = 0; // Stamm reicht über den oberen Bildrand hinaus, Krone nicht sichtbar
 // Höhle: Torbogen mit rundem Dach
-const HOLE_HALF = 4;
-const HOLE_TOP = 31;
+const HOLE_HALF = 5;
+const HOLE_TOP = 30;
 const inHole = (x: number, y: number, grow = 0) => {
   const r = HOLE_HALF + grow;
   const archY = HOLE_TOP - grow + r; // Mittelpunkt des runden Dachs
@@ -427,6 +427,15 @@ function drawCoop(ctx: CanvasRenderingContext2D) {
   px(ctx, '#4a2e18', NEST_CX + 7, top + 1.5, 2.5, 2.5);
   px(ctx, '#f4d878', NEST_CX + 7.5, top + 2, 1.5, 1.5);
 }
+
+/** Clip auf die Öffnung der Baumhöhle: was darin liegt, ist nur durch das Loch zu sehen */
+export function clipToDen(ctx: CanvasRenderingContext2D) {
+  ctx.beginPath();
+  for (let y = HOLE_TOP; y <= NEST_BASE; y += P)
+    for (let x = NEST_CX - HOLE_HALF; x <= NEST_CX + HOLE_HALF; x += P) if (inHole(x + P / 2, y + P / 2)) ctx.rect(x, y, P, P);
+  ctx.clip();
+}
+export const DEN = { cx: NEST_CX, half: HOLE_HALF, top: HOLE_TOP, base: NEST_BASE };
 
 export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
   if (kind === 'farm') return drawCoop(ctx);
