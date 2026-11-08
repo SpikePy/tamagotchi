@@ -202,6 +202,11 @@ Bei einem Ei werden die Parameter ignoriert.
   - Grashalme, Zaunmaserung
 - Die Tiere bewegen sich in halben Schritten.
 
+**Wolken und Wetter:** Am Himmel draußen und im Fenster drinnen **ziehen Wolken vorbei**.
+- Das Wetter wechselt etwa **alle 45 Minuten** zufällig, aber in einem moderaten Rahmen: **1 bis 5 Wolken** und **Wind** von schwach bis mäßig, meist von West nach Ost, manchmal andersherum.
+- Wolken kommen am Rand herein und ziehen hinaus. Größere Wolken sind etwas schneller, Wind und Wolkenzahl ändern sich sanft.
+- Sie ziehen **hinter** Bäumen, Hecke und Fensterkreuz vorbei. Nachts sind sie nur blass zu sehen.
+
 **Tiere im Hintergrund:** Ab und zu (etwa alle 15–50 Sekunden, nur tagsüber) ist etwas los:
 - **Fuchs (Wald):** Eine Maus huscht vorbei, ein Igel läuft vorbei, ein **Reh** läuft klein im Hintergrund vorbei und **grast** zwischendurch, oder ein **Vogel** fliegt vorbei.
 - **Igel (Garten):** eine Maus oder ein Vogel.

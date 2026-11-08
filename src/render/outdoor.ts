@@ -1,7 +1,7 @@
 // Außenszenen für Tiere, die nicht im Haus wohnen:
 //  forest = Waldrand mit Fuchsbau, garden = Garten mit Hecke und Laubnest.
 import { ICONS, drawMap, type ColorMap } from './pixels';
-import { bands, cloud, glow } from './fx';
+import { bands, glow } from './fx';
 
 export type SceneKind = 'room' | 'forest' | 'garden';
 
@@ -32,7 +32,7 @@ function px(ctx: CanvasRenderingContext2D, color: string, x: number, y: number, 
   ctx.fillRect(Math.round(x * 2) / 2, Math.round(y * 2) / 2, w, h); // auf das 0,5er-Pixelraster
 }
 
-function drawSky(ctx: CanvasRenderingContext2D, sky: Sky, clock: number) {
+function drawSky(ctx: CanvasRenderingContext2D, sky: Sky) {
   const [top, bottom] = !sky.day
     ? ['#0b0f2a', '#262c5c']
     : sky.edge < 0.08
@@ -45,11 +45,6 @@ function drawSky(ctx: CanvasRenderingContext2D, sky: Sky, clock: number) {
     const STARS = [[3, 3], [11, 7], [19, 2], [27, 9], [34, 4], [42, 11], [50, 3], [58, 8], [7, 14], [23, 16], [46, 17], [61, 15], [15, 11], [38, 7], [55, 13]];
     ctx.fillStyle = '#e8e6c8';
     for (const [x, y] of STARS) ctx.fillRect(x, y, 0.5, 0.5);
-  } else {
-    // Wolken ziehen langsam (eine Position pro Minute)
-    const drift = (clock / 60000 / 4) % 90;
-    cloud(ctx, ((10 + drift) % 90) - 13, 6, 1.2);
-    cloud(ctx, ((55 + drift * 0.7) % 90) - 13, 12, 0.8);
   }
   const icon = ICONS[sky.day ? 'sun' : 'moon'];
   const x = -5 + sky.f * (W + 5);
@@ -239,13 +234,17 @@ function drawBush(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: num
   }
 }
 
-/** Hintergrund draußen. Gibt zurück, ob gerade Tag ist. */
-export function drawOutdoor(ctx: CanvasRenderingContext2D, kind: SceneKind, clock: number): boolean {
+/** Himmel draußen (ohne Wolken, die ziehen extra). Gibt zurück, ob gerade Tag ist. */
+export function drawOutdoorSky(ctx: CanvasRenderingContext2D, clock: number): boolean {
   const sky = skyState(clock);
-  drawSky(ctx, sky, clock);
+  drawSky(ctx, sky);
+  return sky.day;
+}
+
+/** Landschaft draußen (auf transparentem Grund, liegt über Himmel und Wolken) */
+export function drawOutdoorScenery(ctx: CanvasRenderingContext2D, kind: SceneKind) {
   if (kind === 'forest') drawForest(ctx);
   else drawGarden(ctx);
-  return sky.day;
 }
 
 // ---------- Schlafplatz draußen: Baumhöhle (Fuchs) bzw. Laubhaufen (Igel) ----------

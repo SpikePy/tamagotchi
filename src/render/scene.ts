@@ -4,8 +4,9 @@ import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, RES, drawMap, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
 import { Critters } from './critters';
-import { bands, cloud, glow, shadeHex } from './fx';
-import { PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoor, skyState } from './outdoor';
+import { bands, glow, shadeHex } from './fx';
+import { GROUND_Y, PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoorScenery, drawOutdoorSky, skyState } from './outdoor';
+import { Clouds } from './weather';
 
 export const SCREEN_W = 64;
 export const SCREEN_H = 48;
@@ -218,6 +219,8 @@ export class Scene {
   private env: SceneKind = 'room';
   private shownPetId: string | null = null;
   private bg = hiResCanvas(SCREEN_W, SCREEN_H);
+  private bgSky = hiResCanvas(SCREEN_W, SCREEN_H);
+  private clouds = new Clouds();
   private bgKey = '';
   private bgDay = true;
   private critters = new Critters();
@@ -292,15 +295,28 @@ export class Scene {
         this.drawDecor(sp, t, 'static');
         this.bgDay = true;
       } else {
-        this.bgDay = drawOutdoor(this.ctx, this.env, s.clock);
+        // Himmel und Landschaft getrennt, damit die Wolken dazwischen ziehen können
+        const skyCtx = this.bgSky.getContext('2d')!;
+        skyCtx.clearRect(0, 0, SCREEN_W, SCREEN_H);
+        this.bgDay = drawOutdoorSky(skyCtx, s.clock);
+        drawOutdoorScenery(this.ctx, this.env);
         this.drawDecor(sp, t, 'static');
-        if (!this.bgDay) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
       }
       this.nestBack();
       this.ctx = main;
       this.bgKey = bgKey;
     }
-    ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
+    if (this.env === 'room') {
+      ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
+      // Wolken im Fenster, dann Fensterkreuz und Spiegelung wieder darüber
+      this.clouds.draw(ctx, s.clock, t, WIN, !skyState(s.clock).day);
+      this.drawWindowFront();
+    } else {
+      ctx.drawImage(this.bgSky, 0, 0, SCREEN_W, SCREEN_H);
+      this.clouds.draw(ctx, s.clock, t, { x: 0, y: 0, w: SCREEN_W, h: GROUND_Y }, !this.bgDay);
+      ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
+      if (!this.bgDay) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
+    }
     this.drawDecor(sp, t, 'anim');
     this.critters.draw(ctx, this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN);
 
@@ -529,18 +545,23 @@ export class Scene {
     if (!day) {
       ctx.fillStyle = '#e8e6c8';
       for (const [sx, sy] of STARS) ctx.fillRect(WIN.x + sx, WIN.y + sy, 0.5, 0.5);
-    } else {
-      const drift = (clock / MIN / 6) % 40;
-      cloud(ctx, WIN.x - 6 + drift, WIN.y + 4, 1);
-      cloud(ctx, WIN.x + 14 - drift * 0.6, WIN.y + 9, 0.7);
     }
     const icon = ICONS[day ? 'sun' : 'moon'];
     const sx = WIN.x - 5 + f * (WIN.w + 5);
     const sy = WIN.y + WIN.h - Math.sin(Math.PI * f) * (WIN.h - 1) - 1;
     if (day) glow(ctx, sx + 2.5, sy + 2.5, 5, '#fff3b0');
     drawMap(ctx, icon.map, icon.colors, sx, sy);
-    // Spiegelung auf der Scheibe
-    // Spiegelung als Pixel-Diagonalen
+    ctx.restore();
+    this.drawWindowFront();
+  }
+
+  /** Spiegelung, Fensterkreuz und Fensterbrett (liegen über Himmel und Wolken) */
+  private drawWindowFront() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(WIN.x, WIN.y, WIN.w, WIN.h);
+    ctx.clip();
     ctx.fillStyle = 'rgba(255,255,255,0.25)';
     for (const off of [3, 4.5]) {
       for (let k = 0; k < WIN.h * 2; k++) {
@@ -550,8 +571,6 @@ export class Scene {
       }
     }
     ctx.restore();
-
-    // Fensterkreuz und Fensterbrett
     ctx.fillStyle = '#5a4630';
     ctx.fillRect(WIN.x + WIN.w / 2 - 0.5, WIN.y, 1, WIN.h);
     ctx.fillRect(WIN.x, WIN.y + WIN.h / 2 - 0.5, WIN.w, 1);
