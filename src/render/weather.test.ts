@@ -18,3 +18,15 @@ describe('Wetter', () => {
     expect(weatherAt(1000)).toEqual(weatherAt(20 * 60_000));
   });
 });
+
+import { seasonOf } from './season';
+describe('Jahreszeiten', () => {
+  it('richten sich nach dem Monat', () => {
+    const at = (m: number) => new Date(2026, m, 15).getTime();
+    expect(seasonOf(at(0))).toBe('winter');
+    expect(seasonOf(at(2))).toBe('spring');
+    expect(seasonOf(at(6))).toBe('summer');
+    expect(seasonOf(at(10))).toBe('autumn');
+    expect(seasonOf(at(11))).toBe('winter');
+  });
+});

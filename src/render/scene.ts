@@ -8,6 +8,7 @@ import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds, weatherAt } from './weather';
 import { Ambient, drawLamp, drawLampLight, eveningLight } from './ambient';
+import { remapContext, seasonOf, seasonTransform, snowCaps, snowGround } from './season';
 import { NEST_BOX, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
 
 export const SCREEN_W = 64;
@@ -359,7 +360,8 @@ export class Scene {
 
     this.env = sp.room?.scene ?? 'room';
     // Hintergrund ändert sich höchstens einmal pro Minute -> zwischenspeichern
-    const bgKey = `${this.env}|${sp.id}|${Math.floor(s.clock / MIN)}`;
+    const season = seasonOf(s.clock);
+    const bgKey = `${this.env}|${sp.id}|${season}|${Math.floor(s.clock / MIN)}`;
     if (bgKey !== this.bgKey) {
       const main = this.ctx;
       this.ctx = this.bg.getContext('2d')!;
@@ -379,25 +381,32 @@ export class Scene {
         this.bgDay = drawOutdoorSky(skyCtx, s.clock);
         const farCtx = this.bgFar.getContext('2d')!;
         farCtx.clearRect(0, 0, SCREEN_W, SCREEN_H);
-        drawOutdoorFar(farCtx, this.env);
-        drawDecorFar(farCtx, this.env);
-        drawOutdoorNear(this.ctx, this.env);
+        // Landschaft in Jahreszeiten-Farben
+        const tf = seasonTransform(season);
+        drawOutdoorFar(remapContext(farCtx, tf), this.env);
+        drawDecorFar(remapContext(farCtx, tf), this.env);
+        drawOutdoorNear(remapContext(this.ctx, tf), this.env);
+        if (season === 'winter') snowGround(this.ctx, GROUND_Y + 0.5);
         this.drawDecor(sp, t, 'static');
-        drawDecorNear(this.ctx, sp.id, sunX);
+        drawDecorNear(this.ctx, sp.id, sunX, season === 'winter');
       }
       this.nestBack();
+      if (season === 'winter' && this.env !== 'room') {
+        snowCaps(this.bgFar);
+        snowCaps(this.bg);
+      }
       if (this.env === 'farm') drawWeathervane(this.ctx, weatherAt(s.clock).wind);
       this.ctx = main;
       this.bgKey = bgKey;
     }
     // Ebenen von hinten nach vorn; bewegte Dinge liegen jeweils dazwischen
-    this.critters.update(this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN);
+    this.critters.update(this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN, season);
     if (this.env === 'room') {
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
       // im Fenster: Wolken, Vogel, dann Fensterkreuz und Spiegelung darüber
       this.clouds.draw(ctx, s.clock, t, WIN, !skyState(s.clock).day);
       this.critters.draw(ctx, 'window', t);
-      this.ambient.draw(ctx, 'room', skyState(s.clock), t, WIN);
+      if (season !== 'winter') this.ambient.draw(ctx, 'room', skyState(s.clock), t, WIN);
       this.drawWindowFront();
       drawSillDecor(ctx, sp.id, { x: WIN.x - 3, y: WIN.y + WIN.h + 1, w: WIN.w + 6 });
     } else {
@@ -410,7 +419,7 @@ export class Scene {
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H); // Wiese, Bäume, Busch, Schlafplatz
       this.critters.draw(ctx, 'air', t); // wehende Blätter
       if (!this.bgDay) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
-      this.ambient.draw(ctx, this.env, skyState(s.clock), t, WIN); // Schmetterlinge / Glühwürmchen (leuchten über dem Dunkel)
+      if (season !== 'winter') this.ambient.draw(ctx, this.env, skyState(s.clock), t, WIN); // Schmetterlinge / Glühwürmchen
     }
     this.drawDecor(sp, t, 'anim');
     if (sp.id !== 'fox') drawDecorAnim(ctx, sp.id, t); // z. B. Schnecke

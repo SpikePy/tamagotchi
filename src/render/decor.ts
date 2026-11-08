@@ -153,8 +153,11 @@ export function drawDecorFar(ctx: CanvasRenderingContext2D, scene: SceneKind) {
   put(ctx, LOG, LOG_C, 23, 29.5);
 }
 
+let sunflowersOff = false;
+
 /** Sonnenblume; Kopf neigt sich zur Sonne (sunX = Sonnenposition 0..64) */
 function sunflower(ctx: CanvasRenderingContext2D, x: number, top: number, sunX: number) {
+  if (sunflowersOff) return; // im Winter keine Sonnenblumen
   rect(ctx, '#3f7a30', x, top + 2, P, GROUND_Y - top - 2);
   for (const [ly, dir] of [[top + 6, -1], [top + 9, 1], [top + 12, -1]] as [number, number][]) {
     rect(ctx, '#4f9a3a', x + dir * P, ly, P, P);
@@ -169,7 +172,8 @@ function sunflower(ctx: CanvasRenderingContext2D, x: number, top: number, sunX: 
 }
 
 /** Nahe Ebene + Zimmer: statische Deko (liegt im Hintergrund-Cache) */
-export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, sunX: number) {
+export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, sunX: number, winter = false) {
+  sunflowersOff = winter;
   switch (species) {
     case 'fox':
       put(ctx, FERN, FERN_C, 13.5, 35.5);

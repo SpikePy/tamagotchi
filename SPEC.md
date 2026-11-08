@@ -297,6 +297,15 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 - **Abendlicht:** Bei Sonnenauf- und -untergang liegt ein warmer Orange-Ton über der ganzen Szene.
 - **Stehlampe** im Zimmer (Katze, Hund): Sie brennt **abends und nachts** (18–7 Uhr) mit warmem Lichtschein, solange das Licht an ist. Bei „Licht aus“ ist sie aus.
 
+**Jahreszeiten** nach dem echten Datum (März–Mai Frühling, Juni–August Sommer, September–November Herbst, Dezember–Februar Winter):
+- **Frühling:** frischeres Grün, rosa Blüten am Busch, weiße Blüten in der Hecke.
+- **Sommer:** normales Grün.
+- **Herbst:** Gras und Hügel golden, Busch und Hecke orange-rot (die Tannen bleiben grün). Im Wald wehen bunte statt grüne Blätter.
+- **Winter:**
+  - Schneedecke auf dem Boden, **Schneehauben** auf allen Kanten (Tannen, Dächer, Zaun, Busch, Baum)
+  - zugefrorener Bach, Schnee-Böen statt Blätter
+  - keine Sonnenblumen, keine Schmetterlinge und Glühwürmchen
+
 **Wolken und Wetter:** Am Himmel draußen und im Fenster drinnen **ziehen Wolken vorbei**.
 - Das Wetter wechselt etwa **alle 45 Minuten** zufällig, aber in einem moderaten Rahmen: **1 bis 5 Wolken** und **Wind** von schwach bis mäßig, meist von West nach Ost, manchmal andersherum.
 - Wolken kommen am Rand herein und ziehen hinaus. Größere Wolken sind etwas schneller, Wind und Wolkenzahl ändern sich sanft.

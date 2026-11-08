@@ -5,6 +5,7 @@
 // Alle Grafiken sind im feinen Pixelraster gezeichnet (1 Zeichen = 1 Bildpixel).
 import { RES, drawPixels, type ColorMap } from './pixels';
 import type { SceneKind } from './outdoor';
+import type { Season } from './season';
 
 const W = 64;
 const FLOOR_Y = 40;
@@ -123,6 +124,8 @@ export const LEAF_PALETTES: Record<'forest' | 'garden' | 'farm', ColorMap[]> = {
   ],
 };
 
+const SNOW_PUFF: ColorMap[] = [{ l: '#ffffff', g: '#eef3f8', d: '#c8d4e4' }];
+
 interface Active {
   env: SceneKind;
   kind: Kind;
@@ -160,7 +163,10 @@ export class Critters {
   private env: SceneKind = 'room';
 
   /** einmal pro Bild: Positionen berechnen (win = Fensterausschnitt im Zimmer) */
-  update(env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }) {
+  private season: Season = 'summer';
+
+  update(env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }, season: Season = 'summer') {
+    this.season = season;
     this.dt = Math.min(0.1, (t - this.last) / 1000);
     this.last = t;
     this.env = env;
@@ -264,7 +270,8 @@ export class Critters {
     if (t >= this.nextGust) {
       const dir = Math.random() < 0.5 ? 1 : -1;
       const n = 2 + Math.floor(Math.random() * 4);
-      const pal = LEAF_PALETTES[env];
+      // Blätterfarben je Jahreszeit: Herbst bunt, Winter Schneeflocken-Böen
+      const pal = this.season === 'winter' ? SNOW_PUFF : this.season === 'autumn' && env === 'forest' ? LEAF_PALETTES.garden : LEAF_PALETTES[env];
       for (let i = 0; i < n; i++)
         this.leaves.push({
           x: dir > 0 ? -2 - Math.random() * 12 : W + 2 + Math.random() * 12,
