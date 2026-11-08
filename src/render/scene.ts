@@ -138,6 +138,12 @@ const LEAVES: [number, number, number, number][] = [
   [13, 42, 0, 0], [20, 45, 1, 1], [27, 41, 2, 2], [33, 44, 3, 0], [9, 45, 4, 1], [3, 42, 2, 2],
   [42, 45, 0, 1], [49, 43, 1, 0], [56, 46, 2, 1], [61, 42, 3, 2], [24, 43, 4, 0], [37, 46, 1, 2], [16, 46, 3, 2],
 ];
+// kleinere Blätter weiter hinten auf der Wiese (Tiefenwirkung)
+const LEAF_SMALL = [['.x', 'xx'], ['xx.', '.xx'], ['x.', 'xx']];
+const LEAVES_BACK: [number, number, number, number][] = Array.from({ length: 26 }, (_, i) => {
+  const n = (((i * 73856093) ^ (i * 7 * 19349663)) >>> 0) % 997;
+  return [((n * 7) % 126) / 2, 33.5 + ((n >> 2) % 14) / 2, n % 5, (n >> 1) % 3];
+});
 
 // HUD-Symbole in voller Rasterauflösung (1 Zeichen = 1 Bildpixel)
 const HUD_COLORS: ColorMap = {
@@ -730,6 +736,7 @@ export class Scene {
       for (const x of TUFTS_X) drawMap(ctx, TUFT, TUFT_COLORS, x, FLOOR_Y - 2);
     }
     if (room.floor === 'leaves') {
+      for (const [x, y, c, shape] of LEAVES_BACK) drawPixels(ctx, LEAF_SMALL[shape], { x: LEAF_COLORS[c] }, x, y);
       for (const [x, y, c, shape] of LEAVES) drawMap(ctx, LEAF_SHAPES[shape], { x: LEAF_COLORS[c] }, x, y);
     }
     if (room.ball) drawMap(ctx, BALL, BALL_COLORS, 6, FLOOR_Y + 2);

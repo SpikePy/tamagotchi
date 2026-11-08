@@ -188,22 +188,23 @@ function tulip(ctx: CanvasRenderingContext2D, x: number, color: string, light: s
 }
 
 function drawGardenFar(ctx: CanvasRenderingContext2D) {
-  // Hecke aus einzelnen Blättern
-  const topOf = (x: number) => 11 + Math.sin(x / 3) * 1.2 + Math.sin(x / 7) * 1.5 + Math.sin(x * 1.3) * 0.4;
-  for (let x = 0; x < W; x += P) {
-    const t = Math.round(topOf(x) * 2) / 2;
-    px(ctx, '#2f5a26', x, t, P, GROUND_Y - t);
+  // Laubbäume hinter der Hecke (heller, weil weiter weg)
+  for (const [tx, ty, tr] of [[9, 9, 7], [33, 7, 8.5], [55, 10, 6.5]] as [number, number, number][]) {
+    px(ctx, '#5a3a22', tx - 0.5, ty + tr - 2, 1.5, 8);
+    shrub(ctx, tx, ty, tr, tr * 0.85, ['#28501f', '#3f7432', '#5fa84a', '#7cc45a'], 900 + tx);
+    shrub(ctx, tx - tr * 0.55, ty + tr * 0.35, tr * 0.55, tr * 0.5, ['#28501f', '#3f7432', '#5fa84a', '#7cc45a'], 950 + tx);
+    shrub(ctx, tx + tr * 0.6, ty + tr * 0.3, tr * 0.5, tr * 0.45, ['#28501f', '#3f7432', '#5fa84a', '#7cc45a'], 990 + tx);
   }
-  for (let y = 9; y < GROUND_Y; y += 1.5)
-    for (let x = -1; x < W; x += 1.5) {
-      const n = hash(Math.round(x * 2) + 7, Math.round(y * 2));
-      const lx = x + (n % 3) * P;
-      const ly = y + ((n >> 2) % 2) * P;
-      if (ly < topOf(lx + 0.75) - 0.5) continue;
-      px(ctx, '#4f8a3c', lx, ly, 1.5, 1);
-      px(ctx, n % 4 === 0 ? '#86c262' : '#6aa850', lx, ly, P, P);
-      px(ctx, '#2d5524', lx + 1, ly + P, P, P);
-    }
+  // Hecke aus einzelnen runden Sträuchern mit Lücken und Schatten dazwischen
+  px(ctx, '#2d5524', 0, 20, W, GROUND_Y - 20);
+  const bushes: [number, number, number, number][] = [];
+  for (let i = 0, x = -2; x < W + 4; i++) {
+    const n = hash(i * 13 + 5, 77);
+    const r = 4 + (n % 5) * 0.6;
+    bushes.push([x + r * 0.8, 17 + ((n >> 3) % 4) * 0.8, r, r * 0.9]);
+    x += r * 1.45;
+  }
+  for (const [i, [bx, by, rx, ry]] of bushes.entries()) shrub(ctx, bx, by, rx, ry, ['#2d5524', '#43783a', '#4f8a3c', '#6aa850', '#86c262'], i * 31);
   // Holzzaun mit spitzen Latten
   for (let x = 1; x < W; x += 6) {
     const top = 20;
@@ -276,6 +277,28 @@ function drawBush(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: num
     px(ctx, berry, bx, by, 1, 1);
     px(ctx, '#ffffff', bx, by, P, P);
   }
+}
+
+/** runder Strauch bzw. Baumkrone: dunkler Rand, Licht oben links, Schatten unten rechts, Blattstruktur */
+function shrub(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: number, ry: number, pal: string[], seed: number) {
+  const [outline, shadow, mid, light, highlight] = pal.length === 5 ? pal : [pal[0], pal[0], pal[1], pal[2], pal[3]];
+  for (let y = cy - ry; y <= cy + ry; y += P)
+    for (let x = cx - rx; x <= cx + rx; x += P) {
+      const u = (x + P / 2 - cx) / rx;
+      const v = (y + P / 2 - cy) / ry;
+      // unregelmäßiger Rand
+      const n = hash(Math.round(x * 2) + seed, Math.round(y * 2));
+      const d = u * u + v * v;
+      if (d > 1 - (n % 4) * 0.05) continue;
+      let c = mid;
+      const lightness = -(u + v);
+      if (d > 0.82) c = outline;
+      else if (lightness > 0.75) c = n % 3 === 0 ? highlight : light;
+      else if (lightness > 0.2) c = n % 5 === 0 ? highlight : n % 2 ? light : mid;
+      else if (lightness < -0.6) c = shadow;
+      else if (n % 7 === 0) c = shadow;
+      px(ctx, c, x, y, P, P);
+    }
 }
 
 /** Himmel draußen (ohne Wolken, die ziehen extra). Gibt zurück, ob gerade Tag ist. */
