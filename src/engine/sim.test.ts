@@ -1,0 +1,124 @@
+import { describe, expect, it } from 'vitest';
+import { DAY, HOUR, MIN } from './config';
+import { newGame } from './state';
+import { advance } from './sim';
+import { clean, feedMeal, giveMedicine, lightButton, scold, startEgg } from './actions';
+
+const T0 = new Date(2026, 0, 1, 8, 0).getTime();
+const rng = () => 0.5;
+const never = () => 0.999; // keine Zufallsereignisse
+
+function game() {
+  const s = newGame(T0);
+  startEgg(s, 'fox');
+  return s;
+}
+const realNow = new WeakMap<object, number>();
+const run = (s: ReturnType<typeof newGame>, ms: number, r = never) => {
+  const t = (realNow.get(s) ?? T0) + ms;
+  realNow.set(s, t);
+  return advance(s, t, r);
+};
+
+describe('Lebenszyklus', () => {
+  it('schlüpft nach 1 Minute', () => {
+    const s = game();
+    run(s, 30_000);
+    expect(s.pet!.stage).toBe('egg');
+    const ev = run(s, 30_000);
+    expect(s.pet!.stage).toBe('baby');
+    expect(ev.some((e) => e.kind === 'hatched')).toBe(true);
+  });
+
+  it('wird nach 1 Tag zum Kind (bei Pflege)', () => {
+    const s = game();
+    run(s, MIN);
+    for (let h = 0; h < 24; h++) {
+      run(s, HOUR);
+      const p = s.pet!;
+      while (p.hunger < 3 && !p.asleep && feedMeal(s, rng).ok);
+      clean(s);
+      if (p.asleep && p.lightOn) lightButton(s);
+    }
+    expect(s.pet!.stage).toBe('child');
+  });
+
+  it('rechnet offline verpasste Zeit nach', () => {
+    const s = game();
+    run(s, 3 * DAY);
+    // ohne Pflege nach 3 Tagen tot
+    expect(s.pet).toBeNull();
+    expect(s.ending?.reason).toBe('death');
+  });
+});
+
+describe('Schlafen', () => {
+  it('wacht nach 8 h Schlaf insgesamt auf und kackt innerhalb 1 h', () => {
+    const s = game();
+    run(s, MIN);
+    const p = s.pet!;
+    p.tiredness = 90;
+    expect(lightButton(s).ok).toBe(true);
+    p.sleptInCycleMin = 120; // 2 h Nickerchen schon geschlafen
+    run(s, 6 * HOUR - MIN);
+    expect(p.asleep).toBe(true);
+    run(s, MIN);
+    expect(p.asleep).toBe(false);
+    expect(p.hunger).toBeLessThanOrEqual(1);
+    const before = p.poops.length;
+    run(s, HOUR, rng);
+    expect(p.poops.length).toBeGreaterThan(before);
+  });
+
+  it('Licht anlassen ist nach 15 min ein Pflegefehler', () => {
+    const s = game();
+    run(s, MIN);
+    const p = s.pet!;
+    p.tiredness = 99.95;
+    run(s, 2 * MIN);
+    expect(p.asleep).toBe(true);
+    expect(p.lightOn).toBe(true);
+    const m = p.careMistakesTotal;
+    run(s, 16 * MIN);
+    expect(p.careMistakesTotal).toBe(m + 1);
+  });
+});
+
+describe('Krankheit', () => {
+  it('Haufen > 4 h macht krank, Medizin heilt', () => {
+    const s = game();
+    run(s, MIN);
+    const p = s.pet!;
+    p.poops = [s.clock];
+    p.poopInMin = 99999;
+    run(s, 4 * HOUR);
+    expect(p.sick).not.toBeNull();
+    clean(s);
+    while (p.sick) expect(giveMedicine(s).ok).toBe(true);
+    expect(giveMedicine(s).ok).toBe(false);
+  });
+
+  it('Hunger > 2 h auf 0 macht krank', () => {
+    const s = game();
+    run(s, MIN);
+    const p = s.pet!;
+    p.hunger = 0;
+    p.poopInMin = 99999;
+    run(s, 2 * HOUR + MIN);
+    expect(p.sick).not.toBeNull();
+  });
+});
+
+describe('Disziplin', () => {
+  it('Schimpfen bei Fake-Ruf erhöht Disziplin, sonst sinkt die Laune', () => {
+    const s = game();
+    run(s, MIN);
+    const p = s.pet!;
+    p.happy = 3;
+    expect(scold(s).ok).toBe(false);
+    expect(p.happy).toBe(2);
+    p.calls.fake = { since: s.clock, penalized: false };
+    expect(scold(s).ok).toBe(true);
+    expect(p.discipline).toBe(25);
+  });
+});
