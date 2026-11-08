@@ -1,6 +1,8 @@
 import { beep, setSound } from '../audio';
 import {
   ActionResult,
+  NAME_MAX,
+  renamePet,
   canAct,
   canPlay,
   clean,
@@ -36,9 +38,14 @@ const CALL_TEXT: Record<CallType, string> = {
   fake: 'ruft nach dir …',
 };
 
-export function petName(p: Pet): string {
+export function stageName(p: { species: string; stage: Pet['stage']; variant: Pet['variant'] }): string {
   const names = species(p.species).stageNames[p.stage];
   return names[p.variant] ?? Object.values(names)[0] ?? '';
+}
+
+/** Eigener Name, sonst Name der Entwicklungsstufe */
+export function petName(p: Pet): string {
+  return p.name ?? stageName(p);
 }
 
 let deferredInstall: (Event & { prompt(): Promise<void> }) | null = null;
@@ -101,6 +108,9 @@ export class App {
       const fn = this.onSheetClose;
       this.onSheetClose = null;
       fn?.();
+      // noch kein Name? Nachfragen, sobald der Dialog zu ist
+      const p = this.s.pet;
+      if (p && p.stage !== 'egg' && p.name === null) setTimeout(() => this.askName(), 300);
     });
 
     root.append(
@@ -137,12 +147,19 @@ export class App {
     for (const e of events) {
       switch (e.kind) {
         case 'hatched':
-          this.say(`Geschlüpft! Hallo, kleines ${name}!`);
-          if (!quiet) beep.win();
+          this.say('Es schlüpft!');
+          if (!quiet) {
+            beep.win();
+            this.scene.hatch();
+          }
+          setTimeout(() => this.askName(), quiet ? 300 : 2000);
           break;
         case 'evolved':
-          this.say(`Es hat sich entwickelt: ${name}!`);
-          if (!quiet) beep.win();
+          this.say(`${name} hat sich entwickelt: ${p ? stageName(p) : ''}!`);
+          if (!quiet) {
+            beep.win();
+            this.scene.evolve();
+          }
           break;
         case 'call':
           if (quiet) break;
@@ -185,7 +202,7 @@ export class App {
       this.hud.append(
         heartRow('🍖', hearts(p.hunger)),
         heartRow('😊', hearts(p.happy)),
-        h('span', { class: 'hud-name' }, petName(p)),
+        h('span', { class: 'hud-name' }, petName(p), p.name ? h('small', {}, stageName(p)) : null),
       );
     } else if (p) {
       this.hud.append(h('span', { class: 'hud-name' }, 'Ein Ei … es wackelt bald!'));
@@ -286,6 +303,55 @@ export class App {
   private checkScreens() {
     if (this.s.ending) return this.goodbyeSheet();
     if (!this.s.pet) return this.chooseSheet();
+    if (this.s.pet.stage !== 'egg' && this.s.pet.name === null) this.askName();
+  }
+
+  /** Namensvergabe nach dem Schlüpfen (oder Umbenennen aus dem Status) */
+  private askName(rename = false) {
+    const p = this.s.pet;
+    if (!p || p.stage === 'egg') return;
+    if (!rename && (p.name !== null || this.dialog.open)) return;
+    const sp = species(p.species);
+    const ideas = [...sp.nameIdeas].sort(() => Math.random() - 0.5).slice(0, 4);
+    const input = h('input', {
+      type: 'text',
+      class: 'name-input',
+      maxlength: String(NAME_MAX),
+      placeholder: ideas[0],
+      autocomplete: 'off',
+      enterkeyhint: 'done',
+      'aria-label': 'Name',
+    }) as HTMLInputElement;
+    if (p.name) input.value = p.name;
+    const chips = h('div', { class: 'chips' });
+    for (const n of ideas) {
+      const c = h('button', { class: 'chip', type: 'button' }, n);
+      c.onclick = () => {
+        input.value = n;
+        input.focus();
+      };
+      chips.append(c);
+    }
+    const form = h('form', { class: 'name-form' });
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const r = renamePet(this.s, input.value || input.placeholder);
+      if (!r.ok) return this.act(r);
+      this.closeSheet(true);
+      this.act(r, 'heart');
+    };
+    const pic = h('canvas', { class: 'pixel species-pic', width: '20', height: '20' }) as HTMLCanvasElement;
+    const spr = sp.sprites[p.stage];
+    drawMap(pic.getContext('2d')!, petMap(spr, {}), paletteFor(sp, p.variant), (20 - spr[0].length) / 2, (20 - spr.length) / 2);
+    form.append(
+      pic,
+      h('p', {}, rename ? 'Wie soll es heißen?' : `Ein kleines ${sp.name}baby ist geschlüpft! Wie soll es heißen?`),
+      input,
+      chips,
+      h('button', { class: 'big-btn', type: 'submit' }, rename ? 'Speichern' : 'Los geht’s!'),
+    );
+    this.openSheet(rename ? 'Umbenennen' : 'Willkommen!', form, !rename);
+    setTimeout(() => input.focus(), 50);
   }
 
   private chooseSheet() {
@@ -311,7 +377,7 @@ export class App {
     const e = this.s.ending!;
     const m = this.s.memorials[0];
     const sp = species(m?.species ?? 'fox');
-    const name = m ? (sp.stageNames[m.stage][m.variant] ?? sp.name) : sp.name;
+    const name = m ? (m.name ?? stageName(m)) : sp.name;
     const body = h(
       'div',
       { class: 'goodbye' },
@@ -340,7 +406,8 @@ export class App {
     if (!p) return;
     const sp = species(p.species);
     const rows: [string, string][] = [
-      ['Tier', `${petName(p)} (${sp.name})`],
+      ['Name', p.name ?? '–'],
+      ['Tier', `${stageName(p)} (${sp.name})`],
       ['Phase', STAGE_LABEL[p.stage]],
       ['Alter', `${Math.floor(ageDays(p, this.s.clock))} Tage`],
     ];
@@ -365,7 +432,8 @@ export class App {
     }
     const table = h('table', { class: 'stats' });
     for (const [k, v] of rows) table.append(h('tr', {}, h('th', {}, k), h('td', {}, v)));
-    this.openSheet('Status', h('div', {}, table, h('details', {}, h('summary', {}, 'Tagebuch'), logList(p.log))));
+    const rename = p.stage !== 'egg' ? btn('✏️ Umbenennen', () => this.askName(true)) : null;
+    this.openSheet('Status', h('div', {}, table, rename, h('details', {}, h('summary', {}, 'Tagebuch'), logList(p.log))));
   }
 
   private settingsSheet() {
@@ -405,9 +473,8 @@ export class App {
     if (this.s.memorials.length) {
       const list = h('ul', { class: 'memorials' });
       for (const m of this.s.memorials) {
-        const sp = species(m.species);
         list.append(
-          h('li', {}, `${m.ending.reason === 'forest' ? '🌲' : '🪦'} ${sp.stageNames[m.stage][m.variant] ?? sp.name} – ${Math.floor(m.ending.ageDays)} Tage`),
+          h('li', {}, `${m.ending.reason === 'forest' ? '🌲' : '🪦'} ${m.name ? `${m.name} (${stageName(m)})` : stageName(m)} – ${Math.floor(m.ending.ageDays)} Tage`),
         );
       }
       body.append(h('details', {}, h('summary', {}, 'Frühere Tiere'), list));

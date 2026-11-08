@@ -5,6 +5,7 @@ export const hedgehog: SpeciesDef = {
   name: 'Igel',
   article: 'der',
   homeName: 'Laubhaufen',
+  nameIdeas: ['Pieks', 'Stachel', 'Kugel', 'Hedi', 'Pünktchen', 'Krümel', 'Igor', 'Bürste'],
   colors: { floor: '#6f7f3a', wall: '#e6e3c4', wallDark: '#cfcaa3' },
   palette: {
     o: '#2b1a10',

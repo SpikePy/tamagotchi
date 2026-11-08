@@ -103,7 +103,7 @@ export function endLife(s: GameState, reason: 'forest' | 'death', cause: string,
   const p = s.pet!;
   const ending = { at: s.clock, reason, cause, ageDays: ageDays(p, s.clock) };
   addLog(p, s.clock, reason === 'forest' ? 'In den Wald zurückgezogen.' : `Gestorben (${cause}).`);
-  s.memorials.unshift({ species: p.species, stage: p.stage, variant: p.variant, ending, log: p.log });
+  s.memorials.unshift({ species: p.species, name: p.name, stage: p.stage, variant: p.variant, ending, log: p.log });
   if (s.memorials.length > 20) s.memorials.length = 20;
   s.ending = ending;
   s.pet = null;

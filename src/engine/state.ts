@@ -14,6 +14,7 @@ export interface LogEntry {
 
 export interface Pet {
   species: string;
+  name: string | null; // wird nach dem Schlüpfen vergeben
   stage: Stage;
   variant: Variant;
   createdAt: number;
@@ -60,6 +61,7 @@ export interface Ending {
 
 export interface Memorial {
   species: string;
+  name?: string | null;
   stage: Stage;
   variant: Variant;
   ending: Ending;
@@ -101,6 +103,7 @@ export function newGame(now: number): GameState {
 export function newPet(species: string, clock: number): Pet {
   return {
     species,
+    name: null,
     stage: 'egg',
     variant: 'normal',
     createdAt: clock,

@@ -23,6 +23,7 @@ export interface SpeciesDef {
   name: string; // "Fuchs"
   article: string; // "der"
   homeName: string; // "Fuchsbau"
+  nameIdeas: string[]; // Vorschläge beim Benennen
   colors: { floor: string; wall: string; wallDark: string };
   palette: Palette;
   variantPalettes: Partial<Record<Variant, Partial<Palette>>>;

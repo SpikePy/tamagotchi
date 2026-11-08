@@ -70,6 +70,61 @@ body {
   margin-left: auto;
   font-weight: 600;
   color: var(--muted);
+  text-align: right;
+  line-height: 1.1;
+}
+
+.hud-name small {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+}
+
+.name-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.name-form p {
+  margin: 4px 0 10px;
+}
+
+.name-input {
+  width: 100%;
+  font: inherit;
+  font-size: 20px;
+  text-align: center;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid var(--btn-border);
+  background: #fff;
+  color: var(--ink);
+}
+
+.name-input:focus {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.chip {
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn);
+  color: var(--ink);
+  cursor: pointer;
 }
 
 .screen-wrap {

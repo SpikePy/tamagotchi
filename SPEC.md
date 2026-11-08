@@ -49,6 +49,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 - **Entwicklung hängt von der Pflege ab** (ergänzt): Bei jedem Phasenwechsel entscheiden Pflegefehler und Disziplin, welche Variante das Tier wird. Gute Pflege ergibt eine schöne, zufriedene Form. Schlechte Pflege ergibt eine verwahrloste oder freche Form. Vorschlag: zwei Varianten für das Kind, zwei für den Teenager und drei für den Erwachsenen.
 - **Lebensende** (ergänzt): Ein erwachsenes Tier lebt nicht ewig. Wie lange es lebt, hängt von der Pflege ab (Vorschlag: 10–25 Tage als Erwachsener). Danach "zieht in den Wald zurück".
+- **Name:** Direkt nach dem Schlüpfen fragt die App nach einem Namen. Dazu gibt es ein paar Vorschläge passend zur Tierart, maximal 14 Zeichen. Im Statusbildschirm kann man das Tier jederzeit umbenennen. Der Name steht im HUD, in den Meldungen, im Tagebuch und in der Liste der früheren Tiere.
 - Nach dem Lebensende oder dem Tod kann man ein neues Ei starten.
 
 ## 5. Tierarten
@@ -110,7 +111,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 - Ist das Tier krank, sieht man das an einem Symbol (zum Beispiel einem Totenkopf oder einem Thermometer), und es bewegt sich träge.
 - Um es wieder gesund zu machen, **muss man ihm Medizin geben**. Vorschlag: Je nach Schwere sind 1–2 Dosen nötig (ergänzt).
-- Medizin bei einem gesunden Tier hat keine Wirkung, und das Tier lehnt sie ab.
+- **Unnötige Medizin:** Gibt man einem gesunden Tier Medizin, zählt das als **Pflegefehler**, und die Laune sinkt um 1 Herz.
 - Ein krankes Tier hat keine Lust zu spielen und isst weniger (ergänzt).
 
 ### 6.6 Disziplin (ergänzt)
@@ -158,6 +159,18 @@ Die Hauptansicht zeigt das Tier in seinem Zuhause, die Haufen und alle Statussym
 | Status | Bildschirm mit allen Werten aus Abschnitt 3 |
 
 Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
+
+**Einrichtung:** Links im Raum steht ein **Körbchen**. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum.
+
+**Animationen:**
+- **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.
+- **Schlüpfen:** Die obere Schalenhälfte fliegt weg, das Baby taucht aus der unteren Hälfte auf, und es funkelt. Danach kommt der Dialog für den Namen.
+- **Essen:** Das Tier bleibt stehen, das Futter wird in drei Bissen kleiner. Bei einem Snack hüpft es danach.
+- **Freude:** Bei einem gewonnenen Spiel oder einem Snack hüpft es.
+- **Schimpfen:** Das Tier schüttelt sich.
+- **Entwicklung:** Der Bildschirm blitzt weiß auf, danach hüpft das Tier.
+- **Haufen:** Über den Haufen steigen Stinkewölkchen auf.
+- **Schlaf:** Über dem Körbchen schweben „Zzz“.
 
 ## 9. Offene Fragen
 

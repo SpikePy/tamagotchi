@@ -48,7 +48,7 @@ p = await page(null, 12);
 await sheet(p, 'choose'); await p.close();
 
 // 2) Erwachsener Prachtfuchs am Tag, mit Haufen
-p = await page(pet('fox', 'adult', 'great', { poops: [at(11)] }), 12);
+p = await page(pet('fox', 'adult', 'great', { name: 'Rudi', poops: [at(11)] }), 12);
 await p.evaluate(() => {}); await device(p, 'fox-day'); 
 // 3) Statusbildschirm
 await p.click('[data-id=status]'); await sheet(p, 'status');
@@ -60,12 +60,12 @@ const btns = await p.$$('.game-list .choice'); await btns[2].click(); await w(26
 await sheet(p, 'game-catch'); await p.close();
 
 // 6) Igel-Teenager schläft nachts, Licht aus
-p = await page(pet('hedgehog', 'teen', 'good', { weight: 22, asleep: true, lightOn: false, sleptInCycleMin: 200, tiredness: 50 }), 23);
+p = await page(pet('hedgehog', 'teen', 'good', { name: 'Pieks', weight: 22, asleep: true, lightOn: false, sleptInCycleMin: 200, tiredness: 50 }), 23);
 await device(p, 'hedgehog-night'); await p.close();
 
 }
 // 7) Igelbaby ist krank und ruft
-p = await page(pet('hedgehog', 'baby', 'normal', { weight: 6, hunger: 1, happy: 1, hatchedAt: at(2), stageStartedAt: at(2), sick: { since: at(14), doses: 2 }, poops: [at(10), at(14)], calls: { sick: { since: at(14), penalized: false }, poop: { since: at(14), penalized: false } } }), 15);
+p = await page(pet('hedgehog', 'baby', 'normal', { name: 'Krümel', weight: 6, hunger: 1, happy: 1, hatchedAt: at(2), stageStartedAt: at(2), sick: { since: at(14), doses: 2 }, poops: [at(10), at(14)], calls: { sick: { since: at(14), penalized: false }, poop: { since: at(14), penalized: false } } }), 15);
 await device(p, 'hedgehog-sick'); await p.close();
 
 await b.close();

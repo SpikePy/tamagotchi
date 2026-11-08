@@ -95,7 +95,11 @@ describe('Krankheit', () => {
     expect(p.sick).not.toBeNull();
     clean(s);
     while (p.sick) expect(giveMedicine(s).ok).toBe(true);
+    const m = p.careMistakesTotal;
+    p.happy = 3;
     expect(giveMedicine(s).ok).toBe(false);
+    expect(p.careMistakesTotal).toBe(m + 1);
+    expect(p.happy).toBe(2);
   });
 
   it('Hunger > 2 h auf 0 macht krank', () => {
@@ -120,5 +124,17 @@ describe('Disziplin', () => {
     p.calls.fake = { since: s.clock, penalized: false };
     expect(scold(s).ok).toBe(true);
     expect(p.discipline).toBe(25);
+  });
+});
+
+describe('Name', () => {
+  it('wird gekürzt, getrimmt und landet im Tagebuch', async () => {
+    const { renamePet } = await import('./actions');
+    const s = game();
+    run(s, MIN);
+    expect(renamePet(s, '   ').ok).toBe(false);
+    expect(renamePet(s, '  Rudi   der   Fuchs von nebenan ').ok).toBe(true);
+    expect(s.pet!.name).toBe('Rudi der Fuchs');
+    expect(s.pet!.log.at(-1)!.text).toContain('Rudi der Fuchs');
   });
 });

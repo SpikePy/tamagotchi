@@ -1,6 +1,6 @@
 import { RULES } from './config';
 import { GameState, Pet, hearts, newPet } from './state';
-import { Rng, SimEvent, addLog, fallAsleep, wake } from './sim';
+import { Rng, SimEvent, addLog, careMistake, fallAsleep, wake } from './sim';
 
 export interface ActionResult {
   ok: boolean;
@@ -19,6 +19,19 @@ function hatchedPet(s: GameState): Pet | null {
 export function startEgg(s: GameState, species: string) {
   s.pet = newPet(species, s.clock);
   s.ending = null;
+}
+
+export const NAME_MAX = 14;
+
+export function renamePet(s: GameState, raw: string): ActionResult {
+  const p = s.pet;
+  if (!p) return no('Da ist noch niemand.');
+  const name = raw.replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
+  if (!name) return no('Bitte gib einen Namen ein.');
+  const first = p.name === null;
+  p.name = name;
+  addLog(p, s.clock, first ? `Bekommt den Namen ${name}.` : `Heißt jetzt ${name}.`);
+  return yes(`Hallo, ${name}!`);
 }
 
 export function canAct(s: GameState) {
@@ -87,7 +100,13 @@ export function giveMedicine(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
   if (p.asleep) return no('Es schläft.');
-  if (!p.sick) return no('Es ist gesund und will keine Medizin.');
+  if (!p.sick) {
+    // unnötige Medizin: Pflegefehler und schlechte Laune
+    careMistake(p);
+    p.happy = Math.max(0, p.happy - 1);
+    addLog(p, s.clock, 'Unnötig Medizin bekommen.');
+    return no('Bäh! Es war doch gar nicht krank. Pflegefehler!');
+  }
   p.sick.doses--;
   if (p.sick.doses > 0) return yes('Bäh! Noch eine Dosis nötig.');
   p.sick = null;

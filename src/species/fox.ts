@@ -5,6 +5,7 @@ export const fox: SpeciesDef = {
   name: 'Fuchs',
   article: 'der',
   homeName: 'Fuchsbau',
+  nameIdeas: ['Rudi', 'Flinn', 'Feli', 'Rotpfote', 'Lumi', 'Fuchsia', 'Ronja', 'Pepper'],
   colors: { floor: '#8a6a45', wall: '#e9dcc0', wallDark: '#d3c3a2' },
   palette: {
     o: '#3b1f0e',
