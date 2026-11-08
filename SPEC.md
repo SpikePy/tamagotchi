@@ -82,6 +82,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - Es braucht **8 Stunden Schlaf pro Tag**. Die müssen nicht am Stück sein, mehrere Nickerchen zählen zusammen.
 - Bleibt das Licht an, während es schläft, zählt das als Pflegefehler (ergänzt), weil es nicht gut schlafen kann.
 - Während es schläft, kann man nicht füttern und nicht spielen (ergänzt).
+- **Müdigkeit beim Schlüpfen:** Sie richtet sich nach der Uhrzeit, so als wäre das Tier um 7 Uhr ausgeschlafen aufgewacht. Die Müdigkeit steigt im Wachzustand in 16 Stunden von 0 auf 100 %. Schlüpft es zum Beispiel um 18 Uhr, startet es mit etwa 69 % und schläft gegen 23 Uhr ein. Schlüpft es nachts zwischen 23 und 7 Uhr, ist es sofort müde.
 - Ist die Müdigkeit bei 100 %, schläft es von selbst ein. Das Licht bleibt dabei an, bis man es ausmacht.
 - **Sobald es insgesamt 8 Stunden geschlafen hat, wacht es automatisch auf.** Nickerchen zählen mit. Dieses Aufwachen gilt als „morgens“, danach beginnt der Zähler wieder bei 0.
 - Man kann es auch vorher wecken, dann ist es aber schlecht gelaunt (ergänzt). Was es bis dahin geschlafen hat, zählt für die 8 Stunden mit.

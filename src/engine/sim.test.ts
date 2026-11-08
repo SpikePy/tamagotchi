@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DAY, HOUR, MIN } from './config';
 import { newGame } from './state';
-import { advance } from './sim';
+import { advance, tirednessAtHatch } from './sim';
 import { clean, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg } from './actions';
 
 const T0 = new Date(2026, 0, 1, 8, 0).getTime();
@@ -149,5 +149,28 @@ describe('Spielen', () => {
     expect(p.happy).toBe(2);
     finishGame(s, true);
     expect(p.happy).toBe(3);
+  });
+});
+
+describe('Müdigkeit beim Schlüpfen', () => {
+  const at = (h: number) => new Date(2026, 0, 1, h, 0).getTime();
+  it('richtet sich nach der Uhrzeit', () => {
+    expect(tirednessAtHatch(at(7))).toBe(0);
+    expect(tirednessAtHatch(at(18))).toBeCloseTo(68.75);
+    expect(tirednessAtHatch(at(23))).toBe(100);
+    expect(tirednessAtHatch(at(2))).toBe(100);
+  });
+  it('Schlüpfen um 18 Uhr: schläft gegen 23 Uhr von selbst ein', () => {
+    const s = newGame(at(18) - MIN);
+    startEgg(s, 'fox');
+    const p = () => s.pet!;
+    let t = at(18) - MIN;
+    const step = (ms: number) => advance(s, (t += ms), never);
+    step(MIN + 1000);
+    expect(p().stage).toBe('baby');
+    step(4 * HOUR + 50 * MIN);
+    expect(p().asleep).toBe(false);
+    step(15 * MIN);
+    expect(p().asleep).toBe(true);
   });
 });

@@ -20,6 +20,7 @@ export const RULES = {
   overweightSickChancePerMin: 0.03 / 60,
 
   sleepNeedMin: 8 * 60, // nach 8 h Schlaf (insgesamt) wacht es auf
+  dayStartHour: 7, // beim Schlüpfen: Müdigkeit so, als wäre es um 7 Uhr aufgewacht
   awakeMinUntilTired: 16 * 60,
   minTirednessToSleep: 30,
   sleepyCallAt: 80,

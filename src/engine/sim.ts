@@ -139,6 +139,13 @@ function evolve(p: Pet, next: Stage, clock: number, events: SimEvent[]) {
   events.push({ kind: 'evolved', stage: next, variant });
 }
 
+/** Müdigkeit beim Schlüpfen passend zur Uhrzeit (als wäre es morgens aufgewacht). */
+export function tirednessAtHatch(clock: number): number {
+  const d = new Date(clock);
+  const hours = (d.getHours() + d.getMinutes() / 60 - RULES.dayStartHour + 24) % 24;
+  return Math.min(100, (hours * 60 * 100) / RULES.awakeMinUntilTired);
+}
+
 function hatch(p: Pet, clock: number, rng: Rng, events: SimEvent[]) {
   p.stage = 'baby';
   p.variant = 'normal';
@@ -147,6 +154,7 @@ function hatch(p: Pet, clock: number, rng: Rng, events: SimEvent[]) {
   p.weight = RULES.baseWeight.baby;
   p.hunger = 2;
   p.happy = 2;
+  p.tiredness = tirednessAtHatch(clock);
   p.poopInMin = poopInterval(p, rng);
   addLog(p, clock, 'Geschlüpft!');
   events.push({ kind: 'hatched' });
