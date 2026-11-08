@@ -257,6 +257,7 @@ export function petSprite(
     colors: paletteFor(sp, pet.variant, look?.coat, breed) as unknown as ColorMap,
     w: sprite[0].length,
     h: sprite.length,
+    facesLeft: !opts.sleeping && !!breed?.facesLeft,
   };
 }
 

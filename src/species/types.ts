@@ -32,6 +32,8 @@ export interface Breed {
   patterns?: Pattern[];
   adultGrams: number;
   sleep: SleepShape;
+  /** Sprite schaut nach links (Seitenansicht), z. B. Dackel */
+  facesLeft?: boolean;
 }
 
 export interface GameTheme {
@@ -55,7 +57,7 @@ export interface SpeciesDef {
   /** Schlafpose (eingerollt) */
   sleep: SleepShape;
   /** Deko im Raum passend zur Art */
-  room?: { scene?: 'room' | 'forest' | 'garden'; floor?: 'grass' | 'leaves'; scratchingPost?: boolean; ball?: boolean };
+  room?: { scene?: 'room' | 'forest' | 'garden'; floor?: 'grass' | 'leaves'; scratchingPost?: boolean; ball?: boolean; bone?: boolean; socks?: boolean };
   /** optional: zufällige Fellfarbe + Muster pro Tier */
   coats?: Coat[];
   patterns?: Pattern[];

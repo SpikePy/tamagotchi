@@ -74,7 +74,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
   |---|---|---|---|---|
   | Labrador | Schlappohren | Schwarz, Blond, Schoko | einfarbig | 30 kg |
   | Schäferhund | Stehohren | Schwarz-Braun, Grau | Sattel | 32 kg |
-  | Dackel | eigene Seitenansicht: langer, niedriger Körper, kurze Beine, lange Schnauze, Schlappohr | Rot, Schwarz-Braun | einfarbig / Abzeichen | 9 kg |
+  | Dackel | eigene Seitenansicht: langer, niedriger Körper, kurze Beine, lange Schnauze, Schlappohr; schaut immer in Laufrichtung | Rot, Schwarz-Braun | einfarbig / Abzeichen | 9 kg |
   | Mops | kleine Ohren, dunkle platte Schnauze, Ringelschwanz | Beige, Schwarz | einfarbig | 7 kg |
   | Husky | Stehohren, Ringelschwanz, blaue Augen | Grau-, Schwarz-, Rot-Weiß | einfarbig / weiße Pfoten | 23 kg |
   | Beagle | lange Schlappohren, weiße Schwanzspitze | Dreifarbig, Zweifarbig | Sattel / gefleckt | 12 kg |
@@ -243,7 +243,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Deko je Tierart:** Sie ist als Daten in der Tierart angelegt (`room`).
 - **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
-- **Hund:** auf dem Boden liegt ein Tennisball.
+- **Hund:** Auf dem Boden liegen ein Tennisball und ein **Kauknochen**, und neben dem Hundebett liegt ein Paar geklauter **Menschensocken** (rot und blau gestreift).
 - **Zimmer (Katze, Hund):** An der Wand hängt ein **Bild** mit einer kleinen Landschaft, auf dem Boden liegt ein ovaler **Teppich** mit Randmuster.
 - **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt. Eine Zimmerpflanze gibt es nicht mehr.
 

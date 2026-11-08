@@ -95,6 +95,7 @@ export const DOG_BREEDS: Breed[] = [
     // eigene, handgezeichnete Seitenansicht: langer, niedriger Körper, kurze Beine
     ...shape({ ears: 'floppyLong', tail: 'straight', short: true }),
     sprites: DACKEL,
+    facesLeft: true,
     coats: [
       { name: 'Rot', colors: { a: '#b0582a', c: '#8a4220', b: '#c06a38' } },
       { name: 'Schwarz-Braun', colors: { a: '#2a2420', c: '#1e1a18', b: '#b5793e', d: '#b5793e', ...DARK_EYES }, patterns: ['points'] },
@@ -198,7 +199,7 @@ export const dog: SpeciesDef = {
   },
   // Standard-Gewichte (Labrador); je Rasse wird über breeds[].adultGrams gerechnet
   weightGrams: { baby: 450, child: 6000, teen: 20000, adult: 30000 },
-  room: { ball: true },
+  room: { ball: true, bone: true, socks: true },
   breeds: DOG_BREEDS,
   egg: { shell: '#f6efe4', spots: '#c8925a' },
   sprites: DOG_BREEDS[0].sprites,

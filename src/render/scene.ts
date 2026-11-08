@@ -82,6 +82,13 @@ const POST = [
 ];
 const POST_COLORS: ColorMap = { o: '#4a3a30', m: '#b9a58a', r: '#d8c08e', R: '#b89a62', l: '#5a4a40', y: '#e2384d' };
 
+// Kauknochen und Socken (Hund), in voller Rasterauflösung
+const BONE = ['.oo......oo.', 'owwoooooowwo', '.owwwwwwwwo.', '.owwwwwwwso.', 'owwoooooowso', '.oo......oo.'];
+const BONE_COLORS: ColorMap = { o: '#8a7a5e', w: '#f4ecd8', s: '#cbbd9e' };
+const SOCK = ['ooooo.....', 'orwrwo....', 'orwrwo....', 'orwrwooooo', 'orrrrrrrro', '.oooooooo.'];
+const SOCK_RED: ColorMap = { o: '#6a2a2a', r: '#d8404a', w: '#f4f4f4' };
+const SOCK_BLUE: ColorMap = { o: '#2a3a6a', r: '#4a6ad8', w: '#f4f4f4' };
+
 // Spielball am Kratzbaum
 const TOY_BALL = ['.rr.', 'rwrr', 'rrrr', '.rr.'];
 const TOY_COLORS: ColorMap = { r: '#e2384d', w: '#ffd0d6' };
@@ -569,6 +576,11 @@ export class Scene {
       for (const [x, y, c, shape] of LEAVES) drawMap(ctx, LEAF_SHAPES[shape], { x: LEAF_COLORS[c] }, x, y);
     }
     if (room.ball) drawMap(ctx, BALL, BALL_COLORS, 6, FLOOR_Y + 2);
+    if (room.bone) drawPixels(ctx, BONE, BONE_COLORS, 27, FLOOR_Y + 4);
+    if (room.socks) {
+      drawPixels(ctx, SOCK, SOCK_RED, 51, FLOOR_Y + 3.5);
+      drawPixels(ctx, SOCK.map((r) => [...r].reverse().join('')), SOCK_BLUE, 56.5, FLOOR_Y + 4.5);
+    }
     if (room.scratchingPost) drawMap(ctx, POST, POST_COLORS, POST_X, FLOOR_Y + 1 - POST.length);
   }
 
@@ -749,13 +761,15 @@ export class Scene {
         gaze = Math.sin((t - a.start) / 450) > 0 ? 1 : -1;
       }
     }
-    const flip = face < 0;
+    // Seitenansicht-Sprites (Dackel) schauen von Haus aus nach links
+    const flip = base.facesLeft ? face > 0 : face < 0;
     const a = this.act;
     const grooming = !m && a.kind === 'groom';
     const stretching = !m && a.kind === 'stretch';
     const k = (t - a.start) / Math.max(1, a.until - a.start);
     const blink = t % 3500 < 150;
     // Blickrichtung ist im Bild gemeint; bei gespiegeltem Sprite umdrehen
+    if (base.facesLeft) gaze = 0; // Seitenansicht: der Kopf zeigt schon die Richtung
     const img = petSprite(sp, p, { eyesClosed: blink || grooming || stretching, gaze: flip ? -gaze : gaze });
 
     let x = this.walkX;
