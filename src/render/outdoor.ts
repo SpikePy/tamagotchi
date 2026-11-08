@@ -29,7 +29,7 @@ const hash = (x: number, y: number) => (((x * 73856093) ^ (y * 19349663)) >>> 0)
 
 function px(ctx: CanvasRenderingContext2D, color: string, x: number, y: number, w = 1, h = 1) {
   ctx.fillStyle = color;
-  ctx.fillRect(Math.round(x), Math.round(y), w, h);
+  ctx.fillRect(Math.round(x * 2) / 2, Math.round(y * 2) / 2, w, h); // auf das 0,5er-Pixelraster
 }
 
 function drawSky(ctx: CanvasRenderingContext2D, sky: Sky, clock: number) {
@@ -97,6 +97,8 @@ function drawForest(ctx: CanvasRenderingContext2D) {
   // Wiese mit Verlauf und Grashalmen
   bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#8cc65e', '#5e9a3e', 4);
   grassBlades(ctx, ['#4f8a34', '#9ad46a', '#6aa84a']);
+  // Busch links vorne
+  drawBush(ctx, 7, 36, 7, 5.5);
 }
 
 function drawGarden(ctx: CanvasRenderingContext2D) {
@@ -142,6 +144,38 @@ function drawGarden(ctx: CanvasRenderingContext2D) {
     px(ctx, c, x, GROUND_Y - 4, 1, 3);
     px(ctx, '#f2a020', x, GROUND_Y - 3);
   }
+}
+
+/** runder Busch im feinen Pixelraster: Umriss, Licht oben links, Schatten unten rechts, Blätter-Textur */
+function drawBush(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: number, ry: number) {
+  const P = 0.5;
+  // mehrere Blätterbüschel ergeben eine unregelmäßige Form
+  const blobs: [number, number, number, number][] = [
+    [cx, cy, rx, ry],
+    [cx - rx * 0.5, cy - ry * 0.6, rx * 0.55, ry * 0.65],
+    [cx + rx * 0.3, cy - ry * 0.85, rx * 0.55, ry * 0.6],
+    [cx + rx * 0.8, cy - ry * 0.15, rx * 0.45, ry * 0.6],
+    [cx - rx * 0.9, cy + ry * 0.05, rx * 0.4, ry * 0.6],
+  ];
+  const ground = 41; // steht auf dem Boden
+  const inside = (x: number, y: number) =>
+    y <= ground && blobs.some(([bx, by, brx, bry]) => ((x - bx) / brx) ** 2 + ((y - by) / bry) ** 2 <= 1);
+  for (let y = cy - ry * 1.6; y <= ground; y += P)
+    for (let x = cx - rx * 1.4; x <= cx + rx * 1.4; x += P) {
+      const px0 = x + P / 2;
+      const py0 = y + P / 2;
+      if (!inside(px0, py0)) continue;
+      const edge = !inside(px0 - P, py0) || !inside(px0 + P, py0) || !inside(px0, py0 - P) || (py0 + P <= ground && !inside(px0, py0 + P));
+      const n = hash(Math.round(x * 2) + 500, Math.round(y * 2));
+      const light = (px0 - cx) / rx + (py0 - cy) / ry;
+      let c = n % 5 === 0 ? '#4f8a3c' : n % 7 === 0 ? '#2f5a26' : '#3f7432';
+      if (light < -0.7) c = n % 3 === 0 ? '#7cc45a' : '#5fa84a';
+      else if (light > 0.6) c = n % 4 === 0 ? '#2f5a26' : '#28501f';
+      if (edge) c = '#1f3a18';
+      px(ctx, c, x, y, P, P);
+    }
+  // ein paar dunkle Beeren
+  for (const [bx, by] of [[cx - 3, cy - 2], [cx + 2, cy - 4], [cx + 4, cy - 1], [cx - 1, cy - 5]]) px(ctx, '#5a2a6a', bx, by, P, P);
 }
 
 /** Hintergrund draußen. Gibt zurück, ob gerade Tag ist. */
