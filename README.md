@@ -42,11 +42,13 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 
 Alle Regeln stehen in der **[SPEC.md](SPEC.md)**.
 
-### URL-Parameter zum Testen
+### Cheat-Codes per URL
 
-Setzen Werte des gerade angezeigten Tiers, z. B. https://spikepy.github.io/tamagotchi/?happy=4&hunger=4&sick=0
+Zum Beispiel https://spikepy.github.io/tamagotchi/?max=1 oder `?pet=Rudi&stage=erwachsen&form=pracht` oder `?pet=alle&hunger=4&poop=0`.
 
-`happy=0–4` · `hunger=0–4` · `sick=1|0` · `tired=0–100` · `sleep=1|0`
+`pet=Name|Nummer|alle` · `max=1` · `happy=0–4` · `hunger=0–4` · `sick=1|0` · `tired=0–100` · `sleep=1|0` · `discipline=0–100` · `weight=Gramm` · `poop=0–6` · `mistakes=0–99` · `stage=baby|kind|teen|erwachsen` · `form=gut|schlecht|pracht|normal|frech` · `age=Tage` · `name=Text` · `hatch=1`
+
+Alle Details stehen in der [SPEC.md](SPEC.md#7a-cheat-codes-per-url-parameter).
 
 ## Entwicklung
 

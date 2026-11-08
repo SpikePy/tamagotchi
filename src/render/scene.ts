@@ -475,7 +475,7 @@ export class Scene {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, 0.5);
     this.drawPicture(21, 8);
-    this.drawRug(30, 44.5, 12, 2.5);
+    this.drawRug(BOWL_X + 4.5, 44.5, 9, 2.5); // Teppich unter dem Napf
     this.drawWindow(clock);
   }
 

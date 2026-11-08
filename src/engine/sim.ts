@@ -127,8 +127,8 @@ export function chooseVariant(p: Pet, next: Stage): Variant {
   return 'cheeky';
 }
 
-function evolve(p: Pet, next: Stage, clock: number, events: SimEvent[]) {
-  const variant = chooseVariant(p, next);
+export function evolve(p: Pet, next: Stage, clock: number, events: SimEvent[], variant?: Variant) {
+  variant ??= chooseVariant(p, next);
   p.weight += RULES.baseWeight[next] - RULES.baseWeight[p.stage];
   p.stage = next;
   p.variant = variant;

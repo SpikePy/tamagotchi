@@ -5,6 +5,7 @@ import { App } from './ui/app';
 import { advance } from './engine/sim';
 import { applyUrlParams, hasUrlParams } from './engine/debug';
 import { save } from './storage';
+import { species, weightGrams } from './species';
 
 const state = load(Date.now());
 
@@ -13,7 +14,8 @@ const params = new URLSearchParams(location.search);
 let notice: string | null = null;
 if (hasUrlParams(params)) {
   advance(state, Date.now());
-  const changes = applyUrlParams(state, params);
+  // Gramm -> interne Einheiten über das Normalgewicht der Art/Rasse
+  const changes = applyUrlParams(state, params, Math.random, (p, grams) => grams / Math.max(1e-6, weightGrams(species(p.species), { ...p, weight: 1 })));
   save(state);
   history.replaceState(null, '', location.pathname);
   if (changes.length) notice = `🔧 ${changes.join(' · ')}`;

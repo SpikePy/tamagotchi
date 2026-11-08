@@ -174,19 +174,35 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 Stirbt das Tier, sieht man einen Abschiedsbildschirm mit Alter und Lebenslauf. Danach kann man ein neues Ei starten.
 
-## 7a. URL-Parameter (Testen)
+## 7a. Cheat-Codes per URL-Parameter
 
-Über die Adresse kann man Werte des **gerade angezeigten** Tiers direkt setzen, zum Beispiel `https://spikepy.github.io/tamagotchi/?happy=4&sick=0&sleep=1`. Nach dem Anwenden werden die Parameter aus der Adresse entfernt. Unten erscheint eine Meldung mit den Änderungen, und im Tagebuch steht ein Eintrag.
+Über die Adresse kann man die Werte der Tiere direkt setzen, wie Cheat-Codes, zum Beispiel:
+- `https://spikepy.github.io/tamagotchi/?max=1` macht das angezeigte Tier perfekt.
+- `…/?pet=Rudi&stage=erwachsen&form=pracht` macht Rudi sofort zum erwachsenen Prachtfuchs.
+- `…/?pet=alle&hunger=4&poop=0` macht alle satt und sauber.
+
+Nach dem Anwenden verschwinden die Parameter aus der Adresse. Unten erscheint eine Meldung mit den Änderungen, und im Tagebuch des Tiers steht ein Eintrag.
 
 | Parameter | Werte | Wirkung |
 |---|---|---|
+| `pet` | Name, Nummer (ab 1) oder `alle` | Welches Tier gemeint ist. Ohne diesen Parameter gilt es für das angezeigte Tier. |
+| `max` | 1 | Alles perfekt: satt, gute Laune, gesund, sauber, ausgeschlafen, 100 % Disziplin, Normalgewicht |
 | `happy` | 0–4 | Laune (Segmente) |
-| `hunger` | 0–4 | Hunger (Segmente) |
+| `hunger` | 0–4 | Sättigung (Segmente) |
 | `sick` | 1 / 0 | krank machen bzw. heilen |
 | `tired` | 0–100 | Müdigkeit in % |
-| `sleep` | 1 / 0 | schlafen schicken (Licht aus) bzw. aufwecken (ohne Laune-Abzug, gilt als ausgeschlafen) |
+| `sleep` | 1 / 0 | schlafen schicken (Licht aus) bzw. aufwecken (gilt als ausgeschlafen) |
+| `discipline` | 0–100 | Disziplin in % |
+| `weight` | Gramm | Gewicht in echten Gramm (wird je Art bzw. Rasse umgerechnet) |
+| `poop` | 0–6 | Anzahl Haufen (0 = sauber) |
+| `mistakes` | 0–99 | Pflegefehler (0 setzt auch den Gesamtzähler zurück) |
+| `stage` | `baby`, `kind`, `teen`, `erwachsen` | springt in diese Entwicklungsstufe |
+| `form` | `gut`, `schlecht`, `pracht`, `normal`, `frech` | Entwicklungsform (zusammen mit `stage` oder allein) |
+| `age` | Tage | Alter in Tagen |
+| `name` | Text | Name (max. 14 Zeichen) |
+| `hatch` | 1 | Ei schlüpft sofort |
 
-Bei einem Ei werden die Parameter ignoriert.
+Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 
 ## 8. UI
 
@@ -252,7 +268,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Igel:** lebt draußen **im Garten**: eine **Hecke aus einzelnen Blättern**, ein **Holzzaun mit spitzen Latten**, Maserung, Nägeln und Schatten, ein Busch mit roten Beeren, **Tulpen**, ein Stein und Rasen mit Herbstlaub. Der Laubhaufen besteht aus vielen einzelnen bunten Blättern. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 
-**Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein **flacher**, geflochtener Weidenkorb mit Flechtrand und Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Links im Raum steht ein **Futternapf** (bzw. Stein/Tonschale draußen). Die Haufen landen zwischen Napf und Körbchen.
+**Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein **flacher**, geflochtener Weidenkorb mit Flechtrand und Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Links im Raum steht ein **Futternapf** auf einem kleinen ovalen **Teppich** (bzw. Stein/Tonschale draußen). Die Haufen landen zwischen Napf und Körbchen.
 
 **Fenster:** An der Wand hängt ein großes Fenster, durch das man die echte Tageszeit sieht:
 - Die **Sonne** wandert zwischen 7 und 20 Uhr im Bogen durchs Fenster. Sie geht links unten auf, steht mittags oben und geht rechts unten unter.
@@ -263,7 +279,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
 - **Hund:** Auf dem Boden liegen ein Tennisball und ein **Kauknochen**, und neben dem Hundebett liegt ein Paar geklauter **Menschensocken** (rot und blau gestreift).
-- **Zimmer (Katze, Hund):** An der Wand hängt ein **Bild** mit einer kleinen Landschaft, auf dem Boden liegt ein ovaler **Teppich** mit Randmuster.
+- **Zimmer (Katze, Hund):** An der Wand hängt ein **Bild** mit einer kleinen Landschaft. Unter dem Napf liegt ein ovaler **Teppich** mit Randmuster.
 - **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und wackelt leicht. Eine Zimmerpflanze gibt es nicht mehr.
 
 **Verhalten (wach):** Die Tiere bewegen sich zufällig und nie gleich:
