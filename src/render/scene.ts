@@ -2,8 +2,10 @@ import { MIN, RULES } from '../engine/config';
 import { activePet, hearts, type GameState, type Pet } from '../engine/state';
 import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
-import { ColorMap, ICONS, drawMap, eggColors, eggMap, petSprite } from './pixels';
-import { PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoor } from './outdoor';
+import { ColorMap, ICONS, RES, drawMap, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
+import { Critters } from './critters';
+import { cloud, glow, shadeHex } from './fx';
+import { PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoor, skyState } from './outdoor';
 
 export const SCREEN_W = 64;
 export const SCREEN_H = 48;
@@ -124,6 +126,10 @@ export class Scene {
   private lastFrame = performance.now();
   private env: SceneKind = 'room';
   private shownPetId: string | null = null;
+  private bg = hiResCanvas(SCREEN_W, SCREEN_H);
+  private bgKey = '';
+  private bgDay = true;
+  private critters = new Critters();
 
   /** Animationen zurücksetzen (z. B. beim Umschalten auf ein anderes Tier) */
   reset() {
@@ -135,9 +141,11 @@ export class Scene {
   }
 
   constructor(canvas: HTMLCanvasElement) {
-    canvas.width = SCREEN_W;
-    canvas.height = SCREEN_H;
+    canvas.width = SCREEN_W * RES;
+    canvas.height = SCREEN_H * RES;
     this.ctx = canvas.getContext('2d')!;
+    this.ctx.setTransform(RES, 0, 0, RES, 0, 0);
+    this.ctx.imageSmoothingEnabled = false;
   }
 
   effect(kind: FxKind) {
@@ -181,13 +189,28 @@ export class Scene {
     const sp = species(p?.species ?? s.memorials[0]?.species ?? 'fox');
 
     this.env = sp.room?.scene ?? 'room';
-    if (this.env === 'room') this.drawRoom(sp, s.clock, t);
-    else {
-      const day = drawOutdoor(ctx, this.env, s.clock);
-      this.drawDecor(sp, t);
-      if (!day) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
+    // Hintergrund ändert sich höchstens einmal pro Minute -> zwischenspeichern
+    const bgKey = `${this.env}|${sp.id}|${Math.floor(s.clock / MIN)}`;
+    if (bgKey !== this.bgKey) {
+      const main = this.ctx;
+      this.ctx = this.bg.getContext('2d')!;
+      this.ctx.clearRect(0, 0, SCREEN_W, SCREEN_H);
+      if (this.env === 'room') {
+        this.drawRoom(sp, s.clock);
+        this.drawDecor(sp, t, 'static');
+        this.bgDay = true;
+      } else {
+        this.bgDay = drawOutdoor(this.ctx, this.env, s.clock);
+        this.drawDecor(sp, t, 'static');
+        if (!this.bgDay) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
+      }
+      this.nestBack();
+      this.ctx = main;
+      this.bgKey = bgKey;
     }
-    this.nestBack();
+    ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
+    this.drawDecor(sp, t, 'anim');
+    this.critters.draw(ctx, this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN);
 
     if (!p) {
       this.nestFront();
@@ -289,18 +312,40 @@ export class Scene {
     else drawNestFront(this.ctx, this.env);
   }
 
-  private drawRoom(sp: SpeciesDef, clock: number, t: number) {
+  private drawRoom(sp: SpeciesDef, clock: number) {
     const ctx = this.ctx;
-    ctx.fillStyle = sp.colors.wall;
+    // Wand mit leichtem Verlauf und Tapetenmuster
+    const wall = ctx.createLinearGradient(0, 0, 0, FLOOR_Y);
+    wall.addColorStop(0, sp.colors.wall);
+    wall.addColorStop(1, sp.colors.wallDark);
+    ctx.fillStyle = wall;
     ctx.fillRect(0, 0, SCREEN_W, FLOOR_Y);
     ctx.fillStyle = sp.colors.wallDark;
-    for (let x = 0; x < SCREEN_W; x += 8) ctx.fillRect(x, 0, 1, FLOOR_Y);
-    ctx.fillStyle = sp.colors.floor;
+    for (let x = 0; x < SCREEN_W; x += 8) ctx.fillRect(x, 0, 0.5, FLOOR_Y);
+    ctx.globalAlpha = 0.35;
+    for (let y = 2; y < FLOOR_Y - 3; y += 4)
+      for (let x = (y / 4) % 2 ? 2 : 6; x < SCREEN_W; x += 8) {
+        ctx.fillRect(x - 0.25, y - 0.75, 0.5, 1.5);
+        ctx.fillRect(x - 0.75, y - 0.25, 1.5, 0.5);
+      }
+    ctx.globalAlpha = 1;
+    // Dielenboden
+    const floor = ctx.createLinearGradient(0, FLOOR_Y, 0, SCREEN_H);
+    floor.addColorStop(0, shadeHex(sp.colors.floor, -0.12));
+    floor.addColorStop(1, shadeHex(sp.colors.floor, 0.08));
+    ctx.fillStyle = floor;
     ctx.fillRect(0, FLOOR_Y, SCREEN_W, SCREEN_H - FLOOR_Y);
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fillRect(0, FLOOR_Y, SCREEN_W, 1);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    for (let i = 0, y = FLOOR_Y + 2; y < SCREEN_H; y += 2.5, i++) {
+      ctx.fillRect(0, y, SCREEN_W, 0.25);
+      for (let x = (i * 13) % 17; x < SCREEN_W; x += 17) ctx.fillRect(x, y - 2.5, 0.25, 2.5);
+    }
+    // Fußleiste
+    ctx.fillStyle = shadeHex(sp.colors.wallDark, -0.25);
+    ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, 1.5);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, 0.25);
     this.drawWindow(clock);
-    this.drawDecor(sp, t);
   }
 
   /** Fenster: Sonne (7–20 Uhr) bzw. Mond wandern im Bogen über den Himmel */
@@ -313,9 +358,17 @@ export class Scene {
     const f = day ? (h - SUNRISE) / (SUNSET - SUNRISE) : ((h - SUNSET + 24) % 24) / (24 - SUNSET + SUNRISE);
     const edge = Math.min(f, 1 - f); // nahe 0 = Morgen/Abend
 
+    // Rahmen
     ctx.fillStyle = '#5a4630';
     ctx.fillRect(WIN.x - 1, WIN.y - 1, WIN.w + 2, WIN.h + 2);
-    ctx.fillStyle = day ? (edge < 0.08 ? '#f4b27a' : edge < 0.16 ? '#c9d9e8' : '#9fd6f5') : '#1d2147';
+    ctx.fillStyle = '#7a5c3c';
+    ctx.fillRect(WIN.x - 1, WIN.y - 1, WIN.w + 2, 0.5);
+    // Himmel als Verlauf
+    const sky = ctx.createLinearGradient(0, WIN.y, 0, WIN.y + WIN.h);
+    const [top, bottom] = !day ? ['#0f1330', '#262c5c'] : edge < 0.08 ? ['#e98f5c', '#f8c79a'] : edge < 0.16 ? ['#9fbcd8', '#e4ecf2'] : ['#6fb8ea', '#c4e6f8'];
+    sky.addColorStop(0, top);
+    sky.addColorStop(1, bottom);
+    ctx.fillStyle = sky;
     ctx.fillRect(WIN.x, WIN.y, WIN.w, WIN.h);
 
     ctx.save();
@@ -324,26 +377,49 @@ export class Scene {
     ctx.clip();
     if (!day) {
       ctx.fillStyle = '#e8e6c8';
-      for (const [sx, sy] of STARS) ctx.fillRect(WIN.x + sx, WIN.y + sy, 1, 1);
+      for (const [sx, sy] of STARS) ctx.fillRect(WIN.x + sx, WIN.y + sy, 0.5, 0.5);
+    } else {
+      const drift = (clock / MIN / 6) % 40;
+      cloud(ctx, WIN.x - 6 + drift, WIN.y + 4, 1);
+      cloud(ctx, WIN.x + 14 - drift * 0.6, WIN.y + 9, 0.7);
     }
     const icon = ICONS[day ? 'sun' : 'moon'];
-    const sx = WIN.x - 5 + Math.round(f * (WIN.w + 5));
-    const sy = WIN.y + WIN.h - Math.round(Math.sin(Math.PI * f) * (WIN.h - 1)) - 1;
+    const sx = WIN.x - 5 + f * (WIN.w + 5);
+    const sy = WIN.y + WIN.h - Math.sin(Math.PI * f) * (WIN.h - 1) - 1;
+    if (day) glow(ctx, sx + 2.5, sy + 2.5, 6, 'rgba(255,240,170,0.55)');
     drawMap(ctx, icon.map, icon.colors, sx, sy);
+    // Spiegelung auf der Scheibe
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(WIN.x + 3 + i * 1.2, WIN.y + WIN.h);
+      ctx.lineTo(WIN.x + 9 + i * 1.2, WIN.y);
+      ctx.lineTo(WIN.x + 9.6 + i * 1.2, WIN.y);
+      ctx.lineTo(WIN.x + 3.6 + i * 1.2, WIN.y + WIN.h);
+      ctx.fill();
+    }
     ctx.restore();
 
     // Fensterkreuz und Fensterbrett
     ctx.fillStyle = '#5a4630';
-    ctx.fillRect(WIN.x + WIN.w / 2 - 1, WIN.y, 1, WIN.h);
-    ctx.fillRect(WIN.x, WIN.y + WIN.h / 2, WIN.w, 1);
+    ctx.fillRect(WIN.x + WIN.w / 2 - 0.5, WIN.y, 1, WIN.h);
+    ctx.fillRect(WIN.x, WIN.y + WIN.h / 2 - 0.5, WIN.w, 1);
     ctx.fillStyle = '#7a5c3c';
     ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 2);
+    ctx.fillStyle = '#9a7a54';
+    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 0.5);
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 3, WIN.w + 6, 0.75);
   }
 
   /** Deko passend zur Tierart: Gras, Laub, Kratzbaum */
-  private drawDecor(sp: SpeciesDef, t: number) {
+  private drawDecor(sp: SpeciesDef, t: number, part: 'static' | 'anim') {
     const ctx = this.ctx;
     const room = sp.room ?? {};
+    if (part === 'anim') {
+      if (room.scratchingPost) this.drawPostToy(t);
+      return;
+    }
     if (room.floor === 'grass') {
       ctx.fillStyle = '#6aa84a';
       for (const [x, y] of GRASS_DOTS) ctx.fillRect(x, y, 1, 1);
@@ -353,19 +429,33 @@ export class Scene {
       for (const [x, y, c, shape] of LEAVES) drawMap(ctx, LEAF_SHAPES[shape], { x: LEAF_COLORS[c] }, x, y);
     }
     if (room.ball) drawMap(ctx, BALL, BALL_COLORS, 6, FLOOR_Y + 2);
-    if (room.scratchingPost) {
-      const top = FLOOR_Y + 1 - POST.length;
-      drawMap(ctx, POST, POST_COLORS, POST_X, top);
-      // Spielball pendelt an einer Schnur
-      const swing = Math.sin(t / 700);
-      const len = 6;
-      const ax = POST_X + 9;
-      const ay = top + 3;
-      ctx.fillStyle = POST_COLORS.l;
-      for (let i = 1; i <= len; i++) ctx.fillRect(Math.round(ax + swing * i * 0.35), ay + i, 1, 1);
-      ctx.fillStyle = POST_COLORS.y;
-      ctx.fillRect(Math.round(ax + swing * len * 0.35) - 1, ay + len + 1, 2, 2);
-    }
+    if (room.scratchingPost) drawMap(ctx, POST, POST_COLORS, POST_X, FLOOR_Y + 1 - POST.length);
+  }
+
+  /** Spielball am Kratzbaum pendelt an einer Schnur */
+  private drawPostToy(t: number) {
+    const ctx = this.ctx;
+    const top = FLOOR_Y + 1 - POST.length;
+    const swing = Math.sin(t / 700) * 0.35;
+    const len = 6;
+    const ax = POST_X + 9.5;
+    const ay = top + 3;
+    const bx = ax + swing * len;
+    const by = ay + len + 1;
+    ctx.strokeStyle = POST_COLORS.l;
+    ctx.lineWidth = 0.4;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(bx, by);
+    ctx.stroke();
+    ctx.fillStyle = POST_COLORS.y;
+    ctx.beginPath();
+    ctx.arc(bx, by + 1, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.beginPath();
+    ctx.arc(bx - 0.4, by + 0.6, 0.4, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   private drawPoops(p: Pet, t: number) {
@@ -485,7 +575,7 @@ export class Scene {
       if (this.walkX >= to) (this.walkX = to), (this.walkDir = -1);
       if (this.walkX <= from) (this.walkX = from), (this.walkDir = 1);
     }
-    let x = Math.round(this.walkX);
+    let x = this.walkX;
     const flip = this.walkDir < 0;
 
     let bob = p.sick ? 0 : Math.floor(t / 400) % 2;

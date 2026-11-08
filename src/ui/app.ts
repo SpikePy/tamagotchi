@@ -20,7 +20,7 @@ import { DAY, MIN, RULES } from '../engine/config';
 import { advance, ageDays, isOverweight, SimEvent, sleptLast24h } from '../engine/sim';
 import { CallType, GameState, MAX_PETS, Pet, activePet, hearts } from '../engine/state';
 import { notify, requestNotifications } from '../notify';
-import { drawMap, eggColors, eggMap, petSprite } from '../render/pixels';
+import { drawMap, eggColors, eggMap, hiResCanvas, petSprite } from '../render/pixels';
 import { Scene } from '../render/scene';
 import { SPECIES, lookName, randomLook, species, weightLabel } from '../species';
 import { save, wipe } from '../storage';
@@ -211,7 +211,7 @@ export class App {
     this.tabs.replaceChildren();
     for (const p of s.pets) {
       const sp = species(p.species);
-      const c = h('canvas', { class: 'pixel tab-pic', width: '20', height: '20' }) as HTMLCanvasElement;
+      const c = hiResCanvas(20, 20, 'tab-pic');
       const ctx = c.getContext('2d')!;
       if (p.stage === 'egg') drawMap(ctx, eggMap(), eggColors(sp, p.look), 4, 4);
       else {
@@ -410,7 +410,7 @@ export class App {
       this.closeSheet(true);
       this.act(r, 'heart');
     };
-    const pic = h('canvas', { class: 'pixel species-pic', width: '20', height: '20' }) as HTMLCanvasElement;
+    const pic = hiResCanvas(20, 20, 'species-pic');
     const img = petSprite(sp, p);
     drawMap(pic.getContext('2d')!, img.map, img.colors, (20 - img.w) / 2, (20 - img.h) / 2);
     form.append(
@@ -427,7 +427,7 @@ export class App {
   private chooseSheet() {
     const body = h('div', { class: 'choice-grid species-grid' });
     for (const sp of Object.values(SPECIES)) {
-      const c = h('canvas', { class: 'pixel species-pic', width: '20', height: '20' }) as HTMLCanvasElement;
+      const c = hiResCanvas(20, 20, 'species-pic');
       const img = petSprite(sp, { stage: 'child', variant: 'good' });
       drawMap(c.getContext('2d')!, img.map, img.colors, (20 - img.w) / 2, (20 - img.h) / 2);
       const b = h(

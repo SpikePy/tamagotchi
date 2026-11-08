@@ -4,6 +4,96 @@ import { sleepSprite } from './sleepers';
 
 export type ColorMap = Record<string, string>;
 
+/** Auflösung: 1 Spiel-Pixel = RES echte Pixel. Sprites werden geglättet hochskaliert. */
+export const RES = 8;
+
+function hexToRgb(c: string): [number, number, number] {
+  const n = parseInt(c.slice(1, 7), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function shade(c: string, f: number): string {
+  const [r, g, b] = hexToRgb(c);
+  const m = (v: number) => Math.max(0, Math.min(255, Math.round(f > 0 ? v + (255 - v) * f : v * (1 + f))));
+  return `#${((1 << 24) | (m(r) << 16) | (m(g) << 8) | m(b)).toString(16).slice(1)}`;
+}
+
+/** EPX/Scale2x: verdoppelt die Auflösung und rundet schräge Kanten ab */
+function scale2x(src: string[][]): string[][] {
+  const h = src.length;
+  const w = src[0].length;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= w || y >= h ? src[Math.max(0, Math.min(h - 1, y))][Math.max(0, Math.min(w - 1, x))] : src[y][x]);
+  const out: string[][] = Array.from({ length: h * 2 }, () => Array(w * 2).fill(''));
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const P = src[y][x];
+      const A = at(x, y - 1);
+      const B = at(x + 1, y);
+      const C = at(x - 1, y);
+      const D = at(x, y + 1);
+      out[y * 2][x * 2] = C === A && C !== D && A !== B ? A : P;
+      out[y * 2][x * 2 + 1] = A === B && A !== C && B !== D ? B : P;
+      out[y * 2 + 1][x * 2] = D === C && D !== B && C !== A ? C : P;
+      out[y * 2 + 1][x * 2 + 1] = B === D && B !== A && D !== C ? D : P;
+    }
+  return out;
+}
+
+const spriteCache = new Map<string, HTMLCanvasElement>();
+
+/** Sprite einmal in hoher Auflösung aufbereiten: Schattierung + 3× Scale2x (= 8×) */
+function spriteBitmap(map: string[], colors: ColorMap, flip: boolean): HTMLCanvasElement {
+  const key = `${flip ? 1 : 0}|${map.join('/')}|${Object.entries(colors).map(([k, v]) => k + v).join(',')}`;
+  const hit = spriteCache.get(key);
+  if (hit) return hit;
+  const h = map.length;
+  const w = map[0].length;
+  const ch = (x: number, y: number) => (x < 0 || y < 0 || x >= w || y >= h ? '.' : map[y][flip ? w - 1 - x : x]);
+  const isEdge = (c: string) => c === '.' || c === 'o' || !colors[c];
+  // Farbraster mit Licht oben links und Schatten unten rechts
+  let grid: string[][] = [];
+  for (let y = 0; y < h; y++) {
+    const row: string[] = [];
+    for (let x = 0; x < w; x++) {
+      const c = ch(x, y);
+      const col = colors[c];
+      if (!col) {
+        row.push('');
+        continue;
+      }
+      if (c === 'o' || c === 'E' || c === 'e' || c === 'n') {
+        row.push(col);
+        continue;
+      }
+      const dark = isEdge(ch(x + 1, y)) || isEdge(ch(x, y + 1));
+      const light = isEdge(ch(x - 1, y)) || isEdge(ch(x, y - 1));
+      row.push(dark && !light ? shade(col, -0.16) : light && !dark ? shade(col, 0.14) : col);
+    }
+    grid.push(row);
+  }
+  for (let i = 0; i < 3; i++) grid = scale2x(grid);
+  const cv = document.createElement('canvas');
+  cv.width = w * RES;
+  cv.height = h * RES;
+  const cx = cv.getContext('2d')!;
+  const img = cx.createImageData(cv.width, cv.height);
+  for (let y = 0; y < cv.height; y++)
+    for (let x = 0; x < cv.width; x++) {
+      const c = grid[y][x];
+      if (!c) continue;
+      const [r, g, b] = hexToRgb(c);
+      const i = (y * cv.width + x) * 4;
+      img.data[i] = r;
+      img.data[i + 1] = g;
+      img.data[i + 2] = b;
+      img.data[i + 3] = 255;
+    }
+  cx.putImageData(img, 0, 0);
+  if (spriteCache.size > 600) spriteCache.clear();
+  spriteCache.set(key, cv);
+  return cv;
+}
+
+/** Zeichnet ein Pixel-Sprite (Koordinaten in Spiel-Pixeln, ctx ist auf RES skaliert) */
 export function drawMap(
   ctx: CanvasRenderingContext2D,
   map: string[],
@@ -12,17 +102,21 @@ export function drawMap(
   y: number,
   flip = false,
 ) {
-  const w = map[0].length;
-  for (let row = 0; row < map.length; row++) {
-    const line = map[row];
-    for (let col = 0; col < w; col++) {
-      const ch = line[col];
-      const color = colors[ch];
-      if (!color) continue;
-      ctx.fillStyle = color;
-      ctx.fillRect(Math.round(x + (flip ? w - 1 - col : col)), Math.round(y + row), 1, 1);
-    }
-  }
+  const bmp = spriteBitmap(map, colors, flip);
+  const snap = (v: number) => Math.round(v * RES) / RES;
+  ctx.drawImage(bmp, snap(x), snap(y), map[0].length, map.length);
+}
+
+/** Canvas in hoher Auflösung, Koordinaten in Spiel-Pixeln */
+export function hiResCanvas(w: number, h: number, cls = ''): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = w * RES;
+  c.height = h * RES;
+  if (cls) c.className = cls;
+  const ctx = c.getContext('2d')!;
+  ctx.setTransform(RES, 0, 0, RES, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  return c;
 }
 
 export function paletteFor(sp: SpeciesDef, variant: Variant, coat?: number, breed?: Breed): Palette {

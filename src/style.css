@@ -634,17 +634,15 @@ summary {
   }
 }
 
-/* Gerät füllt die volle Bildschirmhöhe; übriger Platz geht an die Meldungszeile */
-.device {
-  min-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
-}
-.device .msg {
-  flex: 1 1 auto;
-}
-.device .actions {
-  flex: none;
-  grid-auto-rows: clamp(64px, 10dvh, 110px);
-}
+/* Gerät nur so hoch wie nötig */
 .device .act {
   justify-content: center;
+}
+
+/* hochaufgelöstes Spielbild: weich skalieren */
+.screen,
+.game-canvas,
+.tab-pic,
+.species-pic {
+  image-rendering: auto;
 }

@@ -1,6 +1,6 @@
 import { beep } from '../audio';
 import { Pet } from '../engine/state';
-import { drawMap, petSprite } from '../render/pixels';
+import { drawMap, hiResCanvas, petSprite } from '../render/pixels';
 import type { SpeciesDef } from '../species/types';
 import { h } from './dom';
 
@@ -133,7 +133,7 @@ function catchGame(el: HTMLElement, sp: SpeciesDef, pet: Pet, done: Done): Clean
   const W = 64;
   const H = 56;
   const info = h('div', { class: 'game-info' });
-  const canvas = h('canvas', { class: 'pixel game-canvas', width: String(W), height: String(H) }) as HTMLCanvasElement;
+  const canvas = hiResCanvas(W, H, 'game-canvas');
   const ctrl = h('div', { class: 'ctrl-row' });
   const lb = h('button', { class: 'big-btn' }, '◀');
   const rb = h('button', { class: 'big-btn' }, '▶');
