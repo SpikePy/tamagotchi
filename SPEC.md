@@ -169,6 +169,13 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
 **Einrichtung:** Links im Raum steht ein **Körbchen**. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum.
 
+**Fenster:** An der Wand hängt ein großes Fenster, durch das man die echte Tageszeit sieht:
+- Die **Sonne** wandert zwischen 7 und 20 Uhr im Bogen durchs Fenster. Sie geht links unten auf, steht mittags oben und geht rechts unten unter.
+- Morgens und abends ist der Himmel **orange**, in der Dämmerung blassblau.
+- Nachts zieht der **Mond** seinen Bogen, dazu leuchten Sterne.
+
+**Pflanze:** Auf dem Fensterbrett steht eine **Topfpflanze**, deren Blätter sich leicht wiegen.
+
 **Animationen:**
 - **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.
 - **Schlüpfen:** Die obere Schalenhälfte fliegt weg, das Baby taucht aus der unteren Hälfte auf, und es funkelt. Danach kommt der Dialog für den Namen.

@@ -38,6 +38,25 @@ const EGG_H = 13;
 const EGG_X = BASKET_CX - EGG_W / 2;
 const EGG_Y = FLOOR_Y - EGG_H - 2;
 
+// Fenster, Himmel, Pflanze
+const WIN = { x: 37, y: 3, w: 22, h: 16 };
+const SUNRISE = 7;
+const SUNSET = 20;
+const STARS: [number, number][] = [[2, 2], [8, 1], [15, 3], [19, 7], [4, 9], [12, 6], [17, 12], [6, 13]];
+const PLANT_COLORS: ColorMap = { g: '#4d9a3a', l: '#7cc45a', d: '#2f6b2a', o: '#3a2a1a', t: '#c0623a', s: '#e07a4a' };
+const PLANT_LEAVES = [
+  '..l.g..',
+  '.lg.gl.',
+  'lgg.ggl',
+  '.dglgd.',
+  '..dgd..',
+];
+const PLANT_POT = [
+  'osssso',
+  '.otto.',
+  '.otto.',
+];
+
 type FxKind = 'food' | 'candy' | 'pill' | 'heart' | 'angry' | 'sparkle';
 
 const HATCH_MS = 1800;
@@ -90,7 +109,7 @@ export class Scene {
     const p = s.pet;
     const sp = species(p?.species ?? s.memorials[0]?.species ?? 'fox');
 
-    this.drawRoom(sp, new Date(s.clock).getHours());
+    this.drawRoom(sp, s.clock, t);
     drawMap(ctx, BASKET_BACK, BASKET_COLORS, BASKET_X, BASKET_Y);
 
     if (!p) {
@@ -141,9 +160,8 @@ export class Scene {
     }
   }
 
-  private drawRoom(sp: SpeciesDef, hour: number) {
+  private drawRoom(sp: SpeciesDef, clock: number, t: number) {
     const ctx = this.ctx;
-    const day = hour >= 7 && hour < 20;
     ctx.fillStyle = sp.colors.wall;
     ctx.fillRect(0, 0, SCREEN_W, FLOOR_Y);
     ctx.fillStyle = sp.colors.wallDark;
@@ -152,16 +170,54 @@ export class Scene {
     ctx.fillRect(0, FLOOR_Y, SCREEN_W, SCREEN_H - FLOOR_Y);
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     ctx.fillRect(0, FLOOR_Y, SCREEN_W, 1);
+    this.drawWindow(clock);
+    this.drawPlant(t);
+  }
+
+  /** Fenster: Sonne (7–20 Uhr) bzw. Mond wandern im Bogen über den Himmel */
+  private drawWindow(clock: number) {
+    const ctx = this.ctx;
+    const d = new Date(clock);
+    const h = d.getHours() + d.getMinutes() / 60;
+    const day = h >= SUNRISE && h < SUNSET;
+    // Fortschritt 0..1 über Tag bzw. Nacht
+    const f = day ? (h - SUNRISE) / (SUNSET - SUNRISE) : ((h - SUNSET + 24) % 24) / (24 - SUNSET + SUNRISE);
+    const edge = Math.min(f, 1 - f); // nahe 0 = Morgen/Abend
 
     ctx.fillStyle = '#5a4630';
-    ctx.fillRect(45, 6, 14, 12);
-    ctx.fillStyle = day ? '#9fd6f5' : '#1d2147';
-    ctx.fillRect(46, 7, 12, 10);
+    ctx.fillRect(WIN.x - 1, WIN.y - 1, WIN.w + 2, WIN.h + 2);
+    ctx.fillStyle = day ? (edge < 0.08 ? '#f4b27a' : edge < 0.16 ? '#c9d9e8' : '#9fd6f5') : '#1d2147';
+    ctx.fillRect(WIN.x, WIN.y, WIN.w, WIN.h);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(WIN.x, WIN.y, WIN.w, WIN.h);
+    ctx.clip();
+    if (!day) {
+      ctx.fillStyle = '#e8e6c8';
+      for (const [sx, sy] of STARS) ctx.fillRect(WIN.x + sx, WIN.y + sy, 1, 1);
+    }
     const icon = ICONS[day ? 'sun' : 'moon'];
-    drawMap(ctx, icon.map, icon.colors, 49, 9);
+    const sx = WIN.x - 5 + Math.round(f * (WIN.w + 5));
+    const sy = WIN.y + WIN.h - Math.round(Math.sin(Math.PI * f) * (WIN.h - 1)) - 1;
+    drawMap(ctx, icon.map, icon.colors, sx, sy);
+    ctx.restore();
+
+    // Fensterkreuz und Fensterbrett
     ctx.fillStyle = '#5a4630';
-    ctx.fillRect(51, 7, 1, 10);
-    ctx.fillRect(46, 12, 12, 1);
+    ctx.fillRect(WIN.x + WIN.w / 2 - 1, WIN.y, 1, WIN.h);
+    ctx.fillRect(WIN.x, WIN.y + WIN.h / 2, WIN.w, 1);
+    ctx.fillStyle = '#7a5c3c';
+    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 2);
+  }
+
+  /** Topfpflanze auf dem Fensterbrett, Blätter wiegen sich leicht */
+  private drawPlant(t: number) {
+    const sway = Math.round(Math.sin(t / 900)); // -1..1
+    const potX = WIN.x + WIN.w - 4;
+    const potY = WIN.y + WIN.h - 3;
+    drawMap(this.ctx, PLANT_LEAVES, PLANT_COLORS, potX - 1 + sway, potY - PLANT_LEAVES.length);
+    drawMap(this.ctx, PLANT_POT, PLANT_COLORS, potX, potY);
   }
 
   private drawPoops(p: Pet, t: number) {
