@@ -125,7 +125,7 @@ export class App {
       this.stats.append(root);
       return { root, fill, ico: icoEl };
     };
-    this.statEls = { food: mk('food', '🍗', 'Sättigung'), tired: mk('tired', '💤', 'Müdigkeit'), mood: mk('mood', '🙂', 'Laune') };
+    this.statEls = { food: mk('food', '🍽️', 'Sättigung'), tired: mk('tired', '💤', 'Müdigkeit'), mood: mk('mood', '🙂', 'Laune') };
     this.badges = h('div', { class: 'badges' });
     this.msgEl = h('div', { class: 'msg', role: 'status' });
 

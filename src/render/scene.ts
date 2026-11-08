@@ -41,7 +41,7 @@ const BASKET_FRONT = [
 const BASKET_FRONT_DY = 2; // Vorderseite beginnt unter der Rückseite
 
 // Futternapf neben der Pflanze
-const BOWL_X = 15;
+const BOWL_X = 17.5;
 const BOWL_Y = FLOOR_Y + 2;
 const BOWL = ['.ooooooo.', 'ohhhhhhho', '.obbbbbo.', '..ooooo..'];
 // flache Schale (Hühnerhof: Blech, Garten: blaue Keramik) – in voller Rasterauflösung

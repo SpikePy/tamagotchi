@@ -103,8 +103,6 @@ const MOUSE_PORTRAIT = [
 const MOUSE_PORTRAIT_C: ColorMap = { o: '#4a4248', g: '#9a929a', p: '#f2a6b2', e: '#111111', n: '#e07a8a' };
 const TOYMOUSE = ['...pp..', '.ooggo.', 'oggggen', 't.oooo.'];
 const TOYMOUSE_C: ColorMap = { o: '#4a4248', g: '#9a929a', p: '#f2a6b2', e: '#111111', n: '#e07a8a', t: '#c89aa0' };
-const WATERBOWL = ['.ooooooo.', 'olllllllo', '.obbbbbo.', '..ooooo..'];
-const WATER_C: ColorMap = { o: '#5a6a7a', l: '#7ac0f0', b: '#9aa8b8' };
 const HARNESS = ['...oo...', '..o..o..', '.obbbbo.', 'ob.oo.bo', 'ob.oo.bo', '.obbbbo.', '..oyyo..', '...oo...'];
 const HARNESS_C: ColorMap = { o: '#1a3a6a', b: '#3a6ad8', y: '#c8c8c8' };
 const COLLAR = ['..oo..', '.o..o.', 'og..go', 'og..go', '.oggo.', '..yy..', '.yYYy.', '..yy..'];
@@ -142,11 +140,11 @@ export function decorTargets(species: string): DecorTarget[] {
     case 'fox':
       return [{ x: 38, kind: 'sniff' }];
     case 'hedgehog':
-      return [{ x: 20, kind: 'sniff' }];
+      return [{ x: 14, kind: 'sniff' }];
     case 'cat':
       return [{ x: 49.5, kind: 'nudge' }, { x: 43, kind: 'sill' }];
     case 'dog':
-      return [{ x: 27, kind: 'drink' }];
+      return [];
     case 'chicken':
       return [{ x: 8, kind: 'dustbath' }, { x: STRAW_HEAP.cx, kind: 'hop' }];
   }
@@ -235,7 +233,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       sunflower(ctx, 22, 18, sunX);
       put(ctx, GNOME, GNOME_C, 26, 27);
       put(ctx, CAN, CAN_C, 29.5, 30.5);
-      put(ctx, APPLE, APPLE_C, 19, 43);
+      put(ctx, APPLE, APPLE_C, 12.5, 43.5);
       break;
     case 'cat': {
       // Wandregal mit Büchern und Katzenfigur über dem Kratzbaum
@@ -272,7 +270,6 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       put(ctx, ['.ooo.', 'o...o', 'o...o', '.ooo.'], { o: '#d8343a' }, 4.5, 20.5);
       put(ctx, HARNESS, HARNESS_C, 8.25, 14.5);
       put(ctx, COLLAR, COLLAR_C, 13, 14.5);
-      put(ctx, WATERBOWL, WATER_C, 24.5, 42.5);
       break;
     case 'chicken': {
       // Sonnenblumen am Zaun, Sandbad-Kuhle, Tränke, Leiter, Nistkasten
@@ -284,7 +281,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
           if (d < 1) rect(ctx, d < 0.5 ? '#b8923a' : '#c8a24a', x, y, P, P);
         }
       strawHeap(ctx);
-      put(ctx, TROUGH_WATER, TROUGH_C, 26, 41.5);
+      put(ctx, TROUGH_WATER, TROUGH_C, 29, 41.5);
       // Leiter an der linken Stallwand
       for (const lx of [35.5, 37.5]) rect(ctx, '#7a5a34', lx, 30, P, 11);
       for (let ry = 31; ry < 41; ry += 2) rect(ctx, '#a07a4a', 35.5, ry, 2.5, P);

@@ -38,7 +38,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 **Status-Leisten:** Sättigung, Müdigkeit und Laune stehen **über dem Spielbild** (nicht mehr im Bild) in einer Zeile:
-- 🍗 **Sättigung** (orange), 💤 **Müdigkeit** (lila; füllt sich, je müder das Tier ist), **Laune** (gelb) mit einem Gesicht passend zur Stimmung: 😄 / 🙂 / 😟.
+- 🍽️ **Sättigung** (orange, Besteck mit Teller), 💤 **Müdigkeit** (lila; füllt sich, je müder das Tier ist), **Laune** (gelb) mit einem Gesicht passend zur Stimmung: 😄 / 🙂 / 😟.
 - Die Leisten sind durchgehend und füllen sich sanft. Sättigung und Laune **blinken rot** bei höchstens 25 %, die Müdigkeit ab 80 %.
 - In der Zeile darüber stehen links **Hinweis-Abzeichen**: „🤒 krank“ und ein pulsierendes „❗ ruft“. Rechts stehen Name und Entwicklungsstufe.
 - Im Statusbildschirm stehen Sättigung und Laune zusätzlich als Balken mit Prozentangabe.
@@ -266,7 +266,6 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - **Bücherregal** mit einem kleinen Knochen
   - **Pfotenbild** im Goldrahmen mit Passepartout (vier Zehenballen und großer Ballen)
   - darunter eine **Hakenleiste** mit roter **Leine**, blauem **Geschirr** und grünem **Halsband mit goldener Marke**
-  - **Wassernapf** neben dem Futternapf
   - **Fußmatte** vorne
 - **Huhn (Hof):**
   - zwei **Sonnenblumen** am Zaun
@@ -378,7 +377,6 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
   - Fuchs: schnüffelt an der Feder
   - Igel: schnuppert am Apfel
   - Katze: stupst die Spielmaus an oder **springt aufs Fensterkissen** und döst dort eine Weile eingerollt, dann springt sie wieder herunter
-  - Hund: **trinkt** am Wassernapf, kleine Wassertropfen inklusive
   - Huhn: hüpft auf den **Strohhaufen**, schaut sich oben nach links und rechts um und hüpft wieder herunter
   - Huhn: nimmt ein **Sandbad**, plustert sich in der Kuhle auf und lässt Staubwölkchen aufsteigen
 - Kommt ein **wildes Tier vorbei** (Maus, Igel, Reh, Vogel, auch der Vogel am Fenster oder die Fliege bei der Katze), reagiert das Haustier **zufällig**: Meist bleibt es stehen und **beobachtet** es. Bei Tieren am Boden in seiner Nähe (Maus, Igel, Fliege bei der Katze) **läuft es ihm manchmal hinterher**, Katze, Fuchs und Hund springen dabei auch mal danach. Manchmal ignoriert es das Tier und macht einfach weiter.
