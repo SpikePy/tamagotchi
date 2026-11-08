@@ -347,6 +347,12 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Katze, Hund und Fuchs** **putzen** sich ab und zu (Kopf nickt, Zunge blitzt auf, danach ein Glitzern).
 - Ab dem Teenager-Alter **strecken** sie sich auch, und zwar mit einer eigenen, gezeichneten **Streck-Animation** statt verzerrter Pixel. Die Pose ist eine Seitenansicht: Erst beugen sie sich vor (Vorderbeine nach vorn, Po hoch, Schwanz aufgestellt), dann strecken sie sich ganz und **gähnen** mit offenem Maul, dann kommen sie zurück. Ohren und Schwanz passen zum Tier bzw. zur Hunderasse (Steh-, Schlapp- oder kleine Ohren; weiße Schwanzspitze beim Fuchs; Corgi ohne Schwanz).
 - Sie laufen **nicht immer auf derselben Höhe**, sondern auch mal **weiter vorne oder weiter hinten** im Raum. Ein kleiner Schatten zeigt, wo sie stehen. Weiter hinten verdecken die Haufen und der Napf das Tier.
+- **Deko besuchen:** Ab und zu geht das Tier zu einem Deko-Objekt und tut dort etwas:
+  - Fuchs: schnüffelt an der Feder
+  - Igel: schnuppert am Apfel
+  - Katze: stupst die Spielmaus an oder **springt aufs Fensterkissen** und döst dort eine Weile eingerollt, dann springt sie wieder herunter
+  - Hund: **trinkt** am Wassernapf, kleine Wassertropfen inklusive
+  - Huhn: nimmt ein **Sandbad**, plustert sich in der Kuhle auf und lässt Staubwölkchen aufsteigen
 - Kommt ein **Tier vorbei** (Maus, Igel, Reh, Vogel, auch der Vogel am Fenster), bleibt das Haustier **kurz stehen**, dreht sich hin und **schaut ihm nach**.
 
 **Animationen:**

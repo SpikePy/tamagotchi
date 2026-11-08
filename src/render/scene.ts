@@ -7,7 +7,7 @@ import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds, weatherAt } from './weather';
-import { drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
+import { decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
 
 export const SCREEN_W = 64;
 export const SCREEN_H = 48;
@@ -236,7 +236,7 @@ export class Scene {
   private walkX = 30;
   private walkDir = 1;
   private depth = 1; // 0 = hinten, 3.5 = vorne im Raum
-  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet'; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit'; visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill'; arrived?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
     kind: 'idle',
     start: 0,
     until: 0,
@@ -245,6 +245,13 @@ export class Scene {
   /** wo das Tier zuletzt gezeichnet wurde (für Klick/Tippen) */
   private petBox: { x: number; y: number; w: number; h: number } | null = null;
   private hearts: { x: number; y: number; born: number; drift: number }[] = [];
+
+  /** nur zum Testen: bestimmte Aktion sofort auslösen */
+  debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle', visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill', target?: number) {
+    const t = performance.now();
+    this.act = { kind, visit, start: t, until: t + 30000, target, targetDepth: visit === 'drink' || visit === 'dustbath' ? 2.5 : 1, speed: 12 };
+    if (kind !== 'visit') this.act.until = t + 2600;
+  }
 
   /** Liegt der Punkt (in Spiel-Einheiten) auf dem Tier? */
   hitPet(x: number, y: number): boolean {
@@ -822,6 +829,12 @@ export class Scene {
   private nextAct(t: number, p: Pet, from: number, to: number) {
     const groomer = p.species === 'cat' || p.species === 'dog' || p.species === 'fox' || p.species === 'chicken';
     const r = Math.random();
+    // ab und zu zu einem Deko-Objekt gehen und dort etwas tun
+    const targets = decorTargets(p.species);
+    if (targets.length && !p.sick && Math.random() < 0.14) {
+      const tg = targets[Math.floor(Math.random() * targets.length)];
+      return { kind: 'visit' as const, visit: tg.kind, start: t, until: t + 30000, target: tg.x - 8, targetDepth: tg.kind === 'drink' || tg.kind === 'dustbath' ? 2.5 : 1, speed: 7 };
+    }
     if (r < 0.42) {
       let target = from + Math.random() * (to - from);
       if (Math.abs(target - this.walkX) < 4) target = this.walkX < (from + to) / 2 ? to : from;
@@ -883,7 +896,23 @@ export class Scene {
       if (t >= this.act.until) this.act = this.nextAct(t, p, from, to);
       const a = this.act;
       if (a.kind === 'pet') gaze = 0;
-      if (a.kind === 'walk') {
+      if (a.kind === 'visit' && a.arrived === undefined) {
+        // Ziel: Objekt mittig vor dem Tier
+        const tx = (a.target ?? this.walkX) + 8 - w / 2;
+        const diff = tx - this.walkX;
+        const dd = (a.targetDepth ?? this.depth) - this.depth;
+        if (Math.abs(diff) < 0.3 && Math.abs(dd) < 0.1) {
+          a.arrived = t;
+          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000 } as const)[a.visit ?? 'sniff'];
+        } else {
+          const dist = Math.hypot(diff, dd * 2);
+          const step = Math.min(dist, (a.speed ?? 6) * dt);
+          if (Math.abs(diff) >= 0.3) this.walkDir = Math.sign(diff);
+          this.walkX += (diff / dist) * step;
+          this.depth += ((dd * 2) / dist) * step * 0.5;
+        }
+        face = this.walkDir;
+      } else if (a.kind === 'walk') {
         const diff = (a.target ?? this.walkX) - this.walkX;
         const dd = (a.targetDepth ?? this.depth) - this.depth;
         if (Math.abs(diff) < 0.3 && Math.abs(dd) < 0.1) a.until = t;
@@ -910,6 +939,7 @@ export class Scene {
     const a = this.act;
     const grooming = !m && a.kind === 'groom';
     const petted = !m && a.kind === 'pet';
+    const visiting = !m && a.kind === 'visit' && a.arrived !== undefined ? a.visit : undefined;
     const stretching = !m && a.kind === 'stretch';
     const k = (t - a.start) / Math.max(1, a.until - a.start);
     const blink = t % 3500 < 150;
@@ -921,6 +951,7 @@ export class Scene {
     let bob = 0;
     if (!m && a.kind === 'walk' && !p.sick) bob = (Math.floor(t / 220) % 2) * 0.5;
     if (eating || grooming) bob = -(Math.floor(t / (p.species === 'chicken' ? 160 : 280)) % 2) * (p.species === 'chicken' ? 1 : 0.5); // Kopf runter (Napf / Putzen / Picken)
+    if (visiting === 'sniff' || visiting === 'nudge' || visiting === 'drink') bob = -(Math.floor(t / (visiting === 'nudge' ? 200 : 320)) % 2) * 0.5;
     const j = t - this.jumpStart;
     if (j >= 0 && j < 900) bob = Math.round(Math.abs(Math.sin((j / 900) * Math.PI * 2)) * 5);
     const s = t - this.shakeStart;
@@ -933,7 +964,26 @@ export class Scene {
     ctx.fillStyle = 'rgba(0,0,0,0.16)';
     ctx.fillRect(Math.round((x + 2) * 2) / 2, ground + 0.5, Math.round((w - 4) * 2) / 2, 0.5);
     ctx.fillRect(Math.round((x + 3) * 2) / 2, ground + 1, Math.round((w - 6) * 2) / 2, 0.5);
-    if (stretching) {
+    if (visiting === 'sill' || visiting === 'dustbath') {
+      // Katze döst auf dem Fensterkissen / Huhn plustert sich im Sandbad
+      const sl = petSprite(sp, p, { sleeping: true, sleepSmall: visiting === 'sill' });
+      const kk = (t - (a.arrived ?? t)) / Math.max(1, a.until - (a.arrived ?? t));
+      let sx = x + w / 2 - sl.w / 2;
+      let sy = ground - sl.h + 1;
+      if (visiting === 'sill') {
+        // hochspringen, liegen, runterspringen
+        const sillTop = WIN.y + WIN.h - 0.5;
+        const up = kk < 0.06 ? kk / 0.06 : kk > 0.94 ? (1 - kk) / 0.06 : 1;
+        const lieX = WIN.x + 0.5;
+        sx = sx + (lieX - sx) * up;
+        sy = sy + (sillTop - sl.h + 1 - sy) * up - Math.sin(Math.PI * Math.min(1, up)) * (up < 1 ? 4 : 0);
+      } else if (Math.floor(t / 180) % 2) {
+        // Staubwölkchen im Sandbad
+        ctx.fillStyle = 'rgba(200,170,110,0.8)';
+        for (let i = 0; i < 4; i++) ctx.fillRect(Math.round((sx + 2 + ((t / 60 + i * 5) % (sl.w - 3))) * 2) / 2, Math.round((ground - 1 - (i % 2)) * 2) / 2, 0.5, 0.5);
+      }
+      drawMap(ctx, sl.map, sl.colors, sx, sy, false);
+    } else if (stretching) {
       // Strecken: Vorbeugen -> volle Streckung mit Gähnen -> Vorbeugen
       const frame: 0 | 1 = k < 0.25 || k > 0.8 ? 0 : 1;
       const st = petSprite(sp, p, { stretch: frame });
@@ -942,6 +992,10 @@ export class Scene {
     } else drawMap(ctx, img.map, img.colors, x, y, flip);
     this.petBox = { x, y, w, h };
 
+    if (visiting === 'drink' && Math.floor(t / 320) % 2 === 0) {
+      ctx.fillStyle = '#7ac0f0'; // Wassertropfen
+      ctx.fillRect(Math.round((x + w / 2) * 2) / 2, Math.round((ground - 1) * 2) / 2, 0.5, 0.5);
+    }
     if (grooming) {
       // Zunge beim Putzen und am Ende ein Glitzern
       const ny = p.species === 'chicken' ? -1 : img.map.findIndex((r) => r.includes('n'));

@@ -95,6 +95,7 @@ export class App {
     setSound(s.settings.sound);
     const canvas = h('canvas', { class: 'pixel screen', 'aria-label': 'Haustier' }) as HTMLCanvasElement;
     this.scene = new Scene(canvas);
+    (window as unknown as { tamagotchiDebug: unknown }).tamagotchiDebug = { act: this.scene.debugAct.bind(this.scene) };
     // Tippen/Klicken aufs Tier = streicheln
     canvas.addEventListener('pointerdown', (e) => {
       const r = canvas.getBoundingClientRect();
