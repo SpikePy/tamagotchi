@@ -819,9 +819,12 @@ export class Scene {
       const crit = this.critters.watchTarget();
       if (crit && crit.id !== this.watched && !p.sick) {
         this.watched = crit.id;
-        // Katze: der Fliege manchmal hinterherjagen statt nur zuzuschauen
-        const chase = crit.kind === 'fly' && p.species === 'cat' && Math.random() < 0.45;
-        this.act = { kind: chase ? 'chase' : 'watch', start: t, until: t + (chase ? 7000 : 6000) };
+        // zufällig: beobachten, hinterherlaufen (nur bei Tieren am Boden in der Nähe) oder ignorieren
+        const catchable = crit.kind === 'mouse' || crit.kind === 'hedgehog' || (crit.kind === 'fly' && p.species === 'cat');
+        const r = Math.random();
+        if (catchable && r < 0.3) this.act = { kind: 'chase', start: t, until: t + 7000 };
+        else if (r < (catchable ? 0.85 : 0.8)) this.act = { kind: 'watch', start: t, until: t + 6000 };
+        // sonst: weitermachen wie bisher
       }
       if ((this.act.kind === 'watch' || this.act.kind === 'chase') && !crit) this.act.until = Math.min(this.act.until, t + 700);
       if (t >= this.act.until) this.act = this.nextAct(t, p, from, to);
@@ -866,7 +869,7 @@ export class Scene {
         }
         face = crit.x < this.walkX + w / 2 ? -1 : 1;
         gaze = face;
-        if (Math.abs(diff) < 2.5 && t - this.lastPounce > 1300) {
+        if (Math.abs(diff) < 2.5 && t - this.lastPounce > 1300 && p.species !== 'hedgehog' && p.species !== 'chicken') {
           this.lastPounce = t;
           this.jumpStart = t;
         }

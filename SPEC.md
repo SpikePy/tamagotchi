@@ -381,7 +381,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
   - Hund: **trinkt** am Wassernapf, kleine Wassertropfen inklusive
   - Huhn: hüpft auf den **Strohhaufen**, schaut sich oben nach links und rechts um und hüpft wieder herunter
   - Huhn: nimmt ein **Sandbad**, plustert sich in der Kuhle auf und lässt Staubwölkchen aufsteigen
-- Kommt ein **Tier vorbei** (Maus, Igel, Reh, Vogel, auch der Vogel am Fenster), bleibt das Haustier **kurz stehen**, dreht sich hin und **schaut ihm nach**.
+- Kommt ein **wildes Tier vorbei** (Maus, Igel, Reh, Vogel, auch der Vogel am Fenster oder die Fliege bei der Katze), reagiert das Haustier **zufällig**: Meist bleibt es stehen und **beobachtet** es. Bei Tieren am Boden in seiner Nähe (Maus, Igel, Fliege bei der Katze) **läuft es ihm manchmal hinterher**, Katze, Fuchs und Hund springen dabei auch mal danach. Manchmal ignoriert es das Tier und macht einfach weiter.
 
 **Animationen:**
 - **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.
