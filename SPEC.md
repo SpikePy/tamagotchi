@@ -229,11 +229,11 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
 **Umgebung je Tierart:**
 - **Katze:** wohnt drinnen im Zimmer (siehe unten).
-- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras und links vorne ein runder **Busch** mit ein paar Beeren. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist ein kleiner bogenförmiger Eingang zum Fuchsbau mit Laubpolster. Gefüttert wird auf einem flachen Stein.
-- **Igel:** lebt draußen **im Garten**: Hecke, Holzzaun, Busch mit Beeren, Blumen, Rasen mit Herbstlaub. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
+- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, zwei Hügelketten mit kleinen Bäumen, **Tannen mit Ast-Etagen** (Licht links, Schatten rechts), Wiese mit Grashalmen, Steinen und einem **Fliegenpilz**, links vorne ein runder **Busch** mit Beeren. Der Baumstamm hat Rindenfurchen, Moos, Astknoten und einen Aststummel. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist ein kleiner bogenförmiger Eingang zum Fuchsbau mit Laubpolster. Gefüttert wird auf einem flachen Stein.
+- **Igel:** lebt draußen **im Garten**: eine **Hecke aus einzelnen Blättern**, ein **Holzzaun mit spitzen Latten**, Maserung, Nägeln und Schatten, ein Busch mit roten Beeren, **Tulpen**, ein Stein und Rasen mit Herbstlaub. Der Laubhaufen besteht aus vielen einzelnen bunten Blättern. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 
-**Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein geflochtener Weidenkorb mit geflochtenem Rand, nach unten schmaler werdend und mit Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Links im Raum steht ein **Futternapf** (bzw. Stein/Tonschale draußen). Die Haufen landen zwischen Napf und Körbchen.
+**Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein **flacher**, geflochtener Weidenkorb mit Flechtrand und Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Links im Raum steht ein **Futternapf** (bzw. Stein/Tonschale draußen). Die Haufen landen zwischen Napf und Körbchen.
 
 **Fenster:** An der Wand hängt ein großes Fenster, durch das man die echte Tageszeit sieht:
 - Die **Sonne** wandert zwischen 7 und 20 Uhr im Bogen durchs Fenster. Sie geht links unten auf, steht mittags oben und geht rechts unten unter.
@@ -244,7 +244,14 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
 - **Hund:** auf dem Boden liegt ein Tennisball.
+- **Zimmer (Katze, Hund):** An der Wand hängt ein **Bild** mit einer kleinen Landschaft, auf dem Boden liegt ein ovaler **Teppich** mit Randmuster.
 - **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt. Eine Zimmerpflanze gibt es nicht mehr.
+
+**Verhalten (wach):** Die Tiere bewegen sich zufällig und nie gleich:
+- Sie laufen zu zufälligen Stellen im Raum, mal schneller, mal langsamer. Kranke Tiere schleichen nur.
+- Sie machen **Pausen**: stehen bleiben, sich umschauen (die Augen wandern nach links und rechts).
+- **Katze, Hund und Fuchs** **putzen** sich ab und zu (Kopf nickt, Zunge blitzt auf, danach ein Glitzern) oder **strecken** sich (werden kurz breiter und flacher, Augen zu).
+- Kommt ein **Tier vorbei** (Maus, Igel, Reh, Vogel, auch der Vogel am Fenster), bleibt das Haustier **kurz stehen**, dreht sich hin und **schaut ihm nach**.
 
 **Animationen:**
 - **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.
@@ -254,7 +261,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Schimpfen:** Das Tier schüttelt sich.
 - **Entwicklung:** Der Bildschirm blitzt weiß auf, danach hüpft das Tier.
 - **Haufen:** Über den Haufen steigen Stinkewölkchen auf.
-- **Schlaf:** Schlafende Tiere liegen in einer eigenen **eingerollten Schlafpose** im Körbchen bzw. in der Höhle. Fuchs, Katze und Hund liegen mit dem Kopf auf den Pfoten und dem Schwanz vorne herum, der Fuchs mit weißer Schwanzspitze. Der Igel rollt sich zur Stachelkugel ein. Hunde haben die Ohren ihrer Rasse (Steh-, Schlapp- oder kleine Ohren), Fellfarbe und Muster bleiben erhalten. Die Tiere atmen sanft, darüber schweben „Zzz“. In der Tier-Leiste oben erscheint ebenfalls die Schlafpose.
+- **Schlaf:** Schlafende Tiere liegen in einer eigenen **eingerollten Schlafpose** im Körbchen bzw. in der Höhle. Fuchs, Katze und Hund liegen mit dem Kopf auf den Pfoten und dem Schwanz vorne herum, der Fuchs mit weißer Schwanzspitze. Der Igel rollt sich zur Stachelkugel ein. Hunde haben die Ohren ihrer Rasse (Steh-, Schlapp- oder kleine Ohren), Fellfarbe und Muster bleiben erhalten. Die Tiere atmen ganz sanft (ein halber Pixel, langsam), darüber schweben „Zzz“. In der Tier-Leiste oben erscheint ebenfalls die Schlafpose.
 
 ## 9. Offene Fragen
 

@@ -200,6 +200,12 @@ export class Scene {
   private meal: { kind: 'food' | 'candy'; eatStart: number | null } | null = null;
   private walkX = 30;
   private walkDir = 1;
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch'; start: number; until: number; target?: number; speed?: number } = {
+    kind: 'idle',
+    start: 0,
+    until: 0,
+  };
+  private watched = -1;
   private lastFrame = performance.now();
   private env: SceneKind = 'room';
   private shownPetId: string | null = null;
@@ -214,6 +220,7 @@ export class Scene {
     this.fx = null;
     this.walkX = 30;
     this.walkDir = 1;
+    this.act = { kind: 'idle', start: 0, until: 0 };
     this.hatchStart = this.flashStart = this.jumpStart = this.shakeStart = -Infinity;
   }
 
@@ -664,16 +671,35 @@ export class Scene {
     this.nestFront();
   }
 
+  /** zufällig das nächste Verhalten wählen */
+  private nextAct(t: number, p: Pet, from: number, to: number) {
+    const groomer = p.species === 'cat' || p.species === 'dog' || p.species === 'fox';
+    const r = Math.random();
+    if (r < 0.42) {
+      let target = from + Math.random() * (to - from);
+      if (Math.abs(target - this.walkX) < 4) target = this.walkX < (from + to) / 2 ? to : from;
+      const speed = p.sick ? 2.5 + Math.random() * 2 : 4 + Math.random() * 9;
+      return { kind: 'walk' as const, start: t, until: t + 20000, target, speed };
+    }
+    if (r < 0.66) return { kind: 'idle' as const, start: t, until: t + 1000 + Math.random() * 3000 };
+    if (r < 0.8 || !groomer || p.sick) return { kind: 'look' as const, start: t, until: t + 2000 + Math.random() * 2000 };
+    if (r < 0.92) return { kind: 'groom' as const, start: t, until: t + 2400 };
+    return { kind: 'stretch' as const, start: t, until: t + 1600 };
+  }
+
   private drawPetWalking(p: Pet, sp: SpeciesDef, t: number) {
     const ctx = this.ctx;
     const dt = Math.min(0.1, (t - this.lastFrame) / 1000);
     this.lastFrame = t;
-    const blink = t % 3500 < 150;
-    const { map, colors: pal, w, h } = petSprite(sp, p, { eyesClosed: blink });
+    const base = petSprite(sp, p);
+    const w = base.w;
+    const h = base.h;
 
     const from = 12;
     const to = Math.max(from + 8, 58 - w);
     let eating = false;
+    let gaze = 0;
+    let face = this.walkDir;
     const m = this.meal;
     if (m) {
       // zum Napf laufen, dann fressen
@@ -683,6 +709,7 @@ export class Scene {
         if (Math.abs(diff) <= 0.5) m.eatStart = t;
         else {
           this.walkDir = Math.sign(diff);
+          face = this.walkDir;
           this.walkX += this.walkDir * Math.min(Math.abs(diff), WALK_SPEED_TO_BOWL * dt);
         }
       }
@@ -692,27 +719,76 @@ export class Scene {
           if (m.kind === 'candy') this.jumpStart = t;
           this.meal = null;
           eating = false;
+          this.act = { kind: 'idle', start: t, until: t + 800 };
         }
       }
     } else {
-      // gemütlich hin und her laufen
-      const speed = ((to - from) / (p.sick ? 4.5 : 2.25)) * dt;
-      this.walkX += this.walkDir * speed;
-      if (this.walkX >= to) (this.walkX = to), (this.walkDir = -1);
-      if (this.walkX <= from) (this.walkX = from), (this.walkDir = 1);
+      // vorbeikommendem Tier nachschauen
+      const crit = this.critters.watchTarget();
+      if (crit && crit.id !== this.watched && !p.sick) {
+        this.watched = crit.id;
+        this.act = { kind: 'watch', start: t, until: t + 6000 };
+      }
+      if (this.act.kind === 'watch' && !crit) this.act.until = Math.min(this.act.until, t + 700);
+      if (t >= this.act.until) this.act = this.nextAct(t, p, from, to);
+      const a = this.act;
+      if (a.kind === 'walk') {
+        const diff = (a.target ?? this.walkX) - this.walkX;
+        if (Math.abs(diff) < 0.3) a.until = t;
+        else {
+          this.walkDir = Math.sign(diff);
+          this.walkX += this.walkDir * Math.min(Math.abs(diff), (a.speed ?? 6) * dt);
+        }
+        face = this.walkDir;
+      } else if (a.kind === 'watch' && crit) {
+        const dir = crit.x < this.walkX + w / 2 ? -1 : 1;
+        this.walkDir = dir;
+        face = dir;
+        gaze = dir;
+      } else if (a.kind === 'look') {
+        gaze = Math.sin((t - a.start) / 450) > 0 ? 1 : -1;
+      }
     }
-    let x = this.walkX;
-    const flip = this.walkDir < 0;
+    const flip = face < 0;
+    const a = this.act;
+    const grooming = !m && a.kind === 'groom';
+    const stretching = !m && a.kind === 'stretch';
+    const k = (t - a.start) / Math.max(1, a.until - a.start);
+    const blink = t % 3500 < 150;
+    // Blickrichtung ist im Bild gemeint; bei gespiegeltem Sprite umdrehen
+    const img = petSprite(sp, p, { eyesClosed: blink || grooming || stretching, gaze: flip ? -gaze : gaze });
 
-    let bob = p.sick ? 0 : Math.floor(t / 400) % 2;
-    if (eating) bob = -(Math.floor(t / 250) % 2); // Kopf in den Napf
+    let x = this.walkX;
+    let bob = 0;
+    if (!m && a.kind === 'walk' && !p.sick) bob = (Math.floor(t / 220) % 2) * 0.5;
+    if (eating || grooming) bob = -(Math.floor(t / 280) % 2) * 0.5; // Kopf runter (Napf / Putzen)
     const j = t - this.jumpStart;
     if (j >= 0 && j < 900) bob = Math.round(Math.abs(Math.sin((j / 900) * Math.PI * 2)) * 5);
     const s = t - this.shakeStart;
     if (s >= 0 && s < 600) x += Math.round(Math.sin(s / 25) * 1.5);
 
     const y = FLOOR_Y - h + 1 - bob;
-    drawMap(ctx, map, pal, x, y, flip);
+    if (stretching) {
+      // Strecken: breiter und flacher, am Boden verankert
+      const e = Math.sin(Math.PI * Math.min(1, k));
+      ctx.save();
+      ctx.translate(x + w / 2, FLOOR_Y + 1);
+      ctx.scale(1 + 0.18 * e, 1 - 0.14 * e);
+      drawMap(ctx, img.map, img.colors, -w / 2, -h, flip);
+      ctx.restore();
+    } else drawMap(ctx, img.map, img.colors, x, y, flip);
+
+    if (grooming) {
+      // Zunge beim Putzen und am Ende ein Glitzern
+      const ny = img.map.findIndex((r) => r.includes('n'));
+      if (ny >= 0 && Math.floor(t / 280) % 2 === 0) {
+        const nx = img.map[ny].indexOf('n');
+        const sx = flip ? w - 1 - nx : nx;
+        ctx.fillStyle = '#f07a8a';
+        ctx.fillRect(Math.round((x + sx) * 2) / 2, Math.round((y + ny + 1) * 2) / 2, 0.5, 0.5);
+      }
+      if (k > 0.75) drawMap(ctx, ICONS.sparkle.map, ICONS.sparkle.colors, x + w - 3, y - 2);
+    }
 
     if (p.variant === 'great' && Math.floor(t / 600) % 3 === 0) {
       drawMap(ctx, ICONS.sparkle.map, ICONS.sparkle.colors, x + w - 2, y - 4);

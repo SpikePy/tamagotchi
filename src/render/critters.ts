@@ -141,11 +141,18 @@ export class Critters {
   private leaves: Leaf[] = [];
   private nextGust = performance.now() + 3000 + Math.random() * 6000;
   private last = performance.now();
+  private seen: { id: number; x: number } | null = null;
+
+  /** Tier, das gerade vorbeikommt (Mitte in Spiel-Einheiten), damit das Haustier hinschauen kann */
+  watchTarget(): { id: number; x: number } | null {
+    return this.seen;
+  }
 
   /** win = Fensterausschnitt im Zimmer (Vogel nur dort sichtbar) */
   draw(ctx: CanvasRenderingContext2D, env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }) {
     const dt = Math.min(0.1, (t - this.last) / 1000);
     this.last = t;
+    this.seen = null;
     this.drawLeaves(ctx, env, t, dt);
     this.drawAnimal(ctx, env, day, t, win);
   }
@@ -215,6 +222,9 @@ export class Critters {
     }
     drawPixels(ctx, rows, sp.colors, snap(x), snap(y));
     ctx.restore();
+    const cx = x + w / 2;
+    const visible = inRoom ? cx > win!.x && cx < win!.x + win!.w : cx > 0 && cx < W;
+    if (visible) this.seen = { id: a.start, x: cx };
   }
 
   /** Windböen: ab und zu wehen ein paar Blätter durchs Bild (nur draußen) */

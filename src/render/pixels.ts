@@ -155,6 +155,21 @@ export interface PetLook {
   brows?: boolean; // freche Variante: Augenbrauen
   pattern?: Pattern | string;
   seed?: number;
+  gaze?: number; // -1 = Augen nach links, 1 = nach rechts (im Sprite)
+}
+
+/** Blickrichtung: Augen-Pixel um eine Spalte verschieben (nur über Fell/Gesicht) */
+function shiftEyes(rows: string[], d: number): string[] {
+  return rows.map((row) => {
+    const a = [...row];
+    const idx = a.map((c, i) => (c === 'E' || c === 'e' ? i : -1)).filter((i) => i >= 0);
+    if (d > 0) idx.reverse();
+    for (const i of idx) {
+      const j = i + d;
+      if (j >= 0 && j < a.length && 'abcd'.includes(a[j])) [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a.join('');
+  });
 }
 
 function mulberry32(seed: number) {
@@ -207,7 +222,8 @@ export function applyPattern(rows: string[], pattern: string, seed: number): str
 
 /** Sprite inkl. Varianten-Details (geschlossene Augen, Augenbrauen, Fellmuster). */
 export function petMap(sprite: Sprite, look: PetLook): string[] {
-  let rows = look.pattern ? applyPattern(sprite, look.pattern, look.seed ?? 1) : sprite;
+  let rows = look.gaze ? shiftEyes(sprite, Math.sign(look.gaze)) : sprite;
+  rows = look.pattern ? applyPattern(rows, look.pattern, look.seed ?? 1) : rows;
   rows = rows.map((r) => (look.eyesClosed ? r.replaceAll('E', 'a') : r));
   if (look.brows) {
     rows = rows.map((r, y) => {
@@ -223,7 +239,7 @@ export function petMap(sprite: Sprite, look: PetLook): string[] {
 export function petSprite(
   sp: SpeciesDef,
   pet: { stage: Stage; variant: Variant; look?: Look | null },
-  opts: { eyesClosed?: boolean; sleeping?: boolean } = {},
+  opts: { eyesClosed?: boolean; sleeping?: boolean; gaze?: number } = {},
 ) {
   const look = pet.look ?? null;
   const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
@@ -233,6 +249,7 @@ export function petSprite(
   return {
     map: petMap(sprite, {
       eyesClosed: opts.eyesClosed,
+      gaze: opts.sleeping ? 0 : opts.gaze,
       brows: pet.variant === 'cheeky',
       pattern: look?.pattern,
       seed: look?.seed,
