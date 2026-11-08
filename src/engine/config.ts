@@ -41,6 +41,7 @@ export const RULES = {
   fakeCallChancePerMin: { child: 1 / 360, teen: 1 / 300, adult: 1 / 720 } as Record<string, number>,
   fakeCallMaxPerDay: 4,
   disciplinePerScold: 25,
+  strokeHappy: 1, // +25 % Laune beim Streicheln (in Viertel-Einheiten: 1 = ein Viertel der Leiste)
 
   baseWeight: { egg: 0, baby: 5, child: 10, teen: 20, adult: 30, gone: 0 } as Record<string, number>,
 } as const;

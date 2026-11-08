@@ -647,3 +647,8 @@ summary {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+
+.screen {
+  cursor: pointer;
+  touch-action: manipulation;
+}

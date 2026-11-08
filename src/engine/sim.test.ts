@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DAY, HOUR, MIN } from './config';
 import { activePet, newGame } from './state';
 import { advance, tirednessAtHatch } from './sim';
-import { clean, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg, wakeUp } from './actions';
+import { clean, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg, stroke, wakeUp } from './actions';
 
 const T0 = new Date(2026, 0, 1, 8, 0).getTime();
 const rng = () => 0.5;
@@ -244,5 +244,24 @@ describe('Zu früh wecken', () => {
     expect(p.asleep).toBe(false);
     expect(p.hunger).toBe(4);
     expect(p.happy).toBe(2);
+  });
+});
+
+describe('Streicheln', () => {
+  it('gibt +25 % Laune, höchstens einmal pro Minute, nicht im Schlaf', () => {
+    const s = game();
+    run(s, MIN);
+    const p = activePet(s)!;
+    p.happy = 2;
+    expect(stroke(s).ok).toBe(true);
+    expect(p.happy).toBe(3);
+    stroke(s);
+    expect(p.happy).toBe(3);
+    run(s, MIN);
+    const before = p.happy;
+    stroke(s);
+    expect(p.happy).toBeCloseTo(Math.min(4, before + 1));
+    p.asleep = true;
+    expect(stroke(s).ok).toBe(false);
   });
 });

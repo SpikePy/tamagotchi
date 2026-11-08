@@ -150,6 +150,14 @@ Gewinnbedingungen: Mäusesprung 2 von 3 Treffern · Links oder rechts? 3 von 5 r
 
 Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
+### 6.4a Streicheln
+
+- **Tippt oder klickt man auf das Tier**, wird es gestreichelt.
+- Es **bleibt stehen**, schließt genießerisch die Augen, **wiegt sich** leicht hin und her, und **Herzchen** steigen auf.
+- Unten erscheint eine passende Meldung: Die Katze „schnurrt“, der Hund „wedelt mit dem Schwanz“, der Fuchs „kuschelt sich an deine Hand“, der Igel „legt die Stacheln an“, das Huhn „gluckst zufrieden“.
+- Streicheln gibt **+25 % Laune**, aber höchstens **einmal pro Minute**. Öfter streicheln geht, bringt aber keine zusätzliche Laune.
+- Schlafende Tiere werden nicht geweckt. Es gibt nur ein einzelnes Herzchen und den Hinweis „psst“.
+
 ### 6.5 Medizin
 
 - Ist das Tier krank, sieht man das an einem Symbol (zum Beispiel einem Totenkopf oder einem Thermometer), und es bewegt sich träge.

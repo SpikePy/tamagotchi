@@ -13,6 +13,7 @@ import {
   lightButton,
   scold,
   startEgg,
+  stroke,
   switchPet,
   wakeUp,
 } from '../engine/actions';
@@ -28,6 +29,14 @@ import { h } from './dom';
 import { GAME_IDS, GameId, runGame } from './games';
 
 const STAGE_LABEL = { egg: 'Ei', baby: 'Baby', child: 'Kind', teen: 'Teenager', adult: 'Erwachsen' } as const;
+
+const STROKE_TEXT: Record<string, string> = {
+  cat: 'schnurrt',
+  dog: 'wedelt mit dem Schwanz',
+  fox: 'kuschelt sich an deine Hand',
+  hedgehog: 'legt die Stacheln an',
+  chicken: 'gluckst zufrieden',
+};
 
 const CALL_TEXT: Record<CallType, string> = {
   hunger: 'hat Hunger!',
@@ -84,6 +93,13 @@ export class App {
     setSound(s.settings.sound);
     const canvas = h('canvas', { class: 'pixel screen', 'aria-label': 'Haustier' }) as HTMLCanvasElement;
     this.scene = new Scene(canvas);
+    // Tippen/Klicken aufs Tier = streicheln
+    canvas.addEventListener('pointerdown', (e) => {
+      const r = canvas.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 64;
+      const y = ((e.clientY - r.top) / r.height) * 48;
+      if (this.scene.hitPet(x, y)) this.strokePet();
+    });
     this.hud = h('div', { class: 'hud' });
     this.tabs = h('div', { class: 'pet-tabs', role: 'tablist', 'aria-label': 'Deine Tiere' });
     this.msgEl = h('div', { class: 'msg', role: 'status' });
@@ -310,6 +326,22 @@ export class App {
   }
 
   // ---------- Aktionen ----------
+
+  private strokePet() {
+    const p = this.pet;
+    if (!p || p.stage === 'egg') return;
+    const r = stroke(this.s);
+    if (!r.ok) {
+      this.say(`${petName(p)} schläft – psst!`);
+      this.scene.stroke(true);
+      return;
+    }
+    this.scene.stroke();
+    beep.click();
+    this.say(`${petName(p)} ${STROKE_TEXT[p.species] ?? 'genießt das Streicheln'}. ❤`);
+    this.refresh();
+    save(this.s);
+  }
 
   private light() {
     const p = this.pet;

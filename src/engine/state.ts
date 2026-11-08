@@ -58,6 +58,7 @@ export interface Pet {
   careMistakesStage: number;
   careMistakesTotal: number;
   adultLifespanDays: number | null;
+  lastStrokedAt?: number; // Streicheln gibt höchstens einmal pro Minute Laune
 
   log: LogEntry[];
 }

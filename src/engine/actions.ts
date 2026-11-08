@@ -165,3 +165,17 @@ export function finishGame(s: GameState, won: boolean): ActionResult {
   p.happy = Math.min(RULES.hearts, Math.floor(p.happy + 1 + 1e-9));
   return yes(won ? 'Gewonnen! Das hat Spaß gemacht.' : 'Verloren … aber es hatte trotzdem Spaß.');
 }
+
+/** Streicheln: Laune +25 %, höchstens einmal pro Spielminute; schlafende Tiere nicht */
+export function stroke(s: GameState): ActionResult {
+  const p = hatchedPet(s);
+  if (!p) return no('');
+  if (p.asleep) return no('Psst … es schläft.');
+  const gain = p.lastStrokedAt !== s.clock;
+  p.lastStrokedAt = s.clock;
+  if (gain) {
+    p.happy = Math.min(RULES.hearts, p.happy + RULES.strokeHappy);
+    addLog(p, s.clock, 'Gestreichelt worden.');
+  }
+  return yes(gain ? 'stroked' : 'stroked-again');
+}

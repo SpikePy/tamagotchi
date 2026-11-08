@@ -209,12 +209,43 @@ export class Scene {
   private walkX = 30;
   private walkDir = 1;
   private depth = 1; // 0 = hinten, 3.5 = vorne im Raum
-  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch'; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet'; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
     kind: 'idle',
     start: 0,
     until: 0,
   };
   private watched = -1;
+  /** wo das Tier zuletzt gezeichnet wurde (für Klick/Tippen) */
+  private petBox: { x: number; y: number; w: number; h: number } | null = null;
+  private hearts: { x: number; y: number; born: number; drift: number }[] = [];
+
+  /** Liegt der Punkt (in Spiel-Einheiten) auf dem Tier? */
+  hitPet(x: number, y: number): boolean {
+    const b = this.petBox;
+    return !!b && x >= b.x - 2 && x <= b.x + b.w + 2 && y >= b.y - 2 && y <= b.y + b.h + 2;
+  }
+
+  /** Streicheln: stehen bleiben, Augen zu, wiegen, Herzchen */
+  stroke(sleeping = false) {
+    const t = performance.now();
+    if (!sleeping) this.act = { kind: 'pet', start: t, until: t + 1800 };
+    const b = this.petBox;
+    if (!b) return;
+    for (let i = 0; i < (sleeping ? 1 : 3); i++)
+      this.hearts.push({ x: b.x + b.w / 2 - 1 + (i - 1) * 2.5, y: b.y + 1, born: t + i * 220, drift: (Math.random() - 0.5) * 2 });
+  }
+
+  private drawHearts(t: number) {
+    const HEART = ['.r.r.', 'rrrrr', 'rrrrr', '.rrr.', '..r..'];
+    this.hearts = this.hearts.filter((h) => t - h.born < 1300);
+    for (const h of this.hearts) {
+      const k = (t - h.born) / 1300;
+      if (k < 0) continue;
+      this.ctx.globalAlpha = k > 0.7 ? (1 - k) / 0.3 : 1;
+      drawPixels(this.ctx, HEART, { r: '#ff5a7a' }, Math.round((h.x + h.drift * k) * 2) / 2, Math.round((h.y - k * 7) * 2) / 2);
+      this.ctx.globalAlpha = 1;
+    }
+  }
   private lastFrame = performance.now();
   private env: SceneKind = 'room';
   private shownPetId: string | null = null;
@@ -330,6 +361,7 @@ export class Scene {
     }
     this.drawDecor(sp, t, 'anim');
 
+    this.petBox = null;
     if (!p) {
       this.nestFront();
       this.overlay(0.2);
@@ -373,6 +405,7 @@ export class Scene {
       ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     }
 
+    this.drawHearts(t);
     this.drawHud(p, t);
   }
 
@@ -699,6 +732,7 @@ export class Scene {
     const breathe = sleeping && Math.floor(t / 1800) % 2 === 0 ? 0.5 : 0;
     const y = bottom - h + 1 - rise + breathe;
     drawMap(ctx, map, pal, x, y);
+    this.petBox = { x, y, w, h };
 
     if (hatching) {
       const egg = eggMap();
@@ -782,6 +816,7 @@ export class Scene {
       if (this.act.kind === 'watch' && !crit) this.act.until = Math.min(this.act.until, t + 700);
       if (t >= this.act.until) this.act = this.nextAct(t, p, from, to);
       const a = this.act;
+      if (a.kind === 'pet') gaze = 0;
       if (a.kind === 'walk') {
         const diff = (a.target ?? this.walkX) - this.walkX;
         const dd = (a.targetDepth ?? this.depth) - this.depth;
@@ -808,12 +843,13 @@ export class Scene {
     const flip = base.facesLeft ? face > 0 : face < 0;
     const a = this.act;
     const grooming = !m && a.kind === 'groom';
+    const petted = !m && a.kind === 'pet';
     const stretching = !m && a.kind === 'stretch';
     const k = (t - a.start) / Math.max(1, a.until - a.start);
     const blink = t % 3500 < 150;
     // Blickrichtung ist im Bild gemeint; bei gespiegeltem Sprite umdrehen
     if (base.facesLeft) gaze = 0; // Seitenansicht: der Kopf zeigt schon die Richtung
-    const img = petSprite(sp, p, { eyesClosed: blink || grooming || stretching, gaze: flip ? -gaze : gaze });
+    const img = petSprite(sp, p, { eyesClosed: blink || grooming || stretching || petted, gaze: flip ? -gaze : gaze });
 
     let x = this.walkX;
     let bob = 0;
@@ -823,6 +859,7 @@ export class Scene {
     if (j >= 0 && j < 900) bob = Math.round(Math.abs(Math.sin((j / 900) * Math.PI * 2)) * 5);
     const s = t - this.shakeStart;
     if (s >= 0 && s < 600) x += Math.round(Math.sin(s / 25) * 1.5);
+    if (petted) x += Math.floor((t - a.start) / 300) % 2 ? 0.5 : 0; // genießerisch wiegen
 
     const ground = FLOOR_Y + Math.round(this.depth * 2) / 2;
     const y = ground - h + 1 - bob;
@@ -837,6 +874,7 @@ export class Scene {
       const sflip = face > 0; // Pose schaut von Haus aus nach links
       drawMap(ctx, st.map, st.colors, x + w / 2 - st.w / 2, ground - st.h + 1, sflip);
     } else drawMap(ctx, img.map, img.colors, x, y, flip);
+    this.petBox = { x, y, w, h };
 
     if (grooming) {
       // Zunge beim Putzen und am Ende ein Glitzern
