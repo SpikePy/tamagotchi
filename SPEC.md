@@ -15,11 +15,11 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 
 ## 2a. Plattform
 
-- Die App ist eine **Web-App**.
+- Die App ist eine **Web-App** mit dem Namen **„Waldling“** (Arbeitstitel).
 - Der Spielstand wird **lokal im Browser** gespeichert (localStorage). Es gibt keinen Server und kein Konto.
 - Die App ist eine **PWA**: Unter Android lässt sie sich als eigenständige App installieren, mit eigenem Icon und im Vollbild ohne Browserleiste. Sie funktioniert auch offline.
 - Benachrichtigungen kommen, solange die App im Hintergrund noch läuft. Ist sie komplett beendet, gibt es keine Benachrichtigungen, weil dafür ein Push-Server nötig wäre.
-- **Zeitraffer zum Testen:** In den Einstellungen kann man die Spielzeit beschleunigen (zum Beispiel 1 Tag = 10 Minuten).
+- **Kein Zeitraffer:** Die Spielzeit läuft immer in Echtzeit, auch zum Testen gibt es keinen Zeitraffer.
 
 ## 3. Statuswerte
 
@@ -91,13 +91,17 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.4 Spielen
 
-Spielen hebt die Laune (+1 Herz, wenn man gewinnt), senkt das Gewicht (−1 g) und macht etwas müde. Es gibt 5 Minispiele, passend zum Fuchs:
+Spielen hebt die Laune (+1 Herz, wenn man gewinnt), senkt das Gewicht (−1 g) und macht etwas müde. Es gibt 5 Minispiele. Jede Tierart hat dafür ein eigenes Thema, die Spielmechanik ist bei allen gleich. Beim Fuchs:
 
 1. **Mäusesprung:** Unter dem Schnee raschelt eine Maus. Im richtigen Moment tippen, damit der Fuchs kopfüber hineinspringt. Ein Timing-Spiel.
 2. **Links oder rechts?** Der Fuchs versteckt sich hinter einem von zwei Büschen. Man rät, wo er ist. Wer 3 von 5 Mal richtig liegt, gewinnt.
 3. **Beeren fangen:** Beeren fallen vom Baum, und man fängt sie, indem man den Fuchs nach links und rechts bewegt. Faule Beeren muss man meiden.
 4. **Stöckchen holen:** Man wirft ein Stöckchen und wählt dabei Richtung und Kraft. Je weiter der Wurf, desto mehr Punkte, solange es nicht im Bach landet.
 5. **Spuren lesen:** Kurz wird eine Folge von Pfotenabdrücken gezeigt, die man danach nachtippen muss. Ein Gedächtnisspiel, die Folge wird jede Runde länger.
+
+Beim Igel: **Regenwurm schnappen** (Timing), **Links oder rechts?** (unter welchem Laubhaufen), **Äpfel fangen**, **Kugelrollen** (statt in den Bach darf er nicht in den Teich rollen) und **Spuren lesen**.
+
+Gewinnbedingungen: Mäusesprung 2 von 3 Treffern · Links oder rechts? 3 von 5 richtig · Fangen mindestens 8 Punkte in 20 s · Werfen ein Wurf über 70 m · Spuren lesen eine Folge der Länge 5 schaffen.
 
 Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
@@ -160,4 +164,4 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 2. **Pause-Funktion?** Das Original hatte keine. Soll man das Tier zum Beispiel in den Urlaub oder zu den Großeltern schicken können, damit die Zeit stillsteht?
 3. **Sound:** Piep-Töne im Retro-Stil, ja oder nein? Vorläufig sind sie eingebaut und lassen sich in den Einstellungen abschalten.
 
-Entschieden: Das Tier schläft nach Müdigkeit statt zu einer festen Uhrzeit (siehe 6.2). Die Plattform ist eine Web-App bzw. PWA (siehe 2a). Ein Zeitraffer ist eingebaut.
+Entschieden: Das Tier schläft nach Müdigkeit statt zu einer festen Uhrzeit (siehe 6.2). Die Plattform ist eine Web-App bzw. PWA (siehe 2a). Einen Zeitraffer gibt es nicht.

@@ -18,8 +18,7 @@ const MAX_CATCHUP_MIN = 60 * 24 * 60; // 60 Tage
 /** Rechnet die Spielzeit bis `realNow` nach, Minute für Minute. */
 export function advance(s: GameState, realNow: number, rng: Rng = Math.random): SimEvent[] {
   const events: SimEvent[] = [];
-  const speed = s.settings.speed;
-  const target = s.clock + Math.max(0, realNow - s.lastReal) * speed;
+  const target = s.clock + Math.max(0, realNow - s.lastReal);
 
   let n = 0;
   while (s.clock + MIN <= target) {
@@ -32,7 +31,7 @@ export function advance(s: GameState, realNow: number, rng: Rng = Math.random): 
     n++;
   }
   // Rest (unter einer Minute) für die nächste Berechnung aufheben
-  s.lastReal = realNow - (target - s.clock) / speed;
+  s.lastReal = realNow - (target - s.clock);
   return events;
 }
 
@@ -111,6 +110,9 @@ export function endLife(s: GameState, reason: 'forest' | 'death', cause: string,
   events.push({ kind: 'ended' });
 }
 
+const STAGE_DE: Record<Stage, string> = { egg: 'Ei', baby: 'Baby', child: 'Kind', teen: 'Teenager', adult: 'Erwachsen' };
+const VARIANT_DE: Record<Variant, string> = { normal: 'normal', good: 'gut gepflegt', bad: 'vernachlässigt', great: 'prächtig', cheeky: 'frech' };
+
 const NEXT_STAGE: Partial<Record<Stage, Stage>> = { baby: 'child', child: 'teen', teen: 'adult' };
 
 export function chooseVariant(p: Pet, next: Stage): Variant {
@@ -133,7 +135,7 @@ function evolve(p: Pet, next: Stage, clock: number, events: SimEvent[]) {
     const l = RULES.adultLifespanDays;
     p.adultLifespanDays = Math.max(l.min, Math.min(l.max, l.max - p.careMistakesTotal * l.perCareMistake));
   }
-  addLog(p, clock, `Entwickelt: ${next} (${variant}).`);
+  addLog(p, clock, `Entwickelt zum ${STAGE_DE[next]} (${VARIANT_DE[variant]}).`);
   events.push({ kind: 'evolved', stage: next, variant });
 }
 

@@ -67,14 +67,13 @@ export interface Memorial {
 }
 
 export interface Settings {
-  speed: number; // Zeitraffer, 1 = Echtzeit
   sound: boolean;
   notifications: boolean;
 }
 
 export interface GameState {
   version: 1;
-  clock: number; // Spielzeit (ms), bei speed 1 = echte Zeit
+  clock: number; // Spielzeit (ms) = echte Zeit, minutengenau nachgerechnet
   lastReal: number; // echte Zeit der letzten Berechnung
   pet: Pet | null;
   ending: Ending | null; // gesetzt, solange der Abschiedsbildschirm gezeigt wird
@@ -95,7 +94,7 @@ export function newGame(now: number): GameState {
     pet: null,
     ending: null,
     memorials: [],
-    settings: { speed: 1, sound: true, notifications: false },
+    settings: { sound: true, notifications: false },
   };
 }
 

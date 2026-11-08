@@ -8,9 +8,11 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "test": "vitest run",
-    "icons": "node scripts/gen-icons.mjs"
+    "icons": "vite-node scripts/gen-icons.ts",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "devDependencies": {
+    "puppeteer-core": "^23.11.1",
     "typescript": "^5.9.3",
     "vite": "^6.4.5",
     "vitest": "^3.2.7"
