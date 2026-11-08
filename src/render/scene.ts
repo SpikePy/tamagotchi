@@ -588,7 +588,7 @@ export class Scene {
   private drawPostToy(t: number) {
     const ctx = this.ctx;
     const top = FLOOR_Y + 1 - POST.length;
-    const swing = Math.sin(t / 700) * 0.35;
+    const swing = Math.sin(t / 1100) * 0.08; // nur leichtes Wackeln
     const len = 6;
     const ax = POST_X + 9.5;
     const ay = top + 3;

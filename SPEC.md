@@ -245,7 +245,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
 - **Hund:** Auf dem Boden liegen ein Tennisball und ein **Kauknochen**, und neben dem Hundebett liegt ein Paar geklauter **Menschensocken** (rot und blau gestreift).
 - **Zimmer (Katze, Hund):** An der Wand hängt ein **Bild** mit einer kleinen Landschaft, auf dem Boden liegt ein ovaler **Teppich** mit Randmuster.
-- **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt. Eine Zimmerpflanze gibt es nicht mehr.
+- **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und wackelt leicht. Eine Zimmerpflanze gibt es nicht mehr.
 
 **Verhalten (wach):** Die Tiere bewegen sich zufällig und nie gleich:
 - Sie laufen zu zufälligen Stellen im Raum, mal schneller, mal langsamer. Kranke Tiere schleichen nur.
