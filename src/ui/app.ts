@@ -14,6 +14,7 @@ import {
   scold,
   startEgg,
   stroke,
+  collectEggs,
   switchPet,
   wakeUp,
 } from '../engine/actions';
@@ -101,7 +102,10 @@ export class App {
       const r = canvas.getBoundingClientRect();
       const x = ((e.clientX - r.left) / r.width) * 64;
       const y = ((e.clientY - r.top) / r.height) * 48;
-      if (this.scene.hitPet(x, y)) this.strokePet();
+      if (this.scene.hitNestBox(x, y)) {
+        const res = collectEggs(this.s);
+        this.act(res, res.ok ? 'heart' : undefined);
+      } else if (this.scene.hitPet(x, y)) this.strokePet();
     });
     this.hud = h('div', { class: 'hud' });
     this.tabs = h('div', { class: 'pet-tabs', role: 'tablist', 'aria-label': 'Deine Tiere' });
@@ -560,6 +564,9 @@ export class App {
         ['Gewicht', `${weightLabel(sp, p)}${isOverweight(p) ? ' (zu dick!)' : ''}`],
         ['Disziplin', `${p.discipline} %`],
         ['Gesundheit', p.sick ? `krank (noch ${p.sick.doses}× Medizin)` : 'gesund'],
+        ...(p.species === 'chicken' && p.look?.sex === 'f'
+          ? [['Eier', `${p.eggsInNest ?? 0} im Nest · ${p.eggsCollected ?? 0} gesammelt`] as [string, string]]
+          : []),
         ['Snacks heute', `${p.snacksToday} / ${RULES.snackLimitPerDay}`],
         ['Pflegefehler', `${p.careMistakesStage} (Phase) · ${p.careMistakesTotal} (gesamt)`],
       );

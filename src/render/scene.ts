@@ -7,7 +7,7 @@ import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds, weatherAt } from './weather';
-import { decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
+import { NEST_BOX, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
 
 export const SCREEN_W = 64;
 export const SCREEN_H = 48;
@@ -245,6 +245,12 @@ export class Scene {
   /** wo das Tier zuletzt gezeichnet wurde (für Klick/Tippen) */
   private petBox: { x: number; y: number; w: number; h: number } | null = null;
   private hearts: { x: number; y: number; born: number; drift: number }[] = [];
+
+  /** Liegt der Punkt auf dem Nistkasten (Hühnerhof)? */
+  hitNestBox(x: number, y: number): boolean {
+    const b = NEST_BOX;
+    return this.env === 'farm' && x >= b.x - 1 && x <= b.x + b.w + 1 && y >= b.y - 1 && y <= b.y + b.h + 1;
+  }
 
   /** nur zum Testen: bestimmte Aktion sofort auslösen */
   debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle', visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill', target?: number) {

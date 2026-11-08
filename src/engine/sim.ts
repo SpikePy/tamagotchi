@@ -83,6 +83,17 @@ export function fallAsleep(p: Pet, lightOff: boolean, clock: number, events: Sim
   events.push({ kind: 'fellAsleep' });
 }
 
+/** Huhn: eine erwachsene, gesunde, nicht hungrige Henne legt einmal pro Tag morgens ein Ei (max. 3 im Nest) */
+export function layEgg(p: Pet, clock: number) {
+  if (p.species !== 'chicken' || p.stage !== 'adult' || p.look?.sex !== 'f' || p.sick || p.hunger < 1) return;
+  const day = dayKeyOf(clock);
+  if (p.lastEggDay === day) return;
+  p.lastEggDay = day;
+  if ((p.eggsInNest ?? 0) >= 3) return;
+  p.eggsInNest = (p.eggsInNest ?? 0) + 1;
+  addLog(p, clock, 'Ein Ei gelegt. 🥚');
+}
+
 /** natural = ausgeschlafen (8 h insgesamt) -> gilt als "morgens". */
 export function wake(p: Pet, natural: boolean, clock: number, rng: Rng, events: SimEvent[]) {
   p.asleep = false;
@@ -94,6 +105,7 @@ export function wake(p: Pet, natural: boolean, clock: number, rng: Rng, events: 
     p.sleptInCycleMin = 0;
     p.poopInMin = randBetween(rng, RULES.morningPoopMin);
     addLog(p, clock, 'Ausgeschlafen aufgewacht.');
+    layEgg(p, clock);
   } else {
     // zu früh geweckt: Hunger bleibt, aber richtig schlechte Laune
     p.happy = Math.max(0, p.happy - RULES.wokenEarlyHappyLoss);

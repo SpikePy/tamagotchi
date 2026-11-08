@@ -102,6 +102,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
   | Zwerghuhn | klein | Goldhals, Weiß, Schwarz | 0,7 kg |
 
   - **Verhalten:** Hühner putzen und strecken sich nicht, sondern **picken** zwischendurch schnell auf den Boden.
+  - **Eier:** Eine **erwachsene Henne** legt jeden **Morgen nach dem Ausschlafen** ein Ei in den Nistkasten, wenn sie gesund und nicht hungrig ist (Sättigung mindestens 25 %). Im Kasten liegen höchstens **3 Eier**. **Tippt man auf den Nistkasten**, sammelt man sie ein („🥚 2 Eier eingesammelt!“) und die Henne freut sich (+12,5 % Laune). Im Status steht „Eier: x im Nest · y gesammelt“. Hähne legen keine Eier.
   - **Schlaf:** Im Stall sitzen sie aufgeplustert und mit geschlossenen Augen (Lidstrich) **auf der Sitzstange**.
   - **Minispiele:** Wurm picken, Hinter welchem Strohballen?, Körner fangen (Steinchen meiden), Weitflattern (nicht in den Teich) und Spuren lesen.
 - Fellfarben und Muster sind als Daten angelegt (`coats`, `patterns`) und lassen sich auch für andere Arten nutzen.

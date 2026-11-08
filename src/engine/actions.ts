@@ -179,3 +179,16 @@ export function stroke(s: GameState): ActionResult {
   }
   return yes(gain ? 'stroked' : 'stroked-again');
 }
+
+/** Eier aus dem Nistkasten einsammeln (Huhn) */
+export function collectEggs(s: GameState): ActionResult {
+  const p = hatchedPet(s);
+  if (!p) return no('');
+  const n = p.eggsInNest ?? 0;
+  if (n === 0) return no('Der Nistkasten ist leer.');
+  p.eggsInNest = 0;
+  p.eggsCollected = (p.eggsCollected ?? 0) + n;
+  p.happy = Math.min(RULES.hearts, p.happy + 0.5);
+  addLog(p, s.clock, `${n} ${n === 1 ? 'Ei' : 'Eier'} eingesammelt.`);
+  return yes(`🥚 ${n} ${n === 1 ? 'Ei' : 'Eier'} eingesammelt! (insgesamt ${p.eggsCollected})`);
+}

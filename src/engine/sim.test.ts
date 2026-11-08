@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { DAY, HOUR, MIN } from './config';
 import { activePet, newGame } from './state';
-import { advance, tirednessAtHatch } from './sim';
-import { clean, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg, stroke, wakeUp } from './actions';
+import { advance, layEgg, tirednessAtHatch } from './sim';
+import { clean, collectEggs, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg, stroke, wakeUp } from './actions';
 
 const T0 = new Date(2026, 0, 1, 8, 0).getTime();
 const rng = () => 0.5;
@@ -263,5 +263,27 @@ describe('Streicheln', () => {
     expect(p.happy).toBeCloseTo(Math.min(4, before + 1));
     p.asleep = true;
     expect(stroke(s).ok).toBe(false);
+  });
+});
+
+describe('Eier', () => {
+  it('Henne legt einmal pro Tag, max. 3, Hahn nicht; einsammeln', () => {
+    const s = newGame(T0);
+    startEgg(s, 'chicken', { breed: 0, coat: 0, pattern: 'solid', seed: 1, sex: 'f' });
+    const p = activePet(s)!;
+    p.stage = 'adult';
+    p.hunger = 3;
+    const day = (d: number) => T0 + d * DAY;
+    layEgg(p, day(0));
+    layEgg(p, day(0));
+    expect(p.eggsInNest).toBe(1);
+    for (let d = 1; d < 5; d++) layEgg(p, day(d));
+    expect(p.eggsInNest).toBe(3);
+    expect(collectEggs(s).ok).toBe(true);
+    expect(p.eggsCollected).toBe(3);
+    expect(collectEggs(s).ok).toBe(false);
+    const roo = { ...p, look: { ...p.look!, sex: 'm' as const }, eggsInNest: 0, lastEggDay: undefined };
+    layEgg(roo, day(9));
+    expect(roo.eggsInNest).toBe(0);
   });
 });
