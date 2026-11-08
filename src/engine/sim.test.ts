@@ -189,11 +189,11 @@ describe('Mehrere Tiere', () => {
     expect(activePet(s)!.species).toBe('fox');
   });
 
-  it('höchstens 4 Tiere', () => {
+  it('höchstens 5 Tiere', () => {
     const s = game();
-    for (let i = 0; i < 3; i++) expect(startEgg(s, 'fox')).toBe(true);
+    for (let i = 0; i < 4; i++) expect(startEgg(s, 'fox')).toBe(true);
     expect(startEgg(s, 'fox')).toBe(false);
-    expect(s.pets).toHaveLength(4);
+    expect(s.pets).toHaveLength(5);
   });
 
   it('stirbt eins, bleibt das andere aktiv und ein Abschied wird gemeldet', () => {

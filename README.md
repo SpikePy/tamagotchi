@@ -1,6 +1,6 @@
 # Waldling – virtuelles Haustier
 
-Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die sich auf Android installieren lässt. Man zieht einen **Fuchs**, einen **Igel**, eine **Katze** (mit zufälliger Fellfarbe und Muster) oder einen **Hund** (10 Rassen, zufällige Farbe und Muster) vom Ei bis zum Erwachsenen groß: füttern, schlafen legen, sauber machen, spielen, erziehen und gesund pflegen. Alles läuft in Echtzeit und geht auch weiter, wenn die App zu ist.
+Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die sich auf Android installieren lässt. Man zieht einen **Fuchs**, einen **Igel**, eine **Katze** (mit zufälliger Fellfarbe und Muster) einen **Hund** (10 Rassen, zufällige Farbe und Muster) oder ein **Huhn** (4 Rassen) vom Ei bis zum Erwachsenen groß: füttern, schlafen legen, sauber machen, spielen, erziehen und gesund pflegen. Alles läuft in Echtzeit und geht auch weiter, wenn die App zu ist.
 
 **▶ Jetzt spielen: https://spikepy.github.io/tamagotchi/**
 
@@ -32,8 +32,9 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 - **Bedürfnisse:** Sättigung und Laune (HUD-Leisten mit je 4 Segmenten), Müdigkeit, Gewicht, Disziplin und Gesundheit.
 - **Schlafen:** Das Tier wacht nach insgesamt 8 Stunden Schlaf automatisch auf. Danach hat es Hunger und kackt innerhalb einer Stunde.
 - **Hygiene:** Es kackt alle 1–3 Stunden. Liegt ein Haufen länger als 4 Stunden, wird es krank.
-- **Mehrere Tiere:** bis zu 4 gleichzeitig, Umschalter oben
+- **Mehrere Tiere:** bis zu 5 gleichzeitig, Umschalter oben
 - **Umgebung:** Fuchs am Waldrand mit Baumhöhle, Igel im Garten mit Laubhaufen, Katze im Zimmer mit Körbchen und Kratzbaum
+- **Hühner:** Legehuhn, Seidenhuhn, Hahn, Sperberhuhn in mehreren Farben, mit Hühnerhof und Stall
 - **Hunde:** 10 Rassen (Labrador, Schäferhund, Dackel, Mops, Husky, Beagle, Dalmatiner, Pudel, Border Collie, Corgi), zufällig mit passender Farbe und Muster
 - **Katzen-Fell:** 6 Fellfarben × 4 Muster (einfarbig, getigert, gefleckt, weiße Pfoten), zufällig pro Tier.
 - **5 Minispiele pro Tier:** zum Beispiel Mäusesprung, Links oder rechts?, Beeren fangen, Stöckchen holen und Spuren lesen.

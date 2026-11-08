@@ -3,7 +3,7 @@
 // damit Fellfarbe und Muster erhalten bleiben.
 
 export interface SleepShape {
-  kind: 'curl' | 'ball'; // curl = eingerollt mit Schwanz, ball = Stachelkugel
+  kind: 'curl' | 'ball' | 'roost'; // curl = eingerollt, ball = Stachelkugel, roost = Huhn aufgeplustert
   ears?: 'pointy' | 'floppy' | 'small' | 'none';
   tail?: 'fluffy' | 'thin' | 'none';
   tailTip?: boolean; // helle Schwanzspitze (Fuchs, Beagle)
@@ -134,6 +134,30 @@ function buildBall(big: boolean): string[] {
   return out.map((r) => r.join(''));
 }
 
+// Huhn: aufgeplustert sitzend, Augen zu (Kopf links)
+const ROOST_BIG = [
+  '...cc.............',
+  '..occo.........oo.',
+  '.oaaaaooooooooado.',
+  'oaaZaaaaaaaaaaado.',
+  'ppaaaaaaaaaaaaaao.',
+  '.ocaaaabbbbaaaaao.',
+  '..oaabbbbbbbaaao..',
+  '...oabbbbbbbaao...',
+  '....ooooooooooo...',
+];
+const ROOST_SMALL = [
+  '..oooo......',
+  '.obbbbooooo.',
+  'obZbbbbbbbbo',
+  'ppbbbaaabbbo',
+  '.obbbbbbbbo.',
+  '..oooooooo..',
+];
+function buildRoost(big: boolean): string[] {
+  return (big ? ROOST_BIG : ROOST_SMALL).map((r) => r.replaceAll('Z', 'o'));
+}
+
 const cache = new Map<string, string[]>();
 
 /** Schlaf-Sprite: klein für Baby/Kind, groß für Teenager/Erwachsen */
@@ -141,7 +165,7 @@ export function sleepSprite(shape: SleepShape, big: boolean): string[] {
   const key = JSON.stringify([shape, big]);
   let s = cache.get(key);
   if (!s) {
-    s = shape.kind === 'ball' ? buildBall(big) : buildCurl(shape, big);
+    s = shape.kind === 'ball' ? buildBall(big) : shape.kind === 'roost' ? buildRoost(big) : buildCurl(shape, big);
     cache.set(key, s);
   }
   return s;

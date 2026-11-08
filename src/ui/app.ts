@@ -39,8 +39,12 @@ const CALL_TEXT: Record<CallType, string> = {
   fake: 'ruft nach dir …',
 };
 
-export function stageName(p: { species: string; stage: Pet['stage']; variant: Pet['variant'] }): string {
-  const names = species(p.species).stageNames[p.stage];
+export function stageName(p: { species: string; stage: Pet['stage']; variant: Pet['variant']; look?: Pet['look'] }): string {
+  const sp = species(p.species);
+  const breed = p.look?.breed !== undefined ? sp.breeds?.[p.look.breed] : undefined;
+  const own = breed?.stageNames?.[p.stage]?.[p.variant];
+  if (own) return own;
+  const names = sp.stageNames[p.stage];
   return names[p.variant] ?? Object.values(names)[0] ?? '';
 }
 

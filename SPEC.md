@@ -11,7 +11,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 - **Echtzeit:** Die Zeit im Spiel läuft genauso schnell wie die echte Zeit. Ein Tag im Spiel ist ein echter Tag.
 - **Läuft weiter, wenn die App zu ist** (ergänzt): Ist die App geschlossen, läuft die Zeit trotzdem weiter. Beim nächsten Öffnen wird alles nachberechnet, was in der Zwischenzeit passiert ist (Hunger, Kacke, Krankheit usw.).
 - **Alles über die UI:** Jede Pflegeaktion löst der Spieler selbst über die Oberfläche aus. Nichts passiert automatisch zugunsten des Tiers.
-- **Mehrere Tiere:** Man kann bis zu **4 Tiere** gleichzeitig haben. Alle leben parallel in Echtzeit, auch wenn sie gerade nicht angezeigt werden. Über eine **Leiste oben** schaltet man zwischen ihnen um. Jedes Tier hat dort ein Mini-Bild und seinen Namen; ein roter Punkt zeigt, dass es ruft, ein „z“, dass es schläft. Mit „+“ legt man ein neues Ei an. Ruft ein Tier, das gerade nicht angezeigt wird, piept es, und unten erscheint eine Meldung mit seinem Namen. Stirbt ein Tier oder zieht in den Wald, geht es mit den übrigen weiter.
+- **Mehrere Tiere:** Man kann bis zu **5 Tiere** gleichzeitig haben. Alle leben parallel in Echtzeit, auch wenn sie gerade nicht angezeigt werden. Über eine **Leiste oben** schaltet man zwischen ihnen um. Jedes Tier hat dort ein Mini-Bild und seinen Namen; ein roter Punkt zeigt, dass es ruft, ein „z“, dass es schläft. Mit „+“ legt man ein neues Ei an. Ruft ein Tier, das gerade nicht angezeigt wird, piept es, und unten erscheint eine Meldung mit seinem Namen. Stirbt ein Tier oder zieht in den Wald, geht es mit den übrigen weiter.
 
 ## 2a. Plattform
 
@@ -84,6 +84,18 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
   | Corgi | große Stehohren, kurze Beine, kein Schwanz | Rot-Weiß, Dreifarbig | einfarbig / weiße Pfoten / Abzeichen | 12 kg |
 
   Welpen wiegen etwa 1,5 %, Junghunde 20 % und Halbstarke 65 % des Erwachsenengewichts. Hunde-Minispiele: Frisbee fangen, In welchem Korb?, Leckerli fangen (Zitronen meiden), Ball werfen (nicht in die Pfütze) und Spuren lesen.
+- **Huhn:** lebt draußen auf dem **Hühnerhof**. Beim Ei werden **Rasse, Farbe und Muster zufällig** festgelegt. Hühner sind in der **Seitenansicht** gezeichnet und schauen immer in Laufrichtung. Babys und Kinder sind **Küken** in den Farben ihrer Rasse. **4 Rassen:**
+
+  | Rasse | Aussehen | Farben | Gewicht erwachsen |
+  |---|---|---|---|
+  | Legehuhn | rundlich, roter Kamm und Kehllappen | Braun, Weiß, Schwarz | 2 kg |
+  | Seidenhuhn | flauschig, runder Federschopf | Weiß, Schwarz, Buff | 1,2 kg |
+  | Hahn | großer Kamm, Kehllappen, hoher dunkler Sichelschwanz; heißt Junghahn / Hahn / Prachthahn / Frechhahn | Rotbraun, Weiß, Schwarz | 3 kg |
+  | Sperberhuhn | gestreiftes (gesperbertes) Gefieder | Grau, Gold | 2,5 kg |
+
+  - **Verhalten:** Hühner putzen und strecken sich nicht, sondern **picken** zwischendurch schnell auf den Boden.
+  - **Schlaf:** Im Stall sitzen sie aufgeplustert mit geschlossenen Augen.
+  - **Minispiele:** Wurm picken, Hinter welchem Strohballen?, Körner fangen (Steinchen meiden), Weitflattern (nicht in den Teich) und Spuren lesen.
 - Fellfarben und Muster sind als Daten angelegt (`coats`, `patterns`) und lassen sich auch für andere Arten nutzen.
 - Die Architektur muss es erlauben, neue Tierarten hinzuzufügen, ohne die Spiellogik zu ändern. Eine Tierart besteht also aus Daten und Grafiken, nicht aus eigenem Code.
 
@@ -265,6 +277,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Umgebung je Tierart:**
 - **Katze:** wohnt drinnen im Zimmer (siehe unten).
 - **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, ganz hinten eine bläuliche **Bergkette mit Schneegipfeln**, schattigen Hängen und Dunst, davor ein dunstiger Waldsaum, zwei Hügelketten mit kleinen Bäumen, **Tannen mit Ast-Etagen** (Licht links, Schatten rechts), Wiese mit Grashalmen, Steinen und einem **Fliegenpilz**, links vorne ein runder **Busch** mit Beeren. Der Baumstamm hat Rindenfurchen, Moos, Astknoten und einen Aststummel. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist ein kleiner bogenförmiger Eingang zum Fuchsbau mit Laubpolster. Gefüttert wird auf einem flachen Stein.
+- **Huhn:** lebt draußen auf dem **Hühnerhof**: Hecke und Zaun wie im Garten, Rasen mit verstreuten **Strohhalmen**, links ein **Strohballen**. Es schläft in einem **Hühnerstall** aus Holzbrettern mit rotem Ziegeldach, kleinem Fenster und Stroh in der Tür. Gefüttert wird aus einem **Futtertrog aus Blech**. Statt Blättern wehen Heu- und Strohhalme vorbei, als Besucher kommen eine Maus und Vögel.
 - **Igel:** lebt draußen **im Garten**: eine **Hecke aus einzelnen Blättern**, ein **Holzzaun mit spitzen Latten**, Maserung, Nägeln und Schatten, ein Busch mit roten Beeren, **Tulpen**, ein Stein und Rasen mit Herbstlaub. Der Laubhaufen besteht aus vielen einzelnen bunten Blättern. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 

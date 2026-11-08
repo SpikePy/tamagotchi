@@ -50,4 +50,16 @@ describe('Tierarten', () => {
         for (const ch of map.join('').replaceAll('.', '')) expect(colors[ch], `${b.name}/${stage} '${ch}'`).toBeTruthy();
       }
   });
+
+  it('alle Rassen aller Arten: Sprites rechteckig, alle Farben vorhanden', () => {
+    for (const sp of Object.values(SPECIES))
+      for (const [i, b] of (sp.breeds ?? []).entries())
+        for (const [c] of b.coats.entries())
+          for (const stage of ['baby', 'child', 'teen', 'adult'] as const)
+            for (const sleeping of [false, true]) {
+              const { map, colors } = petSprite(sp, { stage, variant: 'normal', look: { breed: i, coat: c, pattern: 'solid', seed: 1 } }, { sleeping });
+              for (const r of map) expect(r.length, `${b.name}/${stage}`).toBe(map[0].length);
+              for (const ch of map.join('').replaceAll('.', '')) expect(colors[ch], `${sp.id}/${b.name}/${stage} '${ch}'`).toBeTruthy();
+            }
+  });
 });

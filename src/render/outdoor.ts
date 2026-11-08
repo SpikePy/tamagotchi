@@ -3,7 +3,7 @@
 import { ICONS, drawMap, type ColorMap } from './pixels';
 import { bands, glow } from './fx';
 
-export type SceneKind = 'room' | 'forest' | 'garden';
+export type SceneKind = 'room' | 'forest' | 'garden' | 'farm';
 
 const W = 64;
 export const GROUND_Y = 33; // Horizont: ab hier beginnt der Boden
@@ -288,13 +288,40 @@ export function drawOutdoorSky(ctx: CanvasRenderingContext2D, clock: number): bo
 /** Fern-Ebene draußen (liegt über Himmel, Wolken und Vögeln) */
 export function drawOutdoorFar(ctx: CanvasRenderingContext2D, kind: SceneKind) {
   if (kind === 'forest') drawForestFar(ctx);
-  else drawGardenFar(ctx);
+  else drawGardenFar(ctx); // Garten und Hühnerhof: Hecke und Zaun
 }
 
 /** Nah-Ebene draußen (liegt über Reh & Co. im Hintergrund) */
 export function drawOutdoorNear(ctx: CanvasRenderingContext2D, kind: SceneKind) {
   if (kind === 'forest') drawForestNear(ctx);
+  else if (kind === 'farm') drawFarmNear(ctx);
   else drawGardenNear(ctx);
+}
+
+/** Hühnerhof: Rasen mit Strohhalmen, Strohballen, Stein */
+function drawFarmNear(ctx: CanvasRenderingContext2D) {
+  bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#a8c26a', '#7a9a48', 4);
+  grassBlades(ctx, ['#6a8a3a', '#b8d47a', '#8aa84a']);
+  // verstreute Strohhalme
+  for (let i = 0; i < 40; i++) {
+    const n = hash(i * 31 + 3, i * 17 + 9);
+    const x = (n % 120) / 2;
+    const y = GROUND_Y + 2 + ((n >> 3) % 24) / 2;
+    px(ctx, n % 2 ? '#e8c860' : '#c8a040', x, y, n % 3 ? 1 : P, P);
+  }
+  // Strohballen links
+  const bx = 1;
+  const by = 31;
+  px(ctx, '#7a5a1a', bx, by, 11, 9);
+  px(ctx, '#e0b850', bx + P, by + P, 10, 8);
+  for (let y = by + 1; y < by + 8.5; y += 1.5) px(ctx, '#c89a38', bx + P, y, 10, P);
+  for (let i = 0; i < 18; i++) {
+    const n = hash(i * 7, 99);
+    px(ctx, '#f4d878', bx + 0.5 + (n % 20) / 2, by + 0.5 + ((n >> 2) % 16) / 2, P, P);
+  }
+  px(ctx, '#8a3a2a', bx + 3, by, P, 9);
+  px(ctx, '#8a3a2a', bx + 8, by, P, 9);
+  stone(ctx, 26, 44.5);
 }
 
 // ---------- Schlafplatz draußen: Baumhöhle (Fuchs) bzw. Laubhaufen (Igel) ----------
@@ -335,7 +362,53 @@ function leaf(ctx: CanvasRenderingContext2D, x: number, y: number, n: number) {
   rows.forEach((r, j) => [...r].forEach((ch, i) => ch !== '.' && px(ctx, (c as Record<string, string>)[ch], x + i * P, y + j * P, P, P)));
 }
 
+/** Hühnerstall: Holzhaus mit rotem Dach, Tür mit Stroh */
+function drawCoop(ctx: CanvasRenderingContext2D) {
+  const x0 = NEST_CX - 10;
+  const x1 = NEST_CX + 10;
+  const top = 24;
+  // Wände aus senkrechten Brettern
+  for (let x = x0; x < x1; x += P) {
+    const plank = Math.floor((x - x0) / 3);
+    const edge = (x - x0) % 3 === 0;
+    for (let y = top; y <= NEST_BASE; y += P) {
+      const n = hash(Math.round(x * 2), Math.round(y * 2));
+      let c = plank % 2 ? '#b07a44' : '#c08a50';
+      if (edge) c = '#6a4424';
+      else if (n % 11 === 0) c = '#9a6a3a';
+      px(ctx, c, x, y, P, P);
+    }
+  }
+  px(ctx, '#4a2e18', x0 - P, top, P, NEST_BASE - top + 1);
+  px(ctx, '#4a2e18', x1, top, P, NEST_BASE - top + 1);
+  // Dach (Dreieck mit Ziegelreihen)
+  for (let y = 15; y < top + 1; y += P) {
+    const half = 12 * ((y - 15) / (top + 1 - 15)) + 1;
+    for (let x = NEST_CX - half; x < NEST_CX + half; x += P) {
+      const row = Math.round((y - 15) * 2);
+      let c = row % 4 === 0 ? '#8a2a1e' : (Math.round(x * 2) + (row >> 2) * 2) % 6 === 0 ? '#9a3424' : '#c0462e';
+      if (x < NEST_CX - half + P || x >= NEST_CX + half - P) c = '#5a1a12';
+      px(ctx, c, x, y, P, P);
+    }
+  }
+  // Tür (Bogen) mit dunklem Inneren und Stroh
+  for (let y = HOLE_TOP - 1; y <= NEST_BASE; y += P)
+    for (let x = NEST_CX - HOLE_HALF - 2; x <= NEST_CX + HOLE_HALF + 2; x += P) {
+      const cx0 = x + P / 2;
+      const cy0 = y + P / 2;
+      if (!inHole(cx0, cy0, 1.5)) continue;
+      let c = '#4a2e18';
+      if (inHole(cx0, cy0, 1)) c = cy0 < HOLE_TOP + 3 ? '#3a2414' : '#4e3220';
+      if (inHole(cx0, cy0, 1) && cy0 > NEST_BASE - 2) c = hash(Math.round(x * 2), Math.round(y * 2)) % 2 ? '#e8c860' : '#c8a040';
+      px(ctx, c, x, y, P, P);
+    }
+  // kleines Fenster
+  px(ctx, '#4a2e18', NEST_CX + 5, top + 2, 3.5, 3.5);
+  px(ctx, '#f4d878', NEST_CX + 5.5, top + 2.5, 2.5, 2.5);
+}
+
 export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
+  if (kind === 'farm') return drawCoop(ctx);
   if (kind === 'forest') {
     // Stamm im feinen Raster: Rindenfurchen, Licht links, Schatten rechts, Moos unten
     for (let y = TRUNK_TOP; y <= NEST_BASE; y += P) {
@@ -395,6 +468,12 @@ export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
 }
 
 export function drawNestFront(ctx: CanvasRenderingContext2D, kind: SceneKind) {
+  if (kind === 'farm') {
+    // Schwelle vor der Stalltür
+    px(ctx, '#4a2e18', NEST_CX - HOLE_HALF - 2, NEST_BASE - P, (HOLE_HALF + 2) * 2 + P, P);
+    px(ctx, '#8a5a2e', NEST_CX - HOLE_HALF - 2, NEST_BASE, (HOLE_HALF + 2) * 2 + P, P);
+    return;
+  }
   if (kind === 'forest') {
     // Wurzeln links und rechts vom Eingang
     const y = NEST_BASE - P;
@@ -416,4 +495,5 @@ export const PLATE_COLORS: Record<SceneKind, ColorMap> = {
   room: { o: '#2e4a7a', h: '#8fb3e6', b: '#5b86c9' },
   forest: { o: '#4a4a46', h: '#a8a8a0', b: '#7e7e76' },
   garden: { o: '#7a3a1e', h: '#e8946a', b: '#c0623a' },
+  farm: { o: '#4a5058', h: '#c8d0d8', b: '#8a949e' }, // Futtertrog aus Blech
 };

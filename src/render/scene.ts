@@ -719,7 +719,7 @@ export class Scene {
 
   /** zufällig das nächste Verhalten wählen */
   private nextAct(t: number, p: Pet, from: number, to: number) {
-    const groomer = p.species === 'cat' || p.species === 'dog' || p.species === 'fox';
+    const groomer = p.species === 'cat' || p.species === 'dog' || p.species === 'fox' || p.species === 'chicken';
     const r = Math.random();
     if (r < 0.42) {
       let target = from + Math.random() * (to - from);
@@ -730,7 +730,7 @@ export class Scene {
     }
     if (r < 0.66) return { kind: 'idle' as const, start: t, until: t + 1000 + Math.random() * 3000 };
     if (r < 0.8 || !groomer || p.sick) return { kind: 'look' as const, start: t, until: t + 2000 + Math.random() * 2000 };
-    const grown = p.stage === 'teen' || p.stage === 'adult';
+    const grown = (p.stage === 'teen' || p.stage === 'adult') && p.species !== 'chicken'; // Hühner picken statt sich zu strecken
     if (r < 0.92 || !grown) return { kind: 'groom' as const, start: t, until: t + 2400 };
     return { kind: 'stretch' as const, start: t, until: t + 2600 };
   }
@@ -817,7 +817,7 @@ export class Scene {
     let x = this.walkX;
     let bob = 0;
     if (!m && a.kind === 'walk' && !p.sick) bob = (Math.floor(t / 220) % 2) * 0.5;
-    if (eating || grooming) bob = -(Math.floor(t / 280) % 2) * 0.5; // Kopf runter (Napf / Putzen)
+    if (eating || grooming) bob = -(Math.floor(t / (p.species === 'chicken' ? 160 : 280)) % 2) * (p.species === 'chicken' ? 1 : 0.5); // Kopf runter (Napf / Putzen / Picken)
     const j = t - this.jumpStart;
     if (j >= 0 && j < 900) bob = Math.round(Math.abs(Math.sin((j / 900) * Math.PI * 2)) * 5);
     const s = t - this.shakeStart;
@@ -839,14 +839,14 @@ export class Scene {
 
     if (grooming) {
       // Zunge beim Putzen und am Ende ein Glitzern
-      const ny = img.map.findIndex((r) => r.includes('n'));
+      const ny = p.species === 'chicken' ? -1 : img.map.findIndex((r) => r.includes('n'));
       if (ny >= 0 && Math.floor(t / 280) % 2 === 0) {
         const nx = img.map[ny].indexOf('n');
         const sx = flip ? w - 1 - nx : nx;
         ctx.fillStyle = '#f07a8a';
         ctx.fillRect(Math.round((x + sx) * 2) / 2, Math.round((y + ny + 1) * 2) / 2, 0.5, 0.5);
       }
-      if (k > 0.75) drawMap(ctx, ICONS.sparkle.map, ICONS.sparkle.colors, x + w - 3, y - 2);
+      if (k > 0.75 && p.species !== 'chicken') drawMap(ctx, ICONS.sparkle.map, ICONS.sparkle.colors, x + w - 3, y - 2);
     }
 
     if (p.variant === 'great' && Math.floor(t / 600) % 3 === 0) {

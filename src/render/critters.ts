@@ -96,6 +96,7 @@ const KINDS: Record<SceneKind, Kind[]> = {
   room: ['bird'],
   forest: ['mouse', 'hedgehog', 'deer', 'bird', 'bird'],
   garden: ['mouse', 'bird', 'bird'],
+  farm: ['mouse', 'bird', 'bird'],
 };
 
 const DURATION: Record<Kind, number> = { mouse: 3000, hedgehog: 14000, deer: 20000, bird: 5000 };
@@ -105,7 +106,7 @@ export const LEAF_FRAMES = [
   ['.lg.', 'lggd', '.dd.'],
   ['.l.', 'lgd', 'ggd', '.d.'],
 ];
-export const LEAF_PALETTES: Record<'forest' | 'garden', ColorMap[]> = {
+export const LEAF_PALETTES: Record<'forest' | 'garden' | 'farm', ColorMap[]> = {
   forest: [
     { l: '#9ad46a', g: '#5fa84a', d: '#3f7432' },
     { l: '#c4e07a', g: '#8ab84a', d: '#5a8a34' },
@@ -114,6 +115,11 @@ export const LEAF_PALETTES: Record<'forest' | 'garden', ColorMap[]> = {
     { l: '#f6c46a', g: '#e08a3a', d: '#a8542a' },
     { l: '#f08a6a', g: '#c95a2a', d: '#8a3a1a' },
     { l: '#f6e07a', g: '#e0b13a', d: '#a8802a' },
+  ],
+  // Hühnerhof: Heu- und Strohhalme wehen
+  farm: [
+    { l: '#f4d878', g: '#e0b850', d: '#a8802a' },
+    { l: '#e8c860', g: '#c89a38', d: '#8a6a20' },
   ],
 };
 

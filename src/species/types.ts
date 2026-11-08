@@ -34,6 +34,8 @@ export interface Breed {
   sleep: SleepShape;
   /** Sprite schaut nach links (Seitenansicht), z. B. Dackel */
   facesLeft?: boolean;
+  /** eigene Namen der Entwicklungsstufen (z. B. Hahn statt Huhn) */
+  stageNames?: Partial<Record<Stage, Partial<Record<Variant, string>>>>;
 }
 
 export interface GameTheme {
@@ -57,7 +59,7 @@ export interface SpeciesDef {
   /** Schlafpose (eingerollt) */
   sleep: SleepShape;
   /** Deko im Raum passend zur Art */
-  room?: { scene?: 'room' | 'forest' | 'garden'; floor?: 'grass' | 'leaves'; scratchingPost?: boolean; ball?: boolean; bone?: boolean; socks?: boolean };
+  room?: { scene?: 'room' | 'forest' | 'garden' | 'farm'; floor?: 'grass' | 'leaves'; scratchingPost?: boolean; ball?: boolean; bone?: boolean; socks?: boolean };
   /** optional: zufällige Fellfarbe + Muster pro Tier */
   coats?: Coat[];
   patterns?: Pattern[];

@@ -84,7 +84,7 @@ export interface Settings {
   notifications: boolean;
 }
 
-export const MAX_PETS = 4;
+export const MAX_PETS = 5;
 
 export interface GameState {
   version: 2;
