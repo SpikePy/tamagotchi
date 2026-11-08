@@ -86,9 +86,35 @@ const POST_COLORS: ColorMap = { o: '#4a3a30', m: '#b9a58a', r: '#d8c08e', R: '#b
 // Kauknochen und Socken (Hund), in voller Rasterauflösung
 const BONE = ['.oo......oo.', 'owwoooooowwo', '.owwwwwwwwo.', '.owwwwwwwso.', 'owwoooooowso', '.oo......oo.'];
 const BONE_COLORS: ColorMap = { o: '#8a7a5e', w: '#f4ecd8', s: '#cbbd9e' };
-const SOCK = ['ooooo.....', 'orwrwo....', 'orwrwo....', 'orwrwooooo', 'orrrrrrrro', '.oooooooo.'];
-const SOCK_RED: ColorMap = { o: '#6a2a2a', r: '#d8404a', w: '#f4f4f4' };
-const SOCK_BLUE: ColorMap = { o: '#2a3a6a', r: '#4a6ad8', w: '#f4f4f4' };
+// Socken in L-Form: Bündchen (c/C), Ringel (w), Ferse und Spitze (k), Schatten (R)
+const SOCK = [
+  '.ooooo.....',
+  '.ocCco.....',
+  '.occco.....',
+  '.orrRo.....',
+  '.owwwo.....',
+  '.orrRo.....',
+  '.owwwo.....',
+  '.orrRoooo..',
+  '.orrrrrrRo.',
+  '.okrrrrrkko',
+  '.okkrrRkkko',
+  '..oooooooo.',
+];
+const SOCK2 = [
+  '.....ooooo.',
+  '.....ocCco.',
+  '.....occco.',
+  '.....orrRo.',
+  '.....owwwo.',
+  '..ooooRrro.',
+  '.oRrrrrrro.',
+  'okkrrrrrkko',
+  'okkkRrrrkko',
+  '.oooooooo..',
+];
+const SOCK_RED: ColorMap = { o: '#5a1a22', r: '#d8404a', R: '#a82a36', w: '#f6f2ea', c: '#f6f2ea', C: '#d8d0c4', k: '#f6f2ea' };
+const SOCK_BLUE: ColorMap = { o: '#1a2a5a', r: '#4a6ad8', R: '#3448a8', w: '#f4d24a', c: '#f6f2ea', C: '#d8d0c4', k: '#f4d24a' };
 
 // Spielball am Kratzbaum
 const TOY_BALL = ['.rr.', 'rwrr', 'rrrr', '.rr.'];
@@ -376,10 +402,13 @@ export class Scene {
     if (p.stage === 'egg') {
       this.drawEgg(s, p, sp, t);
       this.nestFront();
+      this.drawFrontDecor(sp);
     } else if (!walking) {
       this.drawPetInBasket(p, sp, t, hatching);
+      this.drawFrontDecor(sp);
     } else {
       this.nestFront();
+      this.drawFrontDecor(sp);
       this.drawPetWalking(p, sp, t);
     }
     if (poopsInFront) this.drawPoops(p, t);
@@ -645,11 +674,16 @@ export class Scene {
     }
     if (room.ball) drawMap(ctx, BALL, BALL_COLORS, 6, FLOOR_Y + 2);
     if (room.bone) drawPixels(ctx, BONE, BONE_COLORS, 27, FLOOR_Y + 4);
-    if (room.socks) {
-      drawPixels(ctx, SOCK, SOCK_RED, 51, FLOOR_Y + 3.5);
-      drawPixels(ctx, SOCK.map((r) => [...r].reverse().join('')), SOCK_BLUE, 56.5, FLOOR_Y + 4.5);
-    }
+
     if (room.scratchingPost) drawMap(ctx, POST, POST_COLORS, POST_X, FLOOR_Y + 1 - POST.length);
+  }
+
+  /** Dinge, die vor dem Schlafplatz liegen (nach dessen Vorderseite gezeichnet) */
+  private drawFrontDecor(sp: SpeciesDef) {
+    if (sp.room?.socks) {
+      drawPixels(this.ctx, SOCK, SOCK_RED, 48.5, FLOOR_Y + 0.5);
+      drawPixels(this.ctx, SOCK2, SOCK_BLUE, 53.5, FLOOR_Y + 1.5);
+    }
   }
 
   /** Spielball am Kratzbaum pendelt an einer Schnur */

@@ -300,7 +300,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Deko je Tierart:** Sie ist als Daten in der Tierart angelegt (`room`).
 - **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
-- **Hund:** Auf dem Boden liegen ein Tennisball und ein **Kauknochen**, und neben dem Hundebett liegt ein Paar geklauter **Menschensocken** (rot und blau gestreift).
+- **Hund:** Auf dem Boden liegen ein Tennisball und ein **Kauknochen**, und vor dem Hundebett liegt ein Paar geklauter **Menschensocken** in L-Form, mit Bündchen, Ringeln und abgesetzter Ferse und Spitze: eine rot-weiß geringelte und eine blau-gelbe, zerknüllte.
 - **Zimmer (Katze, Hund):** An der Wand hängt ein **Bild** mit einer kleinen Landschaft. Unter dem Napf liegt ein ovaler **Teppich** mit Randmuster.
 - **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und wackelt leicht. Eine Zimmerpflanze gibt es nicht mehr.
 
