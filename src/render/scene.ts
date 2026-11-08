@@ -5,7 +5,7 @@ import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, RES, drawMap, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
 import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
-import { GROUND_Y, PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
+import { COOP_PERCH_Y, GROUND_Y, PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds } from './weather';
 
 export const SCREEN_W = 64;
@@ -761,7 +761,7 @@ export class Scene {
     const k = hatching ? (t - this.hatchStart) / HATCH_MS : 1;
     // beim Schlüpfen taucht es langsam aus der Schale auf
     const rise = hatching ? Math.round(Math.min(1, k * 2) * 3) - 3 : 0;
-    const bottom = sleeping ? (this.env === 'room' ? BASKET_Y + BASKET_FRONT_DY : FLOOR_Y - 1) : FLOOR_Y;
+    const bottom = sleeping ? (this.env === 'room' ? BASKET_Y + BASKET_FRONT_DY : this.env === 'farm' ? COOP_PERCH_Y - 0.5 : FLOOR_Y - 1) : FLOOR_Y;
     // sanftes Atmen im Schlaf
     const breathe = sleeping && Math.floor(t / 1800) % 2 === 0 ? 0.5 : 0;
     const y = bottom - h + 1 - rise + breathe;

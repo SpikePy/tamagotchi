@@ -53,6 +53,8 @@ export function stageName(p: { species: string; stage: Pet['stage']; variant: Pe
   const breed = p.look?.breed !== undefined ? sp.breeds?.[p.look.breed] : undefined;
   const own = breed?.stageNames?.[p.stage]?.[p.variant];
   if (own) return own;
+  const male = p.look?.sex === 'm' ? sp.maleStageNames?.[p.stage]?.[p.variant] : undefined;
+  if (male) return male;
   const names = sp.stageNames[p.stage];
   return names[p.variant] ?? Object.values(names)[0] ?? '';
 }

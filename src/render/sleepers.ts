@@ -139,7 +139,7 @@ const ROOST_BIG = [
   '...cc.............',
   '..occo.........oo.',
   '.oaaaaooooooooado.',
-  'oaaZaaaaaaaaaaado.',
+  'oaZZaaaaaaaaaaado.',
   'ppaaaaaaaaaaaaaao.',
   '.ocaaaabbbbaaaaao.',
   '..oaabbbbbbbaaao..',
@@ -149,7 +149,7 @@ const ROOST_BIG = [
 const ROOST_SMALL = [
   '..oooo......',
   '.obbbbooooo.',
-  'obZbbbbbbbbo',
+  'oZZbbbbbbbbo',
   'ppbbbaaabbbo',
   '.obbbbbbbbo.',
   '..oooooooo..',

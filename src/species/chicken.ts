@@ -1,7 +1,8 @@
-import type { Breed, SpeciesDef } from './types';
+import type { Breed, SpeciesDef, Sprite } from './types';
 
 // Hühner in Seitenansicht (Kopf links). Küken (Baby/Kind) für alle Rassen gleich gebaut,
-// sie bekommen aber schon die Farben ihrer Rasse.
+// sie bekommen aber schon die Farben ihrer Rasse. Jedes Huhn ist zufällig Henne oder Hahn;
+// Hähne haben ab dem Teenager-Alter großen Kamm, Kehllappen und Sichelschwanz.
 const S = {
   chickBaby: [
     '....oooo....',
@@ -99,59 +100,117 @@ const S = {
   ],
 };
 
+// Junghahn: Teenager-Körper mit größerem Kamm und dunklen Schwanzfedern
+const ROOSTER_TEEN: Sprite = [
+  '..c.c.............',
+  '.occco........oo..',
+  '.oaaaao......oddo.',
+  'oaaEaao.....odddo.',
+  'ppaeaaao...oddodo.',
+  '.occaaaoooooaado..',
+  '..oaaaaaaaaaaaao..',
+  '..oaaabbbaaaaaao..',
+  '...oabbbbbaaaao...',
+  '....oobbbbaaoo....',
+  '......oooooo......',
+  '.......w..w.......',
+  '......ww.ww.......',
+];
+
+type Rows = Sprite;
+/** Beine befiedern (Brahma): Beinpixel außer den Zehen werden Federn */
+const featherLegs = (rows: Rows): Rows =>
+  rows.map((r, y) => (y >= rows.length - 3 && y < rows.length - 1 ? r.replace(/w/g, 'a') : r));
+/** obere Kopfzeilen ersetzen (Kamm/Haube) */
+const head = (rows: Rows, top: string[]): Rows => [...top.map((t, i) => t.padEnd(rows[i].length, '.').slice(0, rows[i].length)), ...rows.slice(top.length)];
+/** Körper fülliger: eine Rumpfzeile verdoppeln */
+const fluffy = (rows: Rows, at: number): Rows => [...rows.slice(0, at + 1), rows[at], ...rows.slice(at + 1)];
+
+const HEN = S.henAdult;
+const ROO = S.roosterAdult;
+const CHICKS = { baby: S.chickBaby, child: S.chickChild };
 const ROOST = { kind: 'roost' as const };
 const BLACK = { o: '#111014', e: '#d09040', E: '#d09040' };
 
+function breed(name: string, hen: { teen: Rows; adult: Rows }, rooster: { teen: Rows; adult: Rows }, rest: Omit<Breed, 'name' | 'sprites' | 'maleSprites' | 'sleep' | 'facesLeft'>): Breed {
+  return { name, sprites: { ...CHICKS, ...hen }, maleSprites: rooster, sleep: ROOST, facesLeft: true, ...rest };
+}
+
+const LEGHORN_COMB = ['..c.c.c...........', '.occccco..........'];
+const CREST = ['..aaa.............', '.oaaao............'];
+const CREST_ROO = ['.aaa.c..............', 'oaaaacco............'];
+
 export const CHICKEN_BREEDS: Breed[] = [
-  {
-    name: 'Legehuhn',
-    sprites: { baby: S.chickBaby, child: S.chickChild, teen: S.henTeen, adult: S.henAdult },
+  breed('Legehuhn', { teen: S.henTeen, adult: HEN }, { teen: ROOSTER_TEEN, adult: ROO }, {
     coats: [
-      { name: 'Braun', colors: { a: '#b8682e', b: '#e8b070', d: '#5a3018' } },
+      { name: 'Braun', colors: { a: '#b8682e', b: '#e8b070', d: '#1e3a28' } },
       { name: 'Weiß', colors: { a: '#f4f0e8', b: '#ffffff', d: '#d8d0c0', o: '#7a6a5a' } },
-      { name: 'Schwarz', colors: { a: '#2a2a2e', b: '#4a4a50', d: '#1a3a2a', ...BLACK } },
+      { name: 'Schwarz', colors: { a: '#2a2a2e', b: '#4a4a50', d: '#1e5a3e', ...BLACK } },
     ],
     adultGrams: 2000,
-    sleep: ROOST,
-    facesLeft: true,
-  },
-  {
-    name: 'Seidenhuhn',
-    sprites: { baby: S.chickBaby, child: S.chickChild, teen: S.silkieAdult, adult: S.silkieAdult },
+  }),
+  breed('Seidenhuhn', { teen: S.silkieAdult, adult: S.silkieAdult }, { teen: S.silkieAdult, adult: fluffy(S.silkieAdult, 6) }, {
     coats: [
       { name: 'Weiß', colors: { a: '#f6f2ec', b: '#ffffff', d: '#e0d8cc', o: '#7a6a5a' } },
       { name: 'Schwarz', colors: { a: '#2e2c32', b: '#46444c', d: '#1e1c22', ...BLACK } },
       { name: 'Buff', colors: { a: '#e8c890', b: '#f6e2bc', d: '#c8a060' } },
     ],
     adultGrams: 1200,
-    sleep: ROOST,
-    facesLeft: true,
-  },
-  {
-    name: 'Hahn',
-    sprites: { baby: S.chickBaby, child: S.chickChild, teen: S.henTeen, adult: S.roosterAdult },
-    coats: [
-      { name: 'Rotbraun', colors: { a: '#b8481e', b: '#e89040', d: '#1e3a28' } },
-      { name: 'Weiß', colors: { a: '#f4f0e8', b: '#ffffff', d: '#e0d8c8', o: '#7a6a5a' } },
-      { name: 'Schwarz', colors: { a: '#2a2a2e', b: '#3a3a40', d: '#1e5a3e', ...BLACK } },
-    ],
-    adultGrams: 3000,
-    sleep: ROOST,
-    facesLeft: true,
-    stageNames: { teen: { good: 'Junghahn', bad: 'Rabaukenhahn' }, adult: { great: 'Prachthahn', normal: 'Hahn', cheeky: 'Frechhahn' } },
-  },
-  {
-    name: 'Sperberhuhn',
-    sprites: { baby: S.chickBaby, child: S.chickChild, teen: S.henTeen, adult: S.henAdult },
+  }),
+  breed('Sperberhuhn', { teen: S.henTeen, adult: HEN }, { teen: ROOSTER_TEEN, adult: ROO }, {
     coats: [
       { name: 'Grau gesperbert', colors: { a: '#8a8a90', b: '#c8c8cc', d: '#3a3a40' } },
       { name: 'Gold gesperbert', colors: { a: '#c89a4a', b: '#e8c88a', d: '#6a4a1a' } },
     ],
     patterns: ['tabby'],
     adultGrams: 2500,
-    sleep: ROOST,
-    facesLeft: true,
-  },
+  }),
+  breed('Leghorn', { teen: S.henTeen, adult: head(HEN, LEGHORN_COMB) }, { teen: ROOSTER_TEEN, adult: ROO }, {
+    coats: [
+      { name: 'Weiß', colors: { a: '#f6f4ee', b: '#ffffff', d: '#e0dad0', o: '#7a6a5a' } },
+      { name: 'Rebhuhnfarbig', colors: { a: '#c87a3a', b: '#e8b070', d: '#2a3a2a' } },
+    ],
+    adultGrams: 1800,
+  }),
+  breed('Brahma', { teen: featherLegs(S.henTeen), adult: featherLegs(fluffy(HEN, 7)) }, { teen: featherLegs(ROOSTER_TEEN), adult: featherLegs(fluffy(ROO, 8)) }, {
+    coats: [
+      { name: 'Hell', colors: { a: '#f4f0e8', b: '#ffffff', d: '#2a2a2e', o: '#6a6a6a' } },
+      { name: 'Dunkel', colors: { a: '#6a6a70', b: '#b8b8bc', d: '#2a2a2e' } },
+      { name: 'Gelb', colors: { a: '#e8b070', b: '#f4d8a8', d: '#5a3a1a' } },
+    ],
+    adultGrams: 4500,
+  }),
+  breed('Orpington', { teen: S.henTeen, adult: fluffy(fluffy(HEN, 7), 8) }, { teen: ROOSTER_TEEN, adult: fluffy(ROO, 9) }, {
+    coats: [
+      { name: 'Gelb', colors: { a: '#e8b878', b: '#f4d8a8', d: '#a87838' } },
+      { name: 'Schwarz', colors: { a: '#2a2a2e', b: '#3e3e44', d: '#1e4a3a', ...BLACK } },
+      { name: 'Blau', colors: { a: '#6a7a8a', b: '#9aa8b8', d: '#3a4a5a' } },
+    ],
+    adultGrams: 3500,
+  }),
+  breed('Wyandotte', { teen: S.henTeen, adult: HEN }, { teen: ROOSTER_TEEN, adult: ROO }, {
+    coats: [
+      { name: 'Silber gesäumt', colors: { a: '#f0f0f0', b: '#ffffff', d: '#2a2a2e', o: '#4a4a4a' } },
+      { name: 'Gold gesäumt', colors: { a: '#e0a040', b: '#f0c878', d: '#3a2414' } },
+    ],
+    patterns: ['laced'],
+    adultGrams: 2800,
+  }),
+  breed('Appenzeller Spitzhaube', { teen: head(S.henTeen, CREST), adult: head(HEN, CREST) }, { teen: head(ROOSTER_TEEN, CREST), adult: head(ROO, CREST_ROO) }, {
+    coats: [
+      { name: 'Silber getupft', colors: { a: '#f4f4f4', b: '#ffffff', d: '#1e1e1e', o: '#4a4a4a' }, patterns: ['spots'] },
+      { name: 'Schwarz', colors: { a: '#2a2a2e', b: '#3e3e44', d: '#1e4a3a', ...BLACK } },
+    ],
+    adultGrams: 1600,
+  }),
+  breed('Zwerghuhn', { teen: S.chickChild, adult: S.henTeen }, { teen: S.chickChild, adult: ROOSTER_TEEN }, {
+    coats: [
+      { name: 'Goldhals', colors: { a: '#d88a2a', b: '#f0b860', d: '#2a3a2a' } },
+      { name: 'Weiß', colors: { a: '#f4f0e8', b: '#ffffff', d: '#e0d8c8', o: '#7a6a5a' } },
+      { name: 'Schwarz', colors: { a: '#2a2a2e', b: '#3a3a40', d: '#1e5a3e', ...BLACK } },
+    ],
+    adultGrams: 700,
+  }),
 ];
 
 export const chicken: SpeciesDef = {
@@ -176,6 +235,11 @@ export const chicken: SpeciesDef = {
   variantPalettes: { bad: { o: '#3a2a20' } },
   weightGrams: { baby: 40, child: 400, teen: 1300, adult: 2000 },
   sleep: ROOST,
+  sexes: true,
+  maleStageNames: {
+    teen: { good: 'Junghahn', bad: 'Rabaukenhahn' },
+    adult: { great: 'Prachthahn', normal: 'Hahn', cheeky: 'Frechhahn' },
+  },
   room: { scene: 'farm' },
   breeds: CHICKEN_BREEDS,
   egg: { shell: '#f6efe4', spots: '#c8a070' },

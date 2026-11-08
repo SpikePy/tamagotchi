@@ -16,7 +16,7 @@ export type PaletteKey = 'o' | 'a' | 'b' | 'c' | 'n' | 'E' | 'e' | 'p' | 'w' | '
 export type Palette = Record<Exclude<PaletteKey, 'd'>, string> & { d?: string };
 
 /** Fellmuster, die der Renderer auf die Hauptfarbe 'a' anwendet */
-export type Pattern = 'solid' | 'tabby' | 'patches' | 'socks' | 'spots' | 'saddle' | 'points';
+export type Pattern = 'solid' | 'tabby' | 'patches' | 'socks' | 'spots' | 'saddle' | 'points' | 'laced';
 
 export interface Coat {
   name: string; // z. B. "Rot"
@@ -28,6 +28,8 @@ export interface Coat {
 export interface Breed {
   name: string;
   sprites: Record<Exclude<Stage, 'egg'>, Sprite>;
+  /** Aussehen der Männchen ab Teenager (z. B. Hahn) */
+  maleSprites?: { teen: Sprite; adult: Sprite };
   coats: Coat[];
   patterns?: Pattern[];
   adultGrams: number;
@@ -63,6 +65,9 @@ export interface SpeciesDef {
   /** optional: zufällige Fellfarbe + Muster pro Tier */
   coats?: Coat[];
   patterns?: Pattern[];
+  /** Männchen/Weibchen zufällig (z. B. Henne/Hahn) */
+  sexes?: boolean;
+  maleStageNames?: Partial<Record<Stage, Partial<Record<Variant, string>>>>;
   /** optional: zufällige Rasse pro Tier (überschreibt sprites/coats/patterns) */
   breeds?: Breed[];
   stageNames: Record<Stage, Partial<Record<Variant, string>>>;

@@ -22,7 +22,9 @@ export function randomLook(sp: SpeciesDef, rng: () => number = Math.random): Loo
     const b = sp.breeds[breed];
     const coat = Math.floor(rng() * b.coats.length);
     const patterns = b.coats[coat].patterns ?? b.patterns ?? ['solid'];
-    return { breed, coat, pattern: pick(patterns), seed: Math.floor(rng() * 2 ** 31) };
+    const look: Look = { breed, coat, pattern: pick(patterns), seed: Math.floor(rng() * 2 ** 31) };
+    if (sp.sexes) look.sex = rng() < 0.5 ? 'f' : 'm';
+    return look;
   }
   if (!sp.coats?.length) return null;
   const coat = Math.floor(rng() * sp.coats.length);
@@ -43,7 +45,8 @@ export function weightGrams(sp: SpeciesDef, p: WeightInput): number {
   if (p.stage === 'egg') return 0;
   const base = RULES.baseWeight[p.stage];
   const breed = p.look?.breed !== undefined ? sp.breeds?.[p.look.breed] : undefined;
-  const normal = breed ? breed.adultGrams * BREED_STAGE_FACTOR[p.stage] : sp.weightGrams[p.stage];
+  const male = p.look?.sex === 'm' && (p.stage === 'teen' || p.stage === 'adult') ? 1.3 : 1; // Hähne sind schwerer
+  const normal = (breed ? breed.adultGrams * BREED_STAGE_FACTOR[p.stage] : sp.weightGrams[p.stage]) * male;
   return Math.round((normal * p.weight) / base);
 }
 
@@ -60,6 +63,7 @@ const PATTERN_DE: Record<string, string> = {
   spots: 'getupft',
   saddle: 'mit Sattel',
   points: 'mit Abzeichen',
+  laced: 'gesäumt',
 };
 
 /** z. B. "Grau, getigert" oder "Beagle, Dreifarbig, mit Sattel" */
@@ -69,8 +73,10 @@ export function lookName(sp: SpeciesDef, look: Look | null | undefined): string 
   const coats = breed?.coats ?? sp.coats;
   if (!coats) return null;
   const parts = [coats[look.coat]?.name ?? '?'];
-  if (!breed || look.pattern !== 'solid') parts.push(PATTERN_DE[look.pattern] ?? look.pattern);
-  if (breed) parts.unshift(breed.name);
+  // Muster nur nennen, wenn es nicht schon in der Farbe steckt (z. B. „Silber getupft“)
+  const fixed = coats[look.coat]?.patterns?.length === 1;
+  if (!fixed && (!breed || look.pattern !== 'solid')) parts.push(PATTERN_DE[look.pattern] ?? look.pattern);
+  if (breed) parts.unshift(look.sex ? `${breed.name} (${look.sex === 'm' ? 'Hahn' : 'Henne'})` : breed.name);
   return parts.join(', ');
 }
 

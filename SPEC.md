@@ -85,17 +85,24 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
   | Corgi | große Stehohren, kurze Beine, kein Schwanz | Rot-Weiß, Dreifarbig | einfarbig / weiße Pfoten / Abzeichen | 12 kg |
 
   Welpen wiegen etwa 1,5 %, Junghunde 20 % und Halbstarke 65 % des Erwachsenengewichts. Hunde-Minispiele: Frisbee fangen, In welchem Korb?, Leckerli fangen (Zitronen meiden), Ball werfen (nicht in die Pfütze) und Spuren lesen.
-- **Huhn:** lebt draußen auf dem **Hühnerhof**. Beim Ei werden **Rasse, Farbe und Muster zufällig** festgelegt. Hühner sind in der **Seitenansicht** gezeichnet und schauen immer in Laufrichtung. Babys und Kinder sind **Küken** in den Farben ihrer Rasse. **4 Rassen:**
+- **Huhn:** lebt draußen auf dem **Hühnerhof**. Beim Ei werden **Rasse, Farbe, Muster und Geschlecht zufällig** festgelegt. Hühner sind in der **Seitenansicht** gezeichnet und schauen immer in Laufrichtung. Babys und Kinder sind **Küken** in den Farben ihrer Rasse.
+  - **Henne oder Hahn:** Jedes Huhn ist zufällig eine Henne oder ein Hahn. Ab dem Teenager-Alter haben Hähne einen größeren Kamm, Kehllappen und einen hohen dunklen **Sichelschwanz**. Sie heißen **Junghahn / Hahn / Prachthahn / Frechhahn** und sind etwa **30 % schwerer**. Im Status steht zum Beispiel „Legehuhn (Hahn), Braun“.
+  - **9 Rassen:**
 
-  | Rasse | Aussehen | Farben | Gewicht erwachsen |
+  | Rasse | Aussehen | Farben | Gewicht Henne |
   |---|---|---|---|
   | Legehuhn | rundlich, roter Kamm und Kehllappen | Braun, Weiß, Schwarz | 2 kg |
   | Seidenhuhn | flauschig, runder Federschopf | Weiß, Schwarz, Buff | 1,2 kg |
-  | Hahn | großer Kamm, Kehllappen, hoher dunkler Sichelschwanz; heißt Junghahn / Hahn / Prachthahn / Frechhahn | Rotbraun, Weiß, Schwarz | 3 kg |
   | Sperberhuhn | gestreiftes (gesperbertes) Gefieder | Grau, Gold | 2,5 kg |
+  | Leghorn | großer Zackenkamm | Weiß, Rebhuhnfarbig | 1,8 kg |
+  | Brahma | groß, füllig, befiederte Beine | Hell, Dunkel, Gelb | 4,5 kg |
+  | Orpington | besonders rund und füllig | Gelb, Schwarz, Blau | 3,5 kg |
+  | Wyandotte | gesäumtes Gefieder (Schuppenmuster) | Silber, Gold | 2,8 kg |
+  | Appenzeller Spitzhaube | Federhaube auf dem Kopf | Silber getupft, Schwarz | 1,6 kg |
+  | Zwerghuhn | klein | Goldhals, Weiß, Schwarz | 0,7 kg |
 
   - **Verhalten:** Hühner putzen und strecken sich nicht, sondern **picken** zwischendurch schnell auf den Boden.
-  - **Schlaf:** Im Stall sitzen sie aufgeplustert mit geschlossenen Augen.
+  - **Schlaf:** Im Stall sitzen sie aufgeplustert und mit geschlossenen Augen (Lidstrich) **auf der Sitzstange**.
   - **Minispiele:** Wurm picken, Hinter welchem Strohballen?, Körner fangen (Steinchen meiden), Weitflattern (nicht in den Teich) und Spuren lesen.
 - Fellfarben und Muster sind als Daten angelegt (`coats`, `patterns`) und lassen sich auch für andere Arten nutzen.
 - Die Architektur muss es erlauben, neue Tierarten hinzuzufügen, ohne die Spiellogik zu ändern. Eine Tierart besteht also aus Daten und Grafiken, nicht aus eigenem Code.
@@ -286,7 +293,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Umgebung je Tierart:**
 - **Katze:** wohnt drinnen im Zimmer (siehe unten).
 - **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, ganz hinten eine bläuliche **Bergkette mit Schneegipfeln**, schattigen Hängen und Dunst, davor ein dunstiger Waldsaum, zwei Hügelketten mit kleinen Bäumen, **Tannen mit Ast-Etagen** (Licht links, Schatten rechts), Wiese mit Grashalmen, Steinen und einem **Fliegenpilz**, links vorne ein runder **Busch** mit Beeren. Der Baumstamm hat Rindenfurchen, Moos, Astknoten und einen Aststummel. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist ein kleiner bogenförmiger Eingang zum Fuchsbau mit Laubpolster. Gefüttert wird auf einem flachen Stein.
-- **Huhn:** lebt draußen auf dem **Hühnerhof**: Hecke und Zaun wie im Garten, Rasen mit verstreuten **Strohhalmen**, links ein **Strohballen**. Es schläft in einem **Hühnerstall** aus Holzbrettern mit rotem Ziegeldach, kleinem Fenster und Stroh in der Tür. Gefüttert wird aus einem **Futtertrog aus Blech**. Statt Blättern wehen Heu- und Strohhalme vorbei, als Besucher kommen eine Maus und Vögel.
+- **Huhn:** lebt draußen auf dem **Hühnerhof**: Hecke und Zaun wie im Garten, der **Boden ist komplett mit Stroh ausgelegt** (Halme kreuz und quer), links steht ein **Strohballen**. Es schläft in einem **Hühnerstall** aus Holzbrettern mit rotem Ziegeldach und kleinem Fenster. Die hohe Tür hat innen eine **Sitzstange** auf zwei Stützen und Stroh am Boden. Gefüttert wird aus einem **Futtertrog aus Blech**. Statt Blättern wehen Heu- und Strohhalme vorbei, als Besucher kommen eine Maus und Vögel.
 - **Igel:** lebt draußen **im Garten**: eine **Hecke aus einzelnen Blättern**, ein **Holzzaun mit spitzen Latten**, Maserung, Nägeln und Schatten, ein Busch mit roten Beeren, **Tulpen**, ein Stein und Rasen mit Herbstlaub. Der Laubhaufen besteht aus vielen einzelnen bunten Blättern. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 

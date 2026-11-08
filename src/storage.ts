@@ -30,7 +30,15 @@ export function migrate(raw: any): GameState | null {
     delete raw.pet;
     return { ...raw, version: 2, pets: pet ? [pet] : [], activeId: pet?.id ?? null };
   }
-  return raw?.version === 2 ? raw : null;
+  if (raw?.version !== 2) return null;
+  // Hühner von vor Henne/Hahn: alte Rasse "Hahn" (2) wird Legehuhn-Hahn, Sperberhuhn rückt von 3 auf 2
+  for (const p of [...(raw.pets ?? []), ...(raw.memorials ?? [])]) {
+    if (p.species !== 'chicken' || !p.look || p.look.sex) continue;
+    if (p.look.breed === 2) p.look = { ...p.look, breed: 0, sex: 'm' };
+    else if (p.look.breed === 3) p.look = { ...p.look, breed: 2, sex: 'f' };
+    else p.look = { ...p.look, sex: 'f' };
+  }
+  return raw;
 }
 
 export function save(s: GameState) {

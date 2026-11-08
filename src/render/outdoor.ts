@@ -298,17 +298,22 @@ export function drawOutdoorNear(ctx: CanvasRenderingContext2D, kind: SceneKind) 
   else drawGardenNear(ctx);
 }
 
-/** Hühnerhof: Rasen mit Strohhalmen, Strohballen, Stein */
+/** Hühnerhof: Boden komplett mit Stroh ausgelegt, Strohballen, Stein */
 function drawFarmNear(ctx: CanvasRenderingContext2D) {
-  bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#a8c26a', '#7a9a48', 4);
-  grassBlades(ctx, ['#6a8a3a', '#b8d47a', '#8aa84a']);
-  // verstreute Strohhalme
-  for (let i = 0; i < 40; i++) {
+  bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#e4c470', '#b8923a', 4);
+  // viele Strohhalme kreuz und quer
+  const straw = ['#f4dc8a', '#d8b050', '#c09a3a', '#a07a28', '#f0d070'];
+  for (let i = 0; i < 260; i++) {
     const n = hash(i * 31 + 3, i * 17 + 9);
-    const x = (n % 120) / 2;
-    const y = GROUND_Y + 2 + ((n >> 3) % 24) / 2;
-    px(ctx, n % 2 ? '#e8c860' : '#c8a040', x, y, n % 3 ? 1 : P, P);
+    const x = (n % 128) / 2;
+    const y = GROUND_Y + ((n >> 4) % 30) / 2;
+    const c = straw[(n >> 2) % straw.length];
+    const len = 1 + (n % 4) * 0.5;
+    const dir = (n >> 6) % 3; // waagrecht, schräg runter, schräg hoch
+    for (let k = 0; k < len * 2; k++) px(ctx, c, x + k * P, y + (dir === 1 ? k * P * 0.5 : dir === 2 ? -k * P * 0.5 : 0), P, P);
   }
+  // Kante zur Hecke
+  px(ctx, '#a07a28', 0, GROUND_Y, W, P);
   // Strohballen links
   const bx = 1;
   const by = 31;
@@ -329,6 +334,10 @@ function drawFarmNear(ctx: CanvasRenderingContext2D) {
 // damit man das schlafende Tier gut erkennt.
 
 const NEST_CX = 49;
+// Hühnerstall: hohe Tür mit Sitzstange
+const COOP_DOOR_HALF = 6;
+const COOP_DOOR_TOP = 25;
+export const COOP_PERCH_Y = 36.5;
 const NEST_BASE = 41;
 
 function inEllipse(x: number, y: number, rx: number, ry: number, cy = NEST_BASE) {
@@ -391,20 +400,32 @@ function drawCoop(ctx: CanvasRenderingContext2D) {
       px(ctx, c, x, y, P, P);
     }
   }
-  // Tür (Bogen) mit dunklem Inneren und Stroh
-  for (let y = HOLE_TOP - 1; y <= NEST_BASE; y += P)
-    for (let x = NEST_CX - HOLE_HALF - 2; x <= NEST_CX + HOLE_HALF + 2; x += P) {
+  // hohe Tür (Bogen) mit dunklem Inneren und Stroh am Boden
+  const inDoor = (x: number, y: number, grow = 0) => {
+    const r = COOP_DOOR_HALF + grow;
+    const archY = COOP_DOOR_TOP - grow + r;
+    if (y > NEST_BASE) return false;
+    if (y >= archY) return Math.abs(x - NEST_CX) <= r;
+    return (x - NEST_CX) ** 2 + (y - archY) ** 2 <= r * r;
+  };
+  for (let y = COOP_DOOR_TOP - 1; y <= NEST_BASE; y += P)
+    for (let x = NEST_CX - COOP_DOOR_HALF - 1; x <= NEST_CX + COOP_DOOR_HALF + 1; x += P) {
       const cx0 = x + P / 2;
       const cy0 = y + P / 2;
-      if (!inHole(cx0, cy0, 1.5)) continue;
+      if (!inDoor(cx0, cy0, 0.5)) continue;
       let c = '#4a2e18';
-      if (inHole(cx0, cy0, 1)) c = cy0 < HOLE_TOP + 3 ? '#3a2414' : '#4e3220';
-      if (inHole(cx0, cy0, 1) && cy0 > NEST_BASE - 2) c = hash(Math.round(x * 2), Math.round(y * 2)) % 2 ? '#e8c860' : '#c8a040';
+      if (inDoor(cx0, cy0)) c = cy0 < COOP_DOOR_TOP + 4 ? '#2e1c0e' : '#3e2616';
+      if (inDoor(cx0, cy0) && cy0 > NEST_BASE - 2) c = hash(Math.round(x * 2), Math.round(y * 2)) % 2 ? '#e8c860' : '#c8a040';
       px(ctx, c, x, y, P, P);
     }
+  // Sitzstange auf zwei Stützen
+  px(ctx, '#5a3a1a', NEST_CX - COOP_DOOR_HALF + 0.5, COOP_PERCH_Y + 1, 1, NEST_BASE - COOP_PERCH_Y - 1);
+  px(ctx, '#5a3a1a', NEST_CX + COOP_DOOR_HALF - 1.5, COOP_PERCH_Y + 1, 1, NEST_BASE - COOP_PERCH_Y - 1);
+  px(ctx, '#3a2414', NEST_CX - COOP_DOOR_HALF, COOP_PERCH_Y - P, COOP_DOOR_HALF * 2, 1.5);
+  px(ctx, '#a07040', NEST_CX - COOP_DOOR_HALF + P, COOP_PERCH_Y, COOP_DOOR_HALF * 2 - 1, P);
   // kleines Fenster
-  px(ctx, '#4a2e18', NEST_CX + 5, top + 2, 3.5, 3.5);
-  px(ctx, '#f4d878', NEST_CX + 5.5, top + 2.5, 2.5, 2.5);
+  px(ctx, '#4a2e18', NEST_CX + 7, top + 1.5, 2.5, 2.5);
+  px(ctx, '#f4d878', NEST_CX + 7.5, top + 2, 1.5, 1.5);
 }
 
 export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
@@ -470,8 +491,8 @@ export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
 export function drawNestFront(ctx: CanvasRenderingContext2D, kind: SceneKind) {
   if (kind === 'farm') {
     // Schwelle vor der Stalltür
-    px(ctx, '#4a2e18', NEST_CX - HOLE_HALF - 2, NEST_BASE - P, (HOLE_HALF + 2) * 2 + P, P);
-    px(ctx, '#8a5a2e', NEST_CX - HOLE_HALF - 2, NEST_BASE, (HOLE_HALF + 2) * 2 + P, P);
+    px(ctx, '#4a2e18', NEST_CX - COOP_DOOR_HALF - 1, NEST_BASE - P, (COOP_DOOR_HALF + 1) * 2 + P, P);
+    px(ctx, '#8a5a2e', NEST_CX - COOP_DOOR_HALF - 1, NEST_BASE, (COOP_DOOR_HALF + 1) * 2 + P, P);
     return;
   }
   if (kind === 'forest') {

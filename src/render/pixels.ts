@@ -200,6 +200,9 @@ export function applyPattern(rows: string[], pattern: string, seed: number): str
       const v = (y + 0.5) / h;
       return blobs.some(([bx, by, r]) => (u - bx) ** 2 + (v - by) ** 2 < r * r) ? 'd' : null;
     };
+  } else if (pattern === 'laced') {
+    // gesäumtes Gefieder: dunkle Federränder als Schuppenmuster
+    test = (x, y) => (y % 2 === 0 ? (x % 2 === 0 ? 'd' : null) : (x + 1) % 4 === 0 ? 'd' : null);
   } else if (pattern === 'spots') {
     // Tupfen (Dalmatiner)
     test = (x, y) => {
@@ -247,7 +250,9 @@ export function petSprite(
     ? stretchSprite(breed?.sleep ?? sp.sleep, opts.stretch)
     : opts.sleeping
     ? sleepSprite(breed?.sleep ?? sp.sleep, pet.stage === 'teen' || pet.stage === 'adult')
-    : (breed?.sprites ?? sp.sprites)[pet.stage === 'egg' ? 'baby' : pet.stage];
+    : look?.sex === 'm' && breed?.maleSprites && (pet.stage === 'teen' || pet.stage === 'adult')
+      ? breed.maleSprites[pet.stage]
+      : (breed?.sprites ?? sp.sprites)[pet.stage === 'egg' ? 'baby' : pet.stage];
   return {
     map: petMap(sprite, {
       eyesClosed: opts.eyesClosed,
