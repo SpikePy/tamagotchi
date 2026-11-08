@@ -38,11 +38,10 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 **HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild**. Alles ist im feinen Pixelraster gezeichnet und sitzt in dunklen Pixel-Rahmen mit abgeschrägten Ecken und heller Oberkante.
-- **Links oben:** zwei schmale Leisten untereinander: **Sättigung** mit Keulen-Symbol (orange) und darunter **Müdigkeit** mit Mond-Symbol (lila). Die Müdigkeit füllt sich, je müder das Tier ist.
-- **Rechts oben: Laune.** Eine schmale Leiste (gelb) und ein **Smiley, das zur Stimmung passt**: lachend, neutral oder traurig.
+- **Alle drei Anzeigen in einer Zeile** in einem gemeinsamen Rahmen oben: **Sättigung** (Keule, orange) · **Müdigkeit** (Mond, lila; füllt sich, je müder das Tier ist) · **Laune** (gelb) mit einem kleinen **Smiley, das zur Stimmung passt** (lachend, neutral, traurig).
 - Die Leisten sind **durchgehend und schmal** (5 Bildpixel hoch) mit Glanz oben und Schatten unten. Sättigung und Laune werden bei **höchstens 25 %** **rot und blinken**, die Müdigkeit ab **80 %**.
 - Im Statusbildschirm stehen Sättigung und Laune als Balken mit Prozentangabe.
-- **Oben in der Mitte** stehen die Warnsymbole: ein Totenkopf bei Krankheit und ein blinkendes Ausrufezeichen beim Rufen.
+- **Direkt darunter in der Mitte** stehen die Warnsymbole in einem eigenen kleinen Rahmen: ein Totenkopf bei Krankheit und ein blinkendes Ausrufezeichen beim Rufen.
 - Das HUD bleibt auch nachts und bei Licht aus hell.
 
 ## 4. Lebenszyklus
@@ -302,7 +301,7 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 - **Schmetterlinge** flattern tagsüber draußen umher (gelb, weiß, rosa oder blau).
 - **Glühwürmchen** leuchten nachts draußen, drinnen sieht man sie durchs Fenster.
 - **Abendlicht:** Bei Sonnenauf- und -untergang liegt ein warmer Orange-Ton über der ganzen Szene.
-- **Stehlampe** im Zimmer (Katze, Hund): Sie brennt **abends und nachts** (18–7 Uhr) mit warmem Lichtschein, solange das Licht an ist. Bei „Licht aus“ ist sie aus.
+- **Stehlampe** im Katzenzimmer (beim Hund gibt es keine): Sie brennt **abends und nachts** (18–7 Uhr) mit warmem Lichtschein, solange das Licht an ist. Bei „Licht aus“ ist sie aus.
 
 **Jahreszeiten** nach dem echten Datum (März–Mai Frühling, Juni–August Sommer, September–November Herbst, Dezember–Februar Winter):
 - **Frühling:** frischeres Grün, rosa Blüten am Busch, weiße Blüten in der Hecke.
@@ -315,7 +314,7 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 
 **Nacht:** Nachts wird nicht einfach ein Filter über alles gelegt, sondern nach Tiefe und Licht abgedunkelt:
 - **Draußen:** Die ferne Landschaft (Berge, Hügel, Hecke) ist am dunkelsten und bläulich, die nahe Landschaft etwas heller, das Tier selbst nur leicht abgedunkelt.
-- **Drinnen:** Das Zimmer wird dunkler. Um die brennende **Stehlampe** bleibt ein warmer, heller Lichtkreis, vom Fenster fällt **Mondlicht** herein (Lichtkreise in Stufen, passend zum Pixel-Look).
+- **Drinnen:** Das Zimmer wird dunkler. Um die brennende **Stehlampe** (Katze) bleibt ein warmer, heller Lichtkreis, vom Fenster fällt **Mondlicht** herein (Lichtkreise in Stufen, passend zum Pixel-Look).
 - In der Dämmerung geht es sanft über. Glühwürmchen, Lampe und HUD bleiben hell.
 
 **Wolken und Wetter:** Am Himmel draußen und im Fenster drinnen **ziehen Wolken vorbei**.

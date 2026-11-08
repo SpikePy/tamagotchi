@@ -158,41 +158,11 @@ const HUD_COLORS: ColorMap = {
   r: '#e2384d',
   z: '#c8d0ff',
 };
+const HUD_HAPPY_S = ['.ooooo.', 'oyyyyyo', 'oyoyoyo', 'oyyyyyo', 'okyyyko', 'oykkkyo', '.ooooo.'];
+const HUD_OK_S = ['.ooooo.', 'oyyyyyo', 'oyoyoyo', 'oyyyyyo', 'oyyyyyo', 'oykkkyo', '.ooooo.'];
+const HUD_SAD_S = ['.ooooo.', 'oyyyyyo', 'oyoyoyo', 'oyyyyyo', 'oykkkyo', 'okyyyko', '.ooooo.'];
 const HUD_MEAT_S = ['.....ow', '..ooowo', '.obhbo.', 'obbbbo.', '.oooo..'];
 const HUD_MOON_S = ['.oo..zz', 'oyo...z', 'oy...z.', 'oyo.zz.', '.oo....'];
-const HUD_HAPPY = [
-  '..ooooo..',
-  '.oylyyyo.',
-  'oylyyyyyo',
-  'oyyoyoyyo',
-  'oyyyyyyyo',
-  'oykyyykyo',
-  'oyykkkyyo',
-  '.oyyyyyo.',
-  '..ooooo..',
-];
-const HUD_OK = [
-  '..ooooo..',
-  '.oylyyyo.',
-  'oylyyyyyo',
-  'oyyoyoyyo',
-  'oyyyyyyyo',
-  'oyyyyyyyo',
-  'oyykkkyyo',
-  '.oyyyyyo.',
-  '..ooooo..',
-];
-const HUD_SAD = [
-  '..ooooo..',
-  '.oylyyyo.',
-  'oylyyyyyo',
-  'oyyoyoyyo',
-  'oyyyyyyyo',
-  'oyykkkyyo',
-  'oykyyykyo',
-  '.oyyyyyo.',
-  '..ooooo..',
-];
 const HUD_SKULL = [
   '..ooooo..',
   '.ossssso.',
@@ -372,7 +342,7 @@ export class Scene {
         this.drawRoom(sp, s.clock);
         this.drawDecor(sp, t, 'static');
         drawDecorNear(this.ctx, sp.id, sunX);
-        drawLamp(this.ctx);
+        if (sp.id === 'cat') drawLamp(this.ctx); // Stehlampe nur bei der Katze
         this.bgDay = true;
       } else {
         // Himmel und Landschaft getrennt, damit die Wolken dazwischen ziehen können
@@ -473,7 +443,7 @@ export class Scene {
     // Nacht: draußen das Tier nur leicht abdunkeln, drinnen mit Lichtkreisen um Lampe und Fenster
     const nightNow = nightness(skyNow);
     const hourNow = new Date(s.clock).getHours();
-    const lampOn = this.env === 'room' && p.lightOn && (hourNow >= 18 || hourNow < 7);
+    const lampOn = sp.id === 'cat' && p.lightOn && (hourNow >= 18 || hourNow < 7);
     if (this.env === 'room') {
       const lights = [{ x: WIN.x + WIN.w / 2, y: WIN.y + WIN.h, r: 12 }];
       if (lampOn) lights.push({ x: LAMP.x, y: LAMP.shadeY + 6, r: 22 });
@@ -512,33 +482,34 @@ export class Scene {
   private drawHud(p: Pet, t: number) {
     const ctx = this.ctx;
     const PX = 1 / RES;
+    const top = 0.5;
     if (p.stage !== 'egg') {
       const mood = hearts(p.happy);
-      // links: Sättigung (oben) und Müdigkeit (unten), schmale Leisten
-      hudPanel(ctx, 0.5, 0.5, 40, 13);
-      drawPixels(ctx, HUD_MEAT_S, HUD_COLORS, 0.5 + 1 * PX, 0.5 + 1 * PX);
-      this.drawBar(0.5 + 9 * PX, 0.5 + 1 * PX, p.hunger / RULES.hearts, ['#ffd08a', '#f29a2e', '#b8601a'], t);
-      drawPixels(ctx, HUD_MOON_S, HUD_COLORS, 0.5 + 1 * PX, 0.5 + 7 * PX);
-      this.drawBar(0.5 + 9 * PX, 0.5 + 7 * PX, p.tiredness / 100, ['#c8b8ff', '#8a74e8', '#5a46b0'], t, true);
-      // rechts: Laune mit Gesicht passend zur Stimmung
-      const rx = SCREEN_W - 0.5 - 40 * PX;
-      hudPanel(ctx, rx, 0.5, 40, 13);
-      this.drawBar(rx + 1 * PX, 0.5 + 4 * PX, p.happy / RULES.hearts, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
-      drawPixels(ctx, mood >= 3 ? HUD_HAPPY : mood === 2 ? HUD_OK : HUD_SAD, HUD_COLORS, rx + 30 * PX, 0.5 + 2 * PX);
+      // eine Zeile: Sättigung | Müdigkeit | Laune
+      const x0 = 1.5;
+      hudPanel(ctx, x0, top, 121, 9);
+      const y = top + 2 * PX;
+      drawPixels(ctx, HUD_MEAT_S, HUD_COLORS, x0 + 1 * PX, y);
+      this.drawBar(x0 + 9 * PX, y, p.hunger / RULES.hearts, ['#ffd08a', '#f29a2e', '#b8601a'], t);
+      drawPixels(ctx, HUD_MOON_S, HUD_COLORS, x0 + 41 * PX, y);
+      this.drawBar(x0 + 49 * PX, y, p.tiredness / 100, ['#c8b8ff', '#8a74e8', '#5a46b0'], t, true);
+      this.drawBar(x0 + 81 * PX, y, p.happy / RULES.hearts, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
+      drawPixels(ctx, mood >= 3 ? HUD_HAPPY_S : mood === 2 ? HUD_OK_S : HUD_SAD_S, HUD_COLORS, x0 + 112 * PX, top + 1 * PX);
     }
-    // Mitte: krank / ruft
+    // darunter mittig: krank / ruft
     const calling = Object.keys(p.calls).length > 0;
     const blinkOn = Math.floor(t / 500) % 2 === 0;
     if (p.sick || calling) {
       const w = (p.sick ? 9 : 0) + (calling ? 3 : 0) + (p.sick && calling ? 2 : 0) + 4;
       const x = Math.round((SCREEN_W / 2 - (w * PX) / 2) * RES) / RES;
-      hudPanel(ctx, x, 0.5, w, 12);
+      const wy = p.stage !== 'egg' ? top + 5 : top;
+      hudPanel(ctx, x, wy, w, 12);
       let ix = x + 2 * PX;
       if (p.sick) {
-        drawPixels(ctx, HUD_SKULL, HUD_COLORS, ix, 0.5 + 1.5 * PX + PX / 2);
+        drawPixels(ctx, HUD_SKULL, HUD_COLORS, ix, wy + 1.5 * PX + PX / 2);
         ix += 11 * PX;
       }
-      if (calling && blinkOn) drawPixels(ctx, HUD_BANG, HUD_COLORS, ix, 0.5 + PX);
+      if (calling && blinkOn) drawPixels(ctx, HUD_BANG, HUD_COLORS, ix, wy + PX);
     }
   }
 
@@ -549,7 +520,7 @@ export class Scene {
   private drawBar(x: number, y: number, frac: number, shades: [string, string, string], t: number, alertHigh = false) {
     const ctx = this.ctx;
     const PX = 1 / RES;
-    const INNER = 29; // Bildpixel
+    const INNER = 27; // Bildpixel
     const f = Math.max(0, Math.min(1, frac));
     const alert = (alertHigh ? f >= 0.8 : f <= 0.25) && Math.floor(t / 400) % 2 === 0;
     const [hi, mid, lo] = alert ? ['#ff9aa6', '#e2384d', '#9a1c2c'] : shades;
