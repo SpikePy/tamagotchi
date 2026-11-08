@@ -7,7 +7,7 @@ import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds, drawPrecip, drawPuddles, drawWindowDrops, weatherAt } from './weather';
-import { Ambient, LAMP, drawLamp, drawLampLight, eveningLight, nightTint, nightness, roomNight } from './ambient';
+import { Ambient, eveningLight, nightTint, nightness, roomNight } from './ambient';
 import { remapContext, seasonOf, seasonTransform, snowCaps, snowGround } from './season';
 import { NEST_BOX, STRAW_HEAP, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
 
@@ -302,7 +302,6 @@ export class Scene {
         this.drawRoom(sp, s.clock);
         this.drawDecor(sp, t, 'static');
         drawDecorNear(this.ctx, sp.id, sunX);
-        if (sp.id === 'cat') drawLamp(this.ctx); // Stehlampe nur bei der Katze
         this.bgDay = true;
       } else {
         // Himmel und Landschaft getrennt, damit die Wolken dazwischen ziehen können
@@ -400,23 +399,16 @@ export class Scene {
     this.drawBowl(t);
 
     const skyNow = skyState(s.clock);
-    // Nacht: draußen das Tier nur leicht abdunkeln, drinnen mit Lichtkreisen um Lampe und Fenster
+    // Nacht: draußen das Tier nur leicht abdunkeln; drinnen zu den Rändern hin dunkler (Mitte heller)
     const nightNow = nightness(skyNow);
-    const hourNow = new Date(s.clock).getHours();
-    const lampOn = sp.id === 'cat' && p.lightOn && (hourNow >= 18 || hourNow < 7);
-    if (this.env === 'room') {
-      const lights = [{ x: WIN.x + WIN.w / 2, y: WIN.y + WIN.h, r: 12 }];
-      if (lampOn) lights.push({ x: LAMP.x, y: LAMP.shadeY + 6, r: 22 });
-      roomNight(ctx, nightNow * 0.5, lights);
-    } else nightTint(ctx, nightNow * 0.12);
+    if (this.env === 'room') roomNight(ctx, nightNow * 0.35, [{ x: SCREEN_W / 2, y: 30, r: 46 }]);
+    else nightTint(ctx, nightNow * 0.12);
     if (this.env !== 'room') {
       const wx = weatherAt(s.clock);
       if (wx.precip === 'rain') this.overlay(0.12); // trüber bei Regen
       drawPrecip(ctx, wx.precip, wx.wind, t);
     }
     eveningLight(ctx, skyNow);
-    // Stehlampe brennt abends und nachts, solange das Licht an ist
-    if (lampOn) drawLampLight(ctx);
     // kein Abdunkeln bei „Licht aus“ – das Bild bleibt hell, auch wenn das Tier schläft
 
     // Zzz (über dem Dunkel, damit man es sieht)

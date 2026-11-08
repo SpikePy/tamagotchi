@@ -36,7 +36,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 - **Umgebung:** Fuchs am Waldrand mit Baumhöhle, Igel im Garten mit Laubhaufen, Katze im Zimmer mit Körbchen und Kratzbaum
 - **Hühner:** Legehuhn, Seidenhuhn, Hahn, Sperberhuhn in mehreren Farben, mit Hühnerhof und Stall
 - **Hunde:** 10 Rassen (Labrador, Schäferhund, Dackel, Mops, Husky, Beagle, Dalmatiner, Pudel, Border Collie, Corgi), zufällig mit passender Farbe und Muster
-- **Lebendige Gehege:** Deko je Tier (Bach, Pilze, Igelhaus, Sonnenblumen, Regal, Fensterkissen, Wassernapf, Nistkasten, Wetterhahn …), Interaktionen (Katze döst auf dem Fensterbrett, Hund trinkt, Huhn nimmt Sandbad, Hennen legen Eier), Schmetterlinge, Glühwürmchen, Abendlicht, Stehlampe
+- **Lebendige Gehege:** Deko je Tier (Bach, Pilze, Igelhaus, Sonnenblumen, Regal, Fensterkissen, Nistkasten, Wetterhahn …), Interaktionen (Katze döst auf dem Fensterbrett, Huhn nimmt Sandbad, Hennen legen Eier), Schmetterlinge, Glühwürmchen, Abendlicht
 - **Wetter und Jahreszeiten:** ziehende Wolken, Regen mit Pfützen, Schnee, Frühlingsblüten, Herbstlaub, Winterlandschaft – nach echtem Datum
 - **Katzen-Fell:** 6 Fellfarben × 4 Muster (einfarbig, getigert, gefleckt, weiße Pfoten), zufällig pro Tier.
 - **5 Minispiele pro Tier:** zum Beispiel Mäusesprung, Links oder rechts?, Beeren fangen, Stöckchen holen und Spuren lesen.

@@ -669,9 +669,16 @@ summary {
   min-width: 0;
 }
 .stat-ico {
-  font-size: clamp(16px, 2.6cqw, 22px);
+  font-size: clamp(14px, 2.2cqw, 19px);
   line-height: 1;
   flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  background: #3e3229;
+  border: 2px solid #1a120c;
 }
 .stat .bar {
   flex: 1;

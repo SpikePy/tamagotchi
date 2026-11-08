@@ -70,29 +70,6 @@ export function eveningLight(ctx: CanvasRenderingContext2D, sky: Sky) {
   ctx.fillRect(0, 0, 64, 48);
 }
 
-// Stehlampe rechts im Zimmer (hinter dem Körbchen)
-export const LAMP = { x: 60.5, shadeY: 11 };
-
-/** Lampe (aus) – statisch im Hintergrund */
-export function drawLamp(ctx: CanvasRenderingContext2D) {
-  const { x, shadeY } = LAMP;
-  ctx.fillStyle = '#3a3a3a';
-  ctx.fillRect(x, shadeY + 4, 0.5, 40 - shadeY - 4);
-  ctx.fillRect(x - 1.5, 39.5, 3.5, 0.5);
-  drawPixels(ctx, ['...oooo...', '..oSSSSo..', '.oSSSSSSo.', 'oSSSSSSSSo', 'oooooooooo'], { o: '#7a5a3a', S: '#e8d8b0' }, x - 2.25, shadeY);
-}
-
-/** Lampe an: heller Schirm und warmer Lichtkegel */
-export function drawLampLight(ctx: CanvasRenderingContext2D) {
-  const { x, shadeY } = LAMP;
-  ctx.globalAlpha = 0.18;
-  pixelCircle(ctx, x + 0.25, shadeY + 4, 9, '#ffd890');
-  ctx.globalAlpha = 0.22;
-  pixelCircle(ctx, x + 0.25, shadeY + 4, 5, '#ffe8a8');
-  ctx.globalAlpha = 1;
-  drawPixels(ctx, ['...oooo...', '..oSSSSo..', '.oSSLSSSo.', 'oSSLLSSSSo', 'oooooooooo'], { o: '#9a7a4a', S: '#fff2c0', L: '#ffffff' }, x - 2.25, shadeY);
-}
-
 /** wie dunkel es ist: 0 = Tag, 1 = Nacht, dazwischen in der Dämmerung */
 export function nightness(sky: Sky): number {
   if (!sky.day) return sky.edge < 0.05 ? 0.6 + (sky.edge / 0.05) * 0.4 : 1;

@@ -38,6 +38,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 **Status-Leisten:** Sättigung, Müdigkeit und Laune stehen **über dem Spielbild** (nicht mehr im Bild) in einer Zeile:
+- Die Symbole sitzen auf dunklen runden Plaketten, damit sie gut erkennbar sind.
 - 🍽️ **Sättigung** (orange, Besteck mit Teller), 💤 **Müdigkeit** (lila; füllt sich, je müder das Tier ist), **Laune** (gelb) mit einem Gesicht passend zur Stimmung: 😄 / 🙂 / 😟.
 - Die Leisten sind durchgehend und füllen sich sanft. Sättigung und Laune **blinken rot** bei höchstens 25 %, die Müdigkeit ab 80 %.
 - In der Zeile darüber stehen links **Hinweis-Abzeichen**: „🤒 krank“ und ein pulsierendes „❗ ruft“. Rechts stehen Name und Entwicklungsstufe.
@@ -299,7 +300,6 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 - **Schmetterlinge** flattern tagsüber draußen umher (gelb, weiß, rosa oder blau).
 - **Glühwürmchen** leuchten nachts draußen, drinnen sieht man sie durchs Fenster.
 - **Abendlicht:** Bei Sonnenauf- und -untergang liegt ein warmer Orange-Ton über der ganzen Szene.
-- **Stehlampe** im Katzenzimmer (beim Hund gibt es keine): Sie brennt **abends und nachts** (18–7 Uhr) mit warmem Lichtschein, solange das Licht an ist. Bei „Licht aus“ ist sie aus.
 
 **Jahreszeiten** nach dem echten Datum (März–Mai Frühling, Juni–August Sommer, September–November Herbst, Dezember–Februar Winter):
 - **Frühling:** frischeres Grün, rosa Blüten am Busch, weiße Blüten in der Hecke.
@@ -312,8 +312,8 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 
 **Nacht:** Nachts wird nicht einfach ein Filter über alles gelegt, sondern nach Tiefe und Licht abgedunkelt:
 - **Draußen:** Die ferne Landschaft (Berge, Hügel, Hecke) ist am dunkelsten und bläulich, die nahe Landschaft etwas heller, das Tier selbst nur leicht abgedunkelt.
-- **Drinnen:** Das Zimmer wird dunkler. Um die brennende **Stehlampe** (Katze) bleibt ein warmer, heller Lichtkreis, vom Fenster fällt **Mondlicht** herein (Lichtkreise in Stufen, passend zum Pixel-Look).
-- In der Dämmerung geht es sanft über. Glühwürmchen, Lampe und HUD bleiben hell.
+- **Drinnen:** Das Zimmer wird etwas dunkler, die Ecken am stärksten. Eine Lampe oder einen Lichtschein unter dem Fenster gibt es nicht.
+- In der Dämmerung geht es sanft über. Glühwürmchen und die Status-Leisten bleiben hell.
 
 **Wolken und Wetter:** Am Himmel draußen und im Fenster drinnen **ziehen Wolken vorbei**.
 - Das Wetter wechselt etwa **alle 45 Minuten** zufällig, aber in einem moderaten Rahmen: **1 bis 5 Wolken** und **Wind** von schwach bis mäßig, meist von West nach Ost, manchmal andersherum.
@@ -350,7 +350,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, ganz hinten eine bläuliche **Bergkette mit Schneegipfeln**, schattigen Hängen und Dunst, davor ein dunstiger Waldsaum, zwei Hügelketten mit kleinen Bäumen, **Tannen mit Ast-Etagen** (Licht links, Schatten rechts), Wiese mit Grashalmen, Steinen und einem **Fliegenpilz**, links vorne ein runder **Busch** mit Beeren. Der Baumstamm hat Rindenfurchen, Moos, Astknoten und einen Aststummel. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist ein kleiner bogenförmiger Eingang zum Fuchsbau mit Laubpolster. Der schlafende Fuchs liegt **in** der Höhle: Er ist nur durch die Öffnung zu sehen, der Stamm verdeckt den Rest, und innen ist es etwas schattiger. Dafür rollt er sich kleiner zusammen. Gefüttert wird auf einem flachen Stein.
 - **Huhn:** lebt draußen auf dem **Hühnerhof**: Hecke und Zaun wie im Garten, der **Boden ist komplett mit Stroh ausgelegt** (Halme kreuz und quer). Es schläft in einem **Hühnerstall** aus Holzbrettern mit rotem Ziegeldach und kleinem Fenster. Die hohe Tür hat innen eine **Sitzstange** auf zwei Stützen und Stroh am Boden. Hinter der Tränke liegt ein **Strohhaufen**. Gefüttert wird aus einer **flachen Blechschale**, in der beim Füttern ein **Haufen Körner** liegt, der beim Picken weniger wird. Statt Blättern wehen Heu- und Strohhalme vorbei, als Besucher kommen eine Maus und Vögel.
 - **Igel:** lebt draußen **im Garten**: dahinter stehen **drei Laubbäume** mit runden, schattierten Kronen, davor eine **Hecke aus einzelnen runden Sträuchern** (Licht oben links, Schatten und Lücken dazwischen), dann ein **Holzzaun mit spitzen Latten**, Maserung, Nägeln und Schatten, ein Busch mit roten Beeren, **Tulpen**, ein Stein und Rasen mit Herbstlaub, das über die **ganze Wiese** verteilt liegt (hinten kleinere Blätter). Der Laubhaufen besteht aus vielen einzelnen bunten Blättern. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einer **flachen blauen Keramikschale**, die sich gut von Rasen und Laub abhebt.
-- Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. „Licht aus“ dunkelt das Bild **nicht** ab, auch wenn das Tier schläft (nur die Stehlampe im Zimmer geht aus). Nachts ist draußen der Hintergrund zusätzlich dunkler.
+- Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. „Licht aus“ dunkelt das Bild **nicht** ab, auch wenn das Tier schläft. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 
 **Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein **flacher**, geflochtener Weidenkorb mit Flechtrand und Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Links im Raum steht ein **Futternapf** auf einem kleinen ovalen **Teppich** (bzw. Stein/Tonschale draußen). Die Haufen landen zwischen Napf und Körbchen.
 
