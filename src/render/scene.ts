@@ -44,6 +44,23 @@ const BASKET_FRONT_DY = 2; // Vorderseite beginnt unter der Rückseite
 const BOWL_X = 15;
 const BOWL_Y = FLOOR_Y + 2;
 const BOWL = ['.ooooooo.', 'ohhhhhhho', '.obbbbbo.', '..ooooo..'];
+// flache Schale (Hühnerhof: Blech, Garten: blaue Keramik) – in voller Rasterauflösung
+const FLAT_DISH = ['.oooooooooooooooo.', 'ohhhhhhhhhhhhhhhho', 'obbbbbbbbbbbbbbbbo', '..oooooooooooooo..'];
+const FLAT_DISH_COLORS: Record<string, ColorMap> = {
+  farm: { o: '#4a5058', h: '#c8d0d8', b: '#8a949e' },
+  garden: { o: '#1e3a6a', h: '#cfe0f6', b: '#3a6ab0' },
+};
+const HEAP_LEVELS = [
+  [],
+  ['..............', '..............', '....gkgkgk....'],
+  ['..............', '....gkgkgk....', '..kgkgkgkgkg..'],
+  ['....kgkgk.....', '..gkgkgkgkgk..', '.kgkgkgkgkgkg.'],
+];
+const HEAP_COLORS: Record<'grain' | 'food' | 'candy', ColorMap> = {
+  grain: { g: '#f0d070', k: '#c89a38' },
+  food: { g: '#b07a42', k: '#7a4a24' },
+  candy: { g: '#e46fb1', k: '#fff2f8' },
+};
 const FOOD_LEVELS = [
   [], // leer
   ['.......', '..fkf..'],
@@ -139,18 +156,10 @@ const HUD_COLORS: ColorMap = {
   k: '#2a1a10',
   s: '#f0f0f0',
   r: '#e2384d',
+  z: '#c8d0ff',
 };
-const HUD_MEAT = [
-  '......ow.',
-  '.....owwo',
-  '..oooowo.',
-  '.obhhbo..',
-  'obhbbbbo.',
-  'obbbbbbo.',
-  'obbbbbbo.',
-  '.obbbbo..',
-  '..oooo...',
-];
+const HUD_MEAT_S = ['.....ow', '..ooowo', '.obhbo.', 'obbbbo.', '.oooo..'];
+const HUD_MOON_S = ['.oo..zz', 'oyo...z', 'oy...z.', 'oyo.zz.', '.oo....'];
 const HUD_HAPPY = [
   '..ooooo..',
   '.oylyyyo.',
@@ -227,12 +236,13 @@ export class Scene {
   private walkX = 30;
   private walkDir = 1;
   private depth = 1; // 0 = hinten, 3.5 = vorne im Raum
-  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit'; visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill'; arrived?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase'; visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill'; arrived?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
     kind: 'idle',
     start: 0,
     until: 0,
   };
   private watched = -1;
+  private lastPounce = 0;
   /** wo das Tier zuletzt gezeichnet wurde (für Klick/Tippen) */
   private petBox: { x: number; y: number; w: number; h: number } | null = null;
   private hearts: { x: number; y: number; born: number; drift: number }[] = [];
@@ -390,7 +400,7 @@ export class Scene {
       this.bgKey = bgKey;
     }
     // Ebenen von hinten nach vorn; bewegte Dinge liegen jeweils dazwischen
-    this.critters.update(this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN, season);
+    this.critters.update(this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN, season, sp.id);
     if (this.env === 'room') {
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
       if (weatherAt(s.clock).precip !== 'none') {
@@ -494,15 +504,17 @@ export class Scene {
     const PX = 1 / RES;
     if (p.stage !== 'egg') {
       const mood = hearts(p.happy);
-      // links: Sättigung
-      hudPanel(ctx, 0.5, 0.5, 40, 11);
-      drawPixels(ctx, HUD_MEAT, HUD_COLORS, 0.5 + 2 * PX, 0.5 + PX);
-      this.drawBar(0.5 + 13 * PX, 0.5 + 2 * PX, p.hunger / RULES.hearts, ['#ffd08a', '#f29a2e', '#b8601a'], t);
-      // rechts: Laune (Gesicht passend zur Stimmung)
+      // links: Sättigung (oben) und Müdigkeit (unten), schmale Leisten
+      hudPanel(ctx, 0.5, 0.5, 40, 13);
+      drawPixels(ctx, HUD_MEAT_S, HUD_COLORS, 0.5 + 1 * PX, 0.5 + 1 * PX);
+      this.drawBar(0.5 + 9 * PX, 0.5 + 1 * PX, p.hunger / RULES.hearts, ['#ffd08a', '#f29a2e', '#b8601a'], t);
+      drawPixels(ctx, HUD_MOON_S, HUD_COLORS, 0.5 + 1 * PX, 0.5 + 7 * PX);
+      this.drawBar(0.5 + 9 * PX, 0.5 + 7 * PX, p.tiredness / 100, ['#c8b8ff', '#8a74e8', '#5a46b0'], t, true);
+      // rechts: Laune mit Gesicht passend zur Stimmung
       const rx = SCREEN_W - 0.5 - 40 * PX;
-      hudPanel(ctx, rx, 0.5, 40, 11);
-      this.drawBar(rx + 2 * PX, 0.5 + 2 * PX, p.happy / RULES.hearts, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
-      drawPixels(ctx, mood >= 3 ? HUD_HAPPY : mood === 2 ? HUD_OK : HUD_SAD, HUD_COLORS, rx + 29 * PX, 0.5 + PX);
+      hudPanel(ctx, rx, 0.5, 40, 13);
+      this.drawBar(rx + 1 * PX, 0.5 + 4 * PX, p.happy / RULES.hearts, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
+      drawPixels(ctx, mood >= 3 ? HUD_HAPPY : mood === 2 ? HUD_OK : HUD_SAD, HUD_COLORS, rx + 30 * PX, 0.5 + 2 * PX);
     }
     // Mitte: krank / ruft
     const calling = Object.keys(p.calls).length > 0;
@@ -520,33 +532,29 @@ export class Scene {
     }
   }
 
-  /** durchgehende Leiste (0..1), Glanz oben, Schatten unten; rot blinkend bei höchstens 25 % */
-  private drawBar(x: number, y: number, frac: number, shades: [string, string, string], t: number) {
+  /**
+   * schmale durchgehende Leiste (0..1), 5 Bildpixel hoch.
+   * Blinkt rot bei höchstens 25 % – bzw. bei alertHigh (Müdigkeit) ab 80 %.
+   */
+  private drawBar(x: number, y: number, frac: number, shades: [string, string, string], t: number, alertHigh = false) {
     const ctx = this.ctx;
     const PX = 1 / RES;
-    const INNER = 23; // Bildpixel
+    const INNER = 29; // Bildpixel
     const f = Math.max(0, Math.min(1, frac));
-    const low = f <= 0.25 && Math.floor(t / 400) % 2 === 0;
-    const [hi, mid, lo] = low ? ['#ff9aa6', '#e2384d', '#9a1c2c'] : shades;
+    const alert = (alertHigh ? f >= 0.8 : f <= 0.25) && Math.floor(t / 400) % 2 === 0;
+    const [hi, mid, lo] = alert ? ['#ff9aa6', '#e2384d', '#9a1c2c'] : shades;
     ctx.fillStyle = '#1a120c';
-    ctx.fillRect(x, y, (INNER + 2) * PX, 7 * PX);
+    ctx.fillRect(x, y, (INNER + 2) * PX, 5 * PX);
     ctx.fillStyle = '#3e3229';
-    ctx.fillRect(x + PX, y + PX, INNER * PX, 5 * PX);
-    ctx.fillStyle = '#2c231c';
-    ctx.fillRect(x + PX, y + PX, INNER * PX, PX);
+    ctx.fillRect(x + PX, y + PX, INNER * PX, 3 * PX);
     const w = Math.round(f * INNER);
     if (w > 0) {
-      ctx.fillStyle = mid;
-      ctx.fillRect(x + PX, y + PX, w * PX, 5 * PX);
       ctx.fillStyle = hi;
       ctx.fillRect(x + PX, y + PX, w * PX, PX);
+      ctx.fillStyle = mid;
+      ctx.fillRect(x + PX, y + 2 * PX, w * PX, PX);
       ctx.fillStyle = lo;
-      ctx.fillRect(x + PX, y + 5 * PX, w * PX, PX);
-      // helle Kante am Ende der Füllung
-      if (w < INNER) {
-        ctx.fillStyle = hi;
-        ctx.fillRect(x + w * PX, y + 2 * PX, PX, 3 * PX);
-      }
+      ctx.fillRect(x + PX, y + 3 * PX, w * PX, PX);
     }
   }
 
@@ -784,6 +792,15 @@ export class Scene {
       const k = m.eatStart === null ? 0 : (t - m.eatStart) / EAT_MS;
       level = 3 - Math.min(3, Math.floor(k * 3));
     }
+    if (this.env === 'farm' || this.env === 'garden') {
+      // flache Schale; Futter als kleiner Haufen (Huhn: Körner)
+      drawPixels(this.ctx, FLAT_DISH, FLAT_DISH_COLORS[this.env], BOWL_X, BOWL_Y + 1);
+      if (m && level > 0) {
+        const colors = m.kind === 'candy' ? HEAP_COLORS.candy : this.env === 'farm' ? HEAP_COLORS.grain : HEAP_COLORS.food;
+        drawPixels(this.ctx, HEAP_LEVELS[level], colors, BOWL_X + 1.5, BOWL_Y - 0.5);
+      }
+      return;
+    }
     if (m && level > 0) drawMap(this.ctx, FOOD_LEVELS[level], FOOD_COLORS[m.kind], BOWL_X + 1, BOWL_Y - 2);
     drawMap(this.ctx, BOWL, PLATE_COLORS[this.env], BOWL_X, BOWL_Y);
   }
@@ -923,9 +940,11 @@ export class Scene {
       const crit = this.critters.watchTarget();
       if (crit && crit.id !== this.watched && !p.sick) {
         this.watched = crit.id;
-        this.act = { kind: 'watch', start: t, until: t + 6000 };
+        // Katze: der Fliege manchmal hinterherjagen statt nur zuzuschauen
+        const chase = crit.kind === 'fly' && p.species === 'cat' && Math.random() < 0.45;
+        this.act = { kind: chase ? 'chase' : 'watch', start: t, until: t + (chase ? 7000 : 6000) };
       }
-      if (this.act.kind === 'watch' && !crit) this.act.until = Math.min(this.act.until, t + 700);
+      if ((this.act.kind === 'watch' || this.act.kind === 'chase') && !crit) this.act.until = Math.min(this.act.until, t + 700);
       if (t >= this.act.until) this.act = this.nextAct(t, p, from, to);
       const a = this.act;
       if (a.kind === 'pet') gaze = 0;
@@ -958,6 +977,20 @@ export class Scene {
           this.depth += ((dd * 2) / dist) * step * 0.5;
         }
         face = this.walkDir;
+      } else if (a.kind === 'chase' && crit) {
+        // hinterherlaufen und nach der Fliege springen, wenn sie nah ist
+        const tx = Math.max(from, Math.min(to, crit.x - w / 2));
+        const diff = tx - this.walkX;
+        if (Math.abs(diff) > 0.3) {
+          this.walkDir = Math.sign(diff);
+          this.walkX += this.walkDir * Math.min(Math.abs(diff), 16 * dt);
+        }
+        face = crit.x < this.walkX + w / 2 ? -1 : 1;
+        gaze = face;
+        if (Math.abs(diff) < 2.5 && t - this.lastPounce > 1300) {
+          this.lastPounce = t;
+          this.jumpStart = t;
+        }
       } else if (a.kind === 'watch' && crit) {
         const dir = crit.x < this.walkX + w / 2 ? -1 : 1;
         this.walkDir = dir;

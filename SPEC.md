@@ -38,9 +38,9 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 **HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild**. Alles ist im feinen Pixelraster gezeichnet und sitzt in dunklen Pixel-Rahmen mit abgeschrägten Ecken und heller Oberkante.
-- **Links oben: Sättigung.** Ein Fleisch-Knochen-Symbol und eine **durchgehende Leiste** (orange), die stufenlos mit dem Wert sinkt und steigt.
-- **Rechts oben: Laune.** Eine durchgehende Leiste (gelb) und ein **Smiley, das zur Stimmung passt**: lachend, neutral oder traurig.
-- Die Leisten haben Glanz oben, Schatten unten und eine helle Kante am Ende der Füllung. Bei **höchstens 25 %** werden sie **rot und blinken**.
+- **Links oben:** zwei schmale Leisten untereinander: **Sättigung** mit Keulen-Symbol (orange) und darunter **Müdigkeit** mit Mond-Symbol (lila). Die Müdigkeit füllt sich, je müder das Tier ist.
+- **Rechts oben: Laune.** Eine schmale Leiste (gelb) und ein **Smiley, das zur Stimmung passt**: lachend, neutral oder traurig.
+- Die Leisten sind **durchgehend und schmal** (5 Bildpixel hoch) mit Glanz oben und Schatten unten. Sättigung und Laune werden bei **höchstens 25 %** **rot und blinken**, die Müdigkeit ab **80 %**.
 - Im Statusbildschirm stehen Sättigung und Laune als Balken mit Prozentangabe.
 - **Oben in der Mitte** stehen die Warnsymbole: ein Totenkopf bei Krankheit und ein blinkendes Ausrufezeichen beim Rufen.
 - Das HUD bleibt auch nachts und bei Licht aus hell.
@@ -263,10 +263,11 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - **Wandregal** mit Büchern und Katzenfigur
   - ein **Bild von einer Maus** statt der Landschaft
   - **Kissen** auf der Fensterbank, **Katzengras** auf dem Fenstersims
-  - **Wollknäuel** mit Faden und **Spielmaus** auf dem Boden
+  - **Wollknäuel** mit Faden und **Spielmaus** auf dem Boden, rechts vor dem Körbchen
 - **Hund (Zimmer):**
-  - **Pfoten-Poster** statt Landschaftsbild
-  - **Leine** am Haken neben dem Fenster
+  - **Bücherregal** mit einem kleinen Knochen
+  - **Pfotenbild** im Goldrahmen mit Passepartout (vier Zehenballen und großer Ballen)
+  - darunter eine **Hakenleiste** mit roter **Leine**, blauem **Geschirr** und grünem **Halsband mit goldener Marke**
   - **Wassernapf** neben dem Futternapf
   - **Fußmatte** vorne
 - **Huhn (Hof):**
@@ -345,8 +346,8 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Umgebung je Tierart:**
 - **Katze:** wohnt drinnen im Zimmer (siehe unten).
 - **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, ganz hinten eine bläuliche **Bergkette mit Schneegipfeln**, schattigen Hängen und Dunst, davor ein dunstiger Waldsaum, zwei Hügelketten mit kleinen Bäumen, **Tannen mit Ast-Etagen** (Licht links, Schatten rechts), Wiese mit Grashalmen, Steinen und einem **Fliegenpilz**, links vorne ein runder **Busch** mit Beeren. Der Baumstamm hat Rindenfurchen, Moos, Astknoten und einen Aststummel. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist ein kleiner bogenförmiger Eingang zum Fuchsbau mit Laubpolster. Der schlafende Fuchs liegt **in** der Höhle: Er ist nur durch die Öffnung zu sehen, der Stamm verdeckt den Rest, und innen ist es etwas schattiger. Dafür rollt er sich kleiner zusammen. Gefüttert wird auf einem flachen Stein.
-- **Huhn:** lebt draußen auf dem **Hühnerhof**: Hecke und Zaun wie im Garten, der **Boden ist komplett mit Stroh ausgelegt** (Halme kreuz und quer). Es schläft in einem **Hühnerstall** aus Holzbrettern mit rotem Ziegeldach und kleinem Fenster. Die hohe Tür hat innen eine **Sitzstange** auf zwei Stützen und Stroh am Boden. Gefüttert wird aus einem **Futtertrog aus Blech**. Statt Blättern wehen Heu- und Strohhalme vorbei, als Besucher kommen eine Maus und Vögel.
-- **Igel:** lebt draußen **im Garten**: dahinter stehen **drei Laubbäume** mit runden, schattierten Kronen, davor eine **Hecke aus einzelnen runden Sträuchern** (Licht oben links, Schatten und Lücken dazwischen), dann ein **Holzzaun mit spitzen Latten**, Maserung, Nägeln und Schatten, ein Busch mit roten Beeren, **Tulpen**, ein Stein und Rasen mit Herbstlaub, das über die **ganze Wiese** verteilt liegt (hinten kleinere Blätter). Der Laubhaufen besteht aus vielen einzelnen bunten Blättern. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
+- **Huhn:** lebt draußen auf dem **Hühnerhof**: Hecke und Zaun wie im Garten, der **Boden ist komplett mit Stroh ausgelegt** (Halme kreuz und quer). Es schläft in einem **Hühnerstall** aus Holzbrettern mit rotem Ziegeldach und kleinem Fenster. Die hohe Tür hat innen eine **Sitzstange** auf zwei Stützen und Stroh am Boden. Gefüttert wird aus einer **flachen Blechschale**, in der beim Füttern ein **Haufen Körner** liegt, der beim Picken weniger wird. Statt Blättern wehen Heu- und Strohhalme vorbei, als Besucher kommen eine Maus und Vögel.
+- **Igel:** lebt draußen **im Garten**: dahinter stehen **drei Laubbäume** mit runden, schattierten Kronen, davor eine **Hecke aus einzelnen runden Sträuchern** (Licht oben links, Schatten und Lücken dazwischen), dann ein **Holzzaun mit spitzen Latten**, Maserung, Nägeln und Schatten, ein Busch mit roten Beeren, **Tulpen**, ein Stein und Rasen mit Herbstlaub, das über die **ganze Wiese** verteilt liegt (hinten kleinere Blätter). Der Laubhaufen besteht aus vielen einzelnen bunten Blättern. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einer **flachen blauen Keramikschale**, die sich gut von Rasen und Laub abhebt.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. „Licht aus“ dunkelt das Bild **nicht** ab, auch wenn das Tier schläft (nur die Stehlampe im Zimmer geht aus). Nachts ist draußen der Hintergrund zusätzlich dunkler.
 
 **Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein **flacher**, geflochtener Weidenkorb mit Flechtrand und Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Links im Raum steht ein **Futternapf** auf einem kleinen ovalen **Teppich** (bzw. Stein/Tonschale draußen). Die Haufen landen zwischen Napf und Körbchen.
@@ -369,6 +370,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Katze, Hund und Fuchs** **putzen** sich ab und zu (Kopf nickt, Zunge blitzt auf, danach ein Glitzern).
 - Ab dem Teenager-Alter **strecken** sie sich auch, und zwar mit einer eigenen, gezeichneten **Streck-Animation** statt verzerrter Pixel. Die Pose ist eine Seitenansicht: Erst beugen sie sich vor (Vorderbeine nach vorn, Po hoch, Schwanz aufgestellt), dann strecken sie sich ganz und **gähnen** mit offenem Maul, dann kommen sie zurück. Ohren und Schwanz passen zum Tier bzw. zur Hunderasse (Steh-, Schlapp- oder kleine Ohren; weiße Schwanzspitze beim Fuchs; Corgi ohne Schwanz).
 - Sie laufen **nicht immer auf derselben Höhe**, sondern auch mal **weiter vorne oder weiter hinten** im Raum. Ein kleiner Schatten zeigt, wo sie stehen. Weiter hinten verdecken die Haufen und der Napf das Tier.
+- **Fliege (Katze):** Im Katzenzimmer summt ab und zu eine Fliege im Zick-Zack herum. Die Katze **beobachtet** sie oder **jagt ihr hinterher** und springt nach ihr, wenn sie nah genug ist.
 - **Deko besuchen:** Ab und zu geht das Tier zu einem Deko-Objekt und tut dort etwas:
   - Fuchs: schnüffelt an der Feder
   - Igel: schnuppert am Apfel

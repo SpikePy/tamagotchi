@@ -12,7 +12,7 @@ const FLOOR_Y = 40;
 const GROUND_Y = 33;
 const PX = 1 / RES;
 
-type Kind = 'mouse' | 'hedgehog' | 'deer' | 'bird';
+type Kind = 'mouse' | 'hedgehog' | 'deer' | 'bird' | 'fly';
 export type CritterLayer = 'sky' | 'window' | 'background' | 'foreground';
 
 const MOUSE_BODY = [
@@ -51,6 +51,13 @@ const DEER_STAND = [
 ];
 
 export const SPRITES: Record<Kind, { frames: string[][]; colors: ColorMap }> = {
+  fly: {
+    frames: [
+      ['w.w', '.k.'],
+      ['...', 'wkw'],
+    ],
+    colors: { k: '#1a1a1a', w: '#c8d8e8' },
+  },
   mouse: {
     frames: [
       [...MOUSE_BODY, '....f.....f.....'],
@@ -100,7 +107,7 @@ const KINDS: Record<SceneKind, Kind[]> = {
   farm: ['mouse', 'bird', 'bird'],
 };
 
-const DURATION: Record<Kind, number> = { mouse: 3000, hedgehog: 14000, deer: 20000, bird: 5000 };
+const DURATION: Record<Kind, number> = { mouse: 3000, hedgehog: 14000, deer: 20000, bird: 5000, fly: 9000 };
 
 // Blätter: zwei Frames (Drehung), Farben je Umgebung
 export const LEAF_FRAMES = [
@@ -151,10 +158,12 @@ export class Critters {
   private leaves: Leaf[] = [];
   private nextGust = performance.now() + 3000 + Math.random() * 6000;
   private last = performance.now();
-  private seen: { id: number; x: number } | null = null;
+  private seen: { id: number; x: number; kind: Kind } | null = null;
+  flyY = 0;
+  private species = '';
 
   /** Tier, das gerade vorbeikommt (Mitte in Spiel-Einheiten), damit das Haustier hinschauen kann */
-  watchTarget(): { id: number; x: number } | null {
+  watchTarget(): { id: number; x: number; kind: Kind } | null {
     return this.seen;
   }
 
@@ -165,8 +174,9 @@ export class Critters {
   /** einmal pro Bild: Positionen berechnen (win = Fensterausschnitt im Zimmer) */
   private season: Season = 'summer';
 
-  update(env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }, season: Season = 'summer') {
+  update(env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }, season: Season = 'summer', species = '') {
     this.season = season;
+    this.species = species;
     this.dt = Math.min(0.1, (t - this.last) / 1000);
     this.last = t;
     this.env = env;
@@ -201,7 +211,8 @@ export class Critters {
     if (this.active && this.active.env !== env) this.active = null;
     if (!this.active) {
       if (t < this.nextAt || !day) return;
-      const kinds = KINDS[env];
+      // bei der Katze summt im Zimmer ab und zu eine Fliege herum
+      const kinds = env === 'room' && this.species === 'cat' ? (['bird', 'fly', 'fly'] as Kind[]) : KINDS[env];
       const kind = kinds[Math.floor(Math.random() * kinds.length)];
       this.active = {
         env,
@@ -212,7 +223,7 @@ export class Critters {
       };
     }
     const a = this.active;
-    const inRoom = a.env === 'room' && !!win;
+    const inRoom = a.env === 'room' && !!win && a.kind !== 'fly';
     const dur = inRoom ? 2600 : DURATION[a.kind];
     const k = (t - a.start) / dur;
     if (k >= 1) {
@@ -229,6 +240,19 @@ export class Critters {
     let x = 0;
     let y = 0;
     switch (a.kind) {
+      case 'fly': {
+        // fliegt im Zick-Zack durchs Zimmer, kommt von der Seite und verschwindet wieder
+        const ph = a.start / 1000;
+        const s = t / 1000;
+        const cx = 12 + (Math.sin(s * 0.9 + ph) * 0.5 + 0.5) * 40 + Math.sin(s * 7 + ph) * 1.5;
+        const cy = 14 + (Math.sin(s * 1.3 + ph * 2) * 0.5 + 0.5) * 18 + Math.sin(s * 11) * 0.8;
+        const edge = a.dir > 0 ? -4 : W + 4;
+        const inOut = k < 0.1 ? k / 0.1 : k > 0.9 ? (1 - k) / 0.1 : 1;
+        x = edge + (cx - edge) * inOut;
+        y = cy;
+        frame = Math.floor(t / 40) % 2;
+        break;
+      }
       case 'mouse':
         x = across(k);
         y = FLOOR_Y + 5 - hPx * PX;
@@ -255,10 +279,11 @@ export class Critters {
     }
     const rows = a.dir < 0 ? flipRows(sp.frames[frame]) : sp.frames[frame];
     const layer: CritterLayer = inRoom ? 'window' : a.kind === 'bird' ? 'sky' : a.kind === 'deer' ? 'background' : 'foreground';
+    this.flyY = y;
     this.frame = { layer, rows, colors: sp.colors, x, y, clip: inRoom ? win : undefined };
     const cx = x + w / 2;
     const visible = inRoom ? cx > win!.x && cx < win!.x + win!.w : cx > 0 && cx < W;
-    if (visible) this.seen = { id: a.start, x: cx };
+    if (visible) this.seen = { id: a.start, x: cx, kind: a.kind };
   }
 
   /** Windböen: ab und zu wehen ein paar Blätter durchs Bild (nur draußen) */

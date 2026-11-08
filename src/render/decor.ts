@@ -105,9 +105,26 @@ const TOYMOUSE = ['...pp..', '.ooggo.', 'oggggen', 't.oooo.'];
 const TOYMOUSE_C: ColorMap = { o: '#4a4248', g: '#9a929a', p: '#f2a6b2', e: '#111111', n: '#e07a8a', t: '#c89aa0' };
 const WATERBOWL = ['.ooooooo.', 'olllllllo', '.obbbbbo.', '..ooooo..'];
 const WATER_C: ColorMap = { o: '#5a6a7a', l: '#7ac0f0', b: '#9aa8b8' };
+const HARNESS = ['...oo...', '..o..o..', '.obbbbo.', 'ob.oo.bo', 'ob.oo.bo', '.obbbbo.', '..oyyo..', '...oo...'];
+const HARNESS_C: ColorMap = { o: '#1a3a6a', b: '#3a6ad8', y: '#c8c8c8' };
+const COLLAR = ['..oo..', '.o..o.', 'og..go', 'og..go', '.oggo.', '..yy..', '.yYYy.', '..yy..'];
+const COLLAR_C: ColorMap = { o: '#1e5a2a', g: '#3aa04a', y: '#c89a2a', Y: '#f4d24a' };
 const MAT = ['oooooooooooooooooooooo', 'obbbbbbbbbbbbbbbbbbbbo', 'obyybyybyybyybyybyybbo', 'obbbbbbbbbbbbbbbbbbbbo', 'oooooooooooooooooooooo'];
 const MAT_C: ColorMap = { o: '#5a3a1a', b: '#a8743e', y: '#e8c870' };
-const PAW = ['.o.o.o.', 'o.o.o.o', '.......', '..ooo..', '.ooooo.', '.ooooo.', '..ooo..'];
+const PAW = [
+  '..oo....oo..',
+  '.ohoo..ohoo.',
+  '.oooo..oooo.',
+  '..oo....oo..',
+  'oo........oo',
+  'hoo.oooo.hoo',
+  'oo.ohoooo.oo',
+  '..ohooooooo.',
+  '.oooooooooo.',
+  '.oooooooooo.',
+  '..oooooooo..',
+  '...oooooo...',
+];
 
 // Hühnerhof
 const TROUGH_WATER = ['...oo...', '..oWWo..', '.oooooo.', 'ollllllo', 'ommmmmmo', '.oooooo.'];
@@ -127,7 +144,7 @@ export function decorTargets(species: string): DecorTarget[] {
     case 'hedgehog':
       return [{ x: 20, kind: 'sniff' }];
     case 'cat':
-      return [{ x: 33, kind: 'nudge' }, { x: 43, kind: 'sill' }];
+      return [{ x: 49.5, kind: 'nudge' }, { x: 43, kind: 'sill' }];
     case 'dog':
       return [{ x: 27, kind: 'drink' }];
     case 'chicken':
@@ -150,6 +167,19 @@ export function drawDecorFar(ctx: CanvasRenderingContext2D, scene: SceneKind) {
 }
 
 let sunflowersOff = false;
+
+/** Wandregal mit Büchern */
+function shelf(ctx: CanvasRenderingContext2D, x: number, y: number, books: string[]) {
+  rect(ctx, '#6a4424', x, y, 13, 1);
+  rect(ctx, '#8e6238', x, y, 13, P);
+  rect(ctx, '#4a2e18', x + 1, y + 1, P, 1.5);
+  rect(ctx, '#4a2e18', x + 11.5, y + 1, P, 1.5);
+  books.forEach((c, i) => {
+    const h = 3 + (i % 3) * 0.5;
+    rect(ctx, '#2a1a10', x + 1 + i * 1.5, y - h, 1.5, h);
+    rect(ctx, c, x + 1 + i * 1.5 + P, y - h + P, P, h - P);
+  });
+}
 
 /** Sonnenblume; Kopf neigt sich zur Sonne (sunX = Sonnenposition 0..64) */
 function sunflower(ctx: CanvasRenderingContext2D, x: number, top: number, sunX: number) {
@@ -188,37 +218,39 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       break;
     case 'cat': {
       // Wandregal mit Büchern und Katzenfigur über dem Kratzbaum
-      rect(ctx, '#6a4424', 4, 9, 13, 1);
-      rect(ctx, '#8e6238', 4, 9, 13, P);
-      rect(ctx, '#4a2e18', 5, 10, P, 1.5);
-      rect(ctx, '#4a2e18', 15.5, 10, P, 1.5);
-      const books = ['#c0462e', '#3a6ab0', '#e8b030', '#4f8a3c', '#8a4ab0'];
-      books.forEach((c, i) => {
-        const h = 3 + (i % 3) * 0.5;
-        rect(ctx, '#2a1a10', 5 + i * 1.5, 9 - h, 1.5, h);
-        rect(ctx, c, 5 + i * 1.5 + P, 9 - h + P, P, h - P);
-      });
+      shelf(ctx, 4, 9, ['#c0462e', '#3a6ab0', '#e8b030', '#4f8a3c', '#8a4ab0']);
       put(ctx, ['.o.o.', 'ooooo', 'okkko', '.okko', '.ooo.'], { o: '#2a2a2e', k: '#4a4a52' }, 13, 6.5);
       // Bild einer Maus statt der Landschaft
       rect(ctx, '#6a4a28', 21, 8, 11, 8);
       rect(ctx, '#a07a4a', 21, 8, 11, P);
       rect(ctx, '#f4ead8', 22, 9, 9, 6);
       put(ctx, MOUSE_PORTRAIT, MOUSE_PORTRAIT_C, 22.5, 9.5);
-      put(ctx, WOOL, WOOL_C, 29, 43);
-      for (let i = 0; i < 6; i++) rect(ctx, '#9a6ad8', 31.5 + i * 0.5, 44.5 + (i % 2) * 0.5, P, P);
-      put(ctx, TOYMOUSE, TOYMOUSE_C, 33.5, 44);
+      // Spielzeug vor dem Körbchen, mit Abstand zum rechten Rand
+      put(ctx, WOOL, WOOL_C, 43, 43.5);
+      for (let i = 0; i < 6; i++) rect(ctx, '#9a6ad8', 45.5 + i * 0.5, 45 + (i % 2) * 0.5, P, P);
+      put(ctx, TOYMOUSE, TOYMOUSE_C, 48.5, 44.5);
       break;
     }
     case 'dog':
-      // Pfoten-Poster über dem Landschaftsbild
-      rect(ctx, '#6a4a28', 21, 8, 11, 8);
-      rect(ctx, '#a07a4a', 21, 8, 11, P);
-      rect(ctx, '#f4ead8', 22, 9, 9, 6);
-      put(ctx, PAW, { o: '#8a5a2a' }, 24.5, 10.5);
-      // Leine am Haken
-      rect(ctx, '#5a5a5a', 34, 6, 1, 1);
-      for (let i = 0; i < 18; i++) rect(ctx, '#d8343a', 34.5 + (i > 12 ? (i - 12) * 0.25 : 0), 7 + i * 0.5, P, P);
-      put(ctx, ['.ooo.', 'o...o', 'o...o', '.ooo.'], { o: '#d8343a' }, 33.5, 15.5);
+      // Bücherregal mit kleinem Knochen
+      shelf(ctx, 4, 9, ['#3a6ab0', '#c0462e', '#4f8a3c', '#e8b030', '#6a4a8a']);
+      put(ctx, ['oo..oo', 'owoowo', '.owwo.', 'owoowo', 'oo..oo'].map((r) => r), { o: '#8a7a5e', w: '#f4ecd8' }, 12.5, 6.5);
+      // Pfotenbild: Goldrahmen, Passepartout, große Pfote
+      rect(ctx, 'rgba(0,0,0,0.15)', 21.5, 8.5, 11, 9);
+      rect(ctx, '#8a6a2a', 21, 8, 11, 9);
+      rect(ctx, '#d8b058', 21, 8, 11, P);
+      rect(ctx, '#d8b058', 21, 8, P, 9);
+      rect(ctx, '#f6efe0', 22, 9, 9, 7);
+      rect(ctx, '#e8dcc4', 22.5, 9.5, 8, 6);
+      put(ctx, PAW, { o: '#7a4a24', h: '#a8703a' }, 23.5, 9.75);
+      // Hakenleiste unter dem Regal: Leine, Geschirr, Halsband mit Marke
+      rect(ctx, '#6a4424', 4, 12.5, 13, 1);
+      rect(ctx, '#8e6238', 4, 12.5, 13, P);
+      for (const hx of [5.5, 10, 14.5]) rect(ctx, '#7a7a7a', hx, 13.5, P, 1);
+      for (let i = 0; i < 12; i++) rect(ctx, '#d8343a', 5.5, 14.5 + i * 0.5, P, P);
+      put(ctx, ['.ooo.', 'o...o', 'o...o', '.ooo.'], { o: '#d8343a' }, 4.5, 20.5);
+      put(ctx, HARNESS, HARNESS_C, 8.25, 14.5);
+      put(ctx, COLLAR, COLLAR_C, 13, 14.5);
       put(ctx, WATERBOWL, WATER_C, 24.5, 42.5);
       break;
     case 'chicken': {
