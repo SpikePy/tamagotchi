@@ -117,6 +117,8 @@ export const hedgehog: SpeciesDef = {
       title: 'Links oder rechts?',
       description: 'Der Igel hat sich unter einem Laubhaufen versteckt. Wo ist er?',
       hideout: 'Laubhaufen',
+      hideEmoji: '🍂',
+      petEmoji: '🦔',
     },
     catch: {
       title: 'Äpfel fangen',
@@ -128,6 +130,8 @@ export const hedgehog: SpeciesDef = {
       title: 'Kugelrollen',
       description: 'Der Igel rollt sich zur Kugel. Roll ihn möglichst weit, aber nicht in den Teich!',
       thing: 'Igelkugel',
+      emoji: '🦔',
+      water: 'Teich',
     },
     memory: {
       title: 'Spuren lesen',

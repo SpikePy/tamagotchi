@@ -64,6 +64,9 @@ p = await page(pet('hedgehog', 'teen', 'good', { name: 'Pieks', weight: 22, asle
 await device(p, 'hedgehog-night'); await p.close();
 
 }
+// Katze, grau getigert
+p = await page(pet('cat', 'teen', 'good', { name: 'Minka', weight: 21, look: { coat: 1, pattern: 'tabby', seed: 3 } }), 10);
+await device(p, 'cat-day'); await p.close();
 // 7) Igelbaby ist krank und ruft
 p = await page(pet('hedgehog', 'baby', 'normal', { name: 'Krümel', weight: 6, hunger: 1, happy: 1, hatchedAt: at(2), stageStartedAt: at(2), sick: { since: at(14), doses: 2 }, poops: [at(10), at(14)], calls: { sick: { since: at(14), penalized: false }, poop: { since: at(14), penalized: false } } }), 15);
 await device(p, 'hedgehog-sick'); await p.close();

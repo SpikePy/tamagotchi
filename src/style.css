@@ -253,6 +253,20 @@ body {
   gap: 10px;
 }
 
+.species-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.species-grid .choice {
+  padding: 10px 4px;
+}
+
+.species-grid .species-pic {
+  width: 72px;
+  height: 72px;
+}
+
 .game-list {
   display: flex;
   flex-direction: column;

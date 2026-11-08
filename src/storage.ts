@@ -18,7 +18,12 @@ export function load(now: number): GameState {
   return newGame(now);
 }
 
+// Nach dem Löschen nichts mehr speichern, sonst schreibt das
+// visibilitychange beim Neuladen den alten Stand sofort zurück.
+let wiped = false;
+
 export function save(s: GameState) {
+  if (wiped) return;
   try {
     localStorage.setItem(KEY, JSON.stringify(s));
   } catch {
@@ -27,6 +32,7 @@ export function save(s: GameState) {
 }
 
 export function wipe() {
+  wiped = true;
   try {
     localStorage.removeItem(KEY);
   } catch {

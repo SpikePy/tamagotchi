@@ -1,0 +1,30 @@
+import { describe, expect, it } from 'vitest';
+import { SPECIES, lookName, randomLook } from '.';
+import { applyPattern, petSprite } from '../render/pixels';
+
+describe('Tierarten', () => {
+  for (const sp of Object.values(SPECIES)) {
+    it(`${sp.name}: alle Sprites rechteckig, alle Zeichen haben Farben`, () => {
+      for (const [stage, rows] of Object.entries(sp.sprites)) {
+        for (const r of rows) expect(r.length, `${sp.id}/${stage}`).toBe(rows[0].length);
+        const { map, colors } = petSprite(sp, { stage: stage as never, variant: 'normal', look: randomLook(sp) });
+        for (const ch of map.join('').replaceAll('.', '')) expect(colors[ch], `${sp.id}/${stage} '${ch}'`).toBeTruthy();
+      }
+    });
+  }
+
+  it('Katze bekommt zufälliges Fell, andere Arten nicht', () => {
+    expect(randomLook(SPECIES.fox)).toBeNull();
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i++) seen.add(lookName(SPECIES.cat, randomLook(SPECIES.cat))!);
+    expect(seen.size).toBeGreaterThan(15); // 6 Farben x 4 Muster
+  });
+
+  it('Muster färbt nur die Hauptfarbe um', () => {
+    const rows = ['oaaao', 'abbba', 'aaaaa'];
+    for (const p of ['tabby', 'patches', 'socks']) {
+      const out = applyPattern(rows, p, 42);
+      out.forEach((r, y) => [...r].forEach((ch, x) => rows[y][x] !== 'a' && expect(ch).toBe(rows[y][x])));
+    }
+  });
+});

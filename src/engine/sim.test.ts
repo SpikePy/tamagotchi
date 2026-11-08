@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DAY, HOUR, MIN } from './config';
 import { newGame } from './state';
 import { advance } from './sim';
-import { clean, feedMeal, giveMedicine, lightButton, scold, startEgg } from './actions';
+import { clean, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg } from './actions';
 
 const T0 = new Date(2026, 0, 1, 8, 0).getTime();
 const rng = () => 0.5;
@@ -136,5 +136,18 @@ describe('Name', () => {
     expect(renamePet(s, '  Rudi   der   Fuchs von nebenan ').ok).toBe(true);
     expect(s.pet!.name).toBe('Rudi der Fuchs');
     expect(s.pet!.log.at(-1)!.text).toContain('Rudi der Fuchs');
+  });
+});
+
+describe('Spielen', () => {
+  it('gibt immer +1 Laune, auch bei Niederlage', () => {
+    const s = game();
+    run(s, MIN);
+    const p = s.pet!;
+    p.happy = 1;
+    finishGame(s, false);
+    expect(p.happy).toBe(2);
+    finishGame(s, true);
+    expect(p.happy).toBe(3);
   });
 });

@@ -56,6 +56,12 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 - Die App soll mehrere Tierarten unterstützen. Jede Art hat eigene Grafiken, eigene Entwicklungsformen und eventuell eigene Minispiele.
 - **Als erste Art wird ein Fuchs umgesetzt und ein Igel**
+- **Katze:** Sie hat alle Entwicklungsstufen und Animationen wie die anderen Tiere. Ihr Aussehen wird beim Anlegen des Eis **zufällig** festgelegt und bleibt ein Leben lang gleich:
+  - **Fellfarbe:** Rot, Grau, Schwarz, Creme, Braun oder Weiß, jeweils mit passender Augenfarbe.
+  - **Muster:** einfarbig, getigert, gefleckt oder mit weißen Pfoten.
+  - Bei der Auswahl steht „Fell & Muster: Überraschung!“. Die Flecken auf dem Ei zeigen aber schon die Fellfarbe. Im Status steht das Fell, zum Beispiel „Grau, getigert“.
+  - Katzen-Minispiele: Laserpunkt (Timing), Links oder rechts? (in welchem Karton), Fische fangen (alte Socken meiden), Wollknäuel (nicht in die Wasserschale) und Spuren lesen.
+- Fellfarben und Muster sind als Daten angelegt (`coats`, `patterns`) und lassen sich auch für andere Arten nutzen.
 - Die Architektur muss es erlauben, neue Tierarten hinzuzufügen, ohne die Spiellogik zu ändern. Eine Tierart besteht also aus Daten und Grafiken, nicht aus eigenem Code.
 
 ## 6. Bedürfnisse und Aktionen
@@ -93,7 +99,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.4 Spielen
 
-Spielen hebt die Laune (+1 Herz, wenn man gewinnt), senkt das Gewicht (−1 g) und macht etwas müde. Es gibt 5 Minispiele. Jede Tierart hat dafür ein eigenes Thema, die Spielmechanik ist bei allen gleich. Beim Fuchs:
+**Jedes zu Ende gespielte Minispiel gibt +1 Laune, egal ob gewonnen oder verloren.** Wer das Spiel mittendrin abbricht, bekommt nichts. Spielen senkt außerdem das Gewicht (−1 g) und macht etwas müde. Es gibt 5 Minispiele. Jede Tierart hat dafür ein eigenes Thema, die Spielmechanik ist bei allen gleich. Beim Fuchs:
 
 1. **Mäusesprung:** Unter dem Schnee raschelt eine Maus. Im richtigen Moment tippen, damit der Fuchs kopfüber hineinspringt. Ein Timing-Spiel.
 2. **Links oder rechts?** Der Fuchs versteckt sich hinter einem von zwei Büschen. Man rät, wo er ist. Wer 3 von 5 Mal richtig liegt, gewinnt.

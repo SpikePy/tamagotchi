@@ -2,7 +2,7 @@ import { MIN, RULES } from '../engine/config';
 import type { GameState, Pet } from '../engine/state';
 import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
-import { ColorMap, ICONS, drawMap, eggMap, paletteFor, petMap } from './pixels';
+import { ColorMap, ICONS, drawMap, eggColors, eggMap, petSprite } from './pixels';
 
 export const SCREEN_W = 64;
 export const SCREEN_H = 48;
@@ -194,27 +194,24 @@ export class Scene {
       if (inBurst) wobble = Math.round(Math.sin(t / 45) * (stage === 3 ? 1.5 : 1));
     }
     const x = EGG_X + wobble;
-    drawMap(this.ctx, eggMap(), { o: '#3a2a1a', s: sp.egg.shell, x: sp.egg.spots }, x, EGG_Y);
+    drawMap(this.ctx, eggMap(), eggColors(sp, p.look), x, EGG_Y);
     this.ctx.fillStyle = '#3a2a1a';
     for (let k = 0; k < stage; k++) for (const [cx, cy] of CRACKS[k]) this.ctx.fillRect(x + cx, EGG_Y + cy, 1, 1);
   }
 
   private drawPetInBasket(p: Pet, sp: SpeciesDef, t: number, hatching: boolean) {
     const ctx = this.ctx;
-    const sprite = sp.sprites[p.stage as Exclude<Pet['stage'], 'egg'>];
-    const w = sprite[0].length;
-    const h = sprite.length;
+    const { map, colors: pal, w, h } = petSprite(sp, p, { eyesClosed: p.asleep });
     const x = Math.round(BASKET_CX - w / 2);
     const k = hatching ? (t - this.hatchStart) / HATCH_MS : 1;
     // beim Schlüpfen taucht es langsam aus der Schale auf
     const rise = hatching ? Math.round(Math.min(1, k * 2) * 3) - 3 : 0;
     const y = FLOOR_Y - h + 1 - rise;
-    const map = petMap(sprite, { eyesClosed: p.asleep, brows: p.variant === 'cheeky' });
-    drawMap(ctx, map, paletteFor(sp, p.variant), x, y);
+    drawMap(ctx, map, pal, x, y);
 
     if (hatching) {
       const egg = eggMap();
-      const colors = { o: '#3a2a1a', s: sp.egg.shell, x: sp.egg.spots };
+      const colors = eggColors(sp, p.look);
       // untere Schalenhälfte bleibt kurz stehen, obere fliegt weg
       if (k < 0.55) drawMap(ctx, egg.slice(6), colors, EGG_X, EGG_Y + 6);
       drawMap(ctx, egg.slice(0, 6), colors, EGG_X - k * 16, EGG_Y - k * 18 + k * k * 10);
@@ -232,9 +229,8 @@ export class Scene {
 
   private drawPetWalking(p: Pet, sp: SpeciesDef, t: number) {
     const ctx = this.ctx;
-    const sprite = sp.sprites[p.stage as Exclude<Pet['stage'], 'egg'>];
-    const w = sprite[0].length;
-    const h = sprite.length;
+    const blink = t % 3500 < 150;
+    const { map, colors: pal, w, h } = petSprite(sp, p, { eyesClosed: blink });
     const fx = this.fx && t < this.fx.until ? this.fx : null;
     const eating = fx && (fx.kind === 'food' || fx.kind === 'candy') && t - fx.start < EAT_MS;
 
@@ -259,10 +255,8 @@ export class Scene {
     const s = t - this.shakeStart;
     if (s >= 0 && s < 600) x += Math.round(Math.sin(s / 25) * 1.5);
 
-    const blink = t % 3500 < 150;
-    const map = petMap(sprite, { eyesClosed: blink, brows: p.variant === 'cheeky' });
     const y = FLOOR_Y - h + 1 - bob;
-    drawMap(ctx, map, paletteFor(sp, p.variant), x, y, flip);
+    drawMap(ctx, map, pal, x, y, flip);
 
     if (p.variant === 'great' && Math.floor(t / 600) % 3 === 0) {
       drawMap(ctx, ICONS.sparkle.map, ICONS.sparkle.colors, x + w - 2, y - 4);
@@ -274,8 +268,8 @@ export class Scene {
       // Futter vor dem Maul, wird in Bissen kleiner
       const bites = Math.floor(((t - fx.start) / EAT_MS) * 3);
       const cut = [5, 3, 1][bites] ?? 0;
-      const map = icon.map.map((row) => row.slice(0, cut));
-      drawMap(ctx, map, icon.colors, x + w, FLOOR_Y - 5);
+      const food = icon.map.map((row) => row.slice(0, cut));
+      drawMap(ctx, food, icon.colors, x + w, FLOOR_Y - 5);
     } else {
       const rise = Math.floor((t - fx.start) / 250);
       drawMap(ctx, icon.map, icon.colors, x + w / 2 - 2, y - 7 - rise);

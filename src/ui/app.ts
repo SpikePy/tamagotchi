@@ -19,9 +19,9 @@ import { DAY, MIN, RULES } from '../engine/config';
 import { advance, ageDays, isOverweight, SimEvent, sleptLast24h } from '../engine/sim';
 import { CallType, GameState, Pet, hearts } from '../engine/state';
 import { notify, requestNotifications } from '../notify';
-import { drawMap, paletteFor, petMap } from '../render/pixels';
+import { drawMap, petSprite } from '../render/pixels';
 import { Scene } from '../render/scene';
-import { SPECIES, species } from '../species';
+import { SPECIES, lookName, randomLook, species } from '../species';
 import { save, wipe } from '../storage';
 import { h } from './dom';
 import { GAME_IDS, GameId, runGame } from './games';
@@ -341,8 +341,8 @@ export class App {
       this.act(r, 'heart');
     };
     const pic = h('canvas', { class: 'pixel species-pic', width: '20', height: '20' }) as HTMLCanvasElement;
-    const spr = sp.sprites[p.stage];
-    drawMap(pic.getContext('2d')!, petMap(spr, {}), paletteFor(sp, p.variant), (20 - spr[0].length) / 2, (20 - spr.length) / 2);
+    const img = petSprite(sp, p);
+    drawMap(pic.getContext('2d')!, img.map, img.colors, (20 - img.w) / 2, (20 - img.h) / 2);
     form.append(
       pic,
       h('p', {}, rename ? 'Wie soll es heißen?' : `Ein kleines ${sp.name}baby ist geschlüpft! Wie soll es heißen?`),
@@ -355,14 +355,20 @@ export class App {
   }
 
   private chooseSheet() {
-    const body = h('div', { class: 'choice-grid' });
+    const body = h('div', { class: 'choice-grid species-grid' });
     for (const sp of Object.values(SPECIES)) {
       const c = h('canvas', { class: 'pixel species-pic', width: '20', height: '20' }) as HTMLCanvasElement;
-      const spr = sp.sprites.child;
-      drawMap(c.getContext('2d')!, petMap(spr, {}), paletteFor(sp, 'good'), (20 - spr[0].length) / 2, (20 - spr.length) / 2);
-      const b = h('button', { class: 'choice' }, c, h('b', {}, sp.name));
+      const img = petSprite(sp, { stage: 'child', variant: 'good' });
+      drawMap(c.getContext('2d')!, img.map, img.colors, (20 - img.w) / 2, (20 - img.h) / 2);
+      const b = h(
+        'button',
+        { class: 'choice' },
+        c,
+        h('b', {}, sp.name),
+        sp.coats ? h('small', {}, 'Fell & Muster: Überraschung!') : null,
+      );
       b.onclick = () => {
-        startEgg(this.s, sp.id);
+        startEgg(this.s, sp.id, randomLook(sp));
         save(this.s);
         this.closeSheet(true);
         this.say(`Ein ${sp.name}-Ei! Es schlüpft in einer Minute.`);
@@ -408,6 +414,7 @@ export class App {
     const rows: [string, string][] = [
       ['Name', p.name ?? '–'],
       ['Tier', `${stageName(p)} (${sp.name})`],
+      ...(lookName(sp, p.look) ? [['Fell', lookName(sp, p.look)!] as [string, string]] : []),
       ['Phase', STAGE_LABEL[p.stage]],
       ['Alter', `${Math.floor(ageDays(p, this.s.clock))} Tage`],
     ];

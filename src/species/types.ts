@@ -6,12 +6,21 @@ import type { Stage, Variant } from '../engine/state';
  *  a  Hauptfarbe       b  hell (Bauch/Gesicht)
  *  c  Akzent           n  Nase
  *  E  Auge (oben)      e  Auge (unten)  -> beim Blinzeln/Schlafen wird E zur Hauptfarbe
- *  p  Wangen           w  Glanzlicht
+ *  p  Wangen           w  Glanzlicht/Schnurrhaare
+ *  d  Musterfarbe (wird vom Fellmuster aus 'a' erzeugt)
  */
 export type Sprite = string[];
 
-export type PaletteKey = 'o' | 'a' | 'b' | 'c' | 'n' | 'E' | 'e' | 'p' | 'w';
-export type Palette = Record<PaletteKey, string>;
+export type PaletteKey = 'o' | 'a' | 'b' | 'c' | 'n' | 'E' | 'e' | 'p' | 'w' | 'd';
+export type Palette = Record<Exclude<PaletteKey, 'd'>, string> & { d?: string };
+
+/** Fellmuster, die der Renderer auf die Hauptfarbe 'a' anwendet */
+export type Pattern = 'solid' | 'tabby' | 'patches' | 'socks';
+
+export interface Coat {
+  name: string; // z. B. "Rot"
+  colors: Partial<Palette>; // überschreibt die Grundpalette, 'd' = Musterfarbe
+}
 
 export interface GameTheme {
   title: string;
@@ -29,12 +38,15 @@ export interface SpeciesDef {
   variantPalettes: Partial<Record<Variant, Partial<Palette>>>;
   sprites: Record<Exclude<Stage, 'egg'>, Sprite>;
   egg: { shell: string; spots: string };
+  /** optional: zufällige Fellfarbe + Muster pro Tier */
+  coats?: Coat[];
+  patterns?: Pattern[];
   stageNames: Record<Stage, Partial<Record<Variant, string>>>;
   games: {
     timing: GameTheme & { target: string; hit: string };
-    guess: GameTheme & { hideout: string };
+    guess: GameTheme & { hideout: string; hideEmoji: string; petEmoji: string };
     catch: GameTheme & { good: string; bad: string };
-    throw: GameTheme & { thing: string };
+    throw: GameTheme & { thing: string; emoji: string; water: string };
     memory: GameTheme;
   };
 }

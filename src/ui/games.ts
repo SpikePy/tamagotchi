@@ -1,6 +1,6 @@
 import { beep } from '../audio';
 import { Pet } from '../engine/state';
-import { drawMap, paletteFor, petMap } from '../render/pixels';
+import { drawMap, petSprite } from '../render/pixels';
 import type { SpeciesDef } from '../species/types';
 import { h } from './dom';
 
@@ -92,7 +92,7 @@ function timingGame(el: HTMLElement, sp: SpeciesDef, _pet: Pet, done: Done): Cle
 // 2) Links oder rechts? (5 Runden, 3 richtig gewinnen)
 function guessGame(el: HTMLElement, sp: SpeciesDef, _pet: Pet, done: Done): Cleanup {
   const theme = sp.games.guess;
-  const hide = sp.id === 'hedgehog' ? '🍂' : '🌳';
+  const hide = theme.hideEmoji;
   const info = h('div', { class: 'game-info' });
   const row = h('div', { class: 'guess-row' });
   const left = h('button', { class: 'guess-btn' }, hide);
@@ -110,7 +110,7 @@ function guessGame(el: HTMLElement, sp: SpeciesDef, _pet: Pet, done: Done): Clea
     if (ok) right_++;
     ok ? beep.ok() : beep.no();
     const btns = [left, right];
-    btns[where].textContent = sp.id === 'hedgehog' ? '🦔' : '🦊';
+    btns[where].textContent = theme.petEmoji;
     info.textContent = ok ? 'Gefunden!' : 'Falsch, dort war er!';
     round++;
     timer = window.setTimeout(() => {
@@ -141,10 +141,9 @@ function catchGame(el: HTMLElement, sp: SpeciesDef, pet: Pet, done: Done): Clean
   el.append(info, canvas, ctrl);
   const ctx = canvas.getContext('2d')!;
 
-  const sprite = petMap(sp.sprites[pet.stage === 'egg' ? 'baby' : pet.stage], {});
+  const { map: sprite, colors: pal } = petSprite(sp, pet);
   const pw = sprite[0].length;
   const ph = sprite.length;
-  const pal = paletteFor(sp, pet.variant);
   let px = (W - pw) / 2;
   let move = 0;
   let score = 0;
@@ -222,12 +221,12 @@ function catchGame(el: HTMLElement, sp: SpeciesDef, pet: Pet, done: Done): Clean
 // 4) Werfen: Winkel und Kraft stoppen, Bach meiden (3 Würfe, einer >= 70 m gewinnt)
 function throwGame(el: HTMLElement, sp: SpeciesDef, _pet: Pet, done: Done): Cleanup {
   const theme = sp.games.throw;
-  const water = sp.id === 'hedgehog' ? 'Teich' : 'Bach';
+  const water = theme.water;
   const info = h('div', { class: 'game-info' });
   const field = h('div', { class: 'field' });
   const river = h('div', { class: 'field-river' });
   const goal = h('div', { class: 'field-goal' });
-  const thing = h('div', { class: 'field-thing' }, sp.id === 'hedgehog' ? '🦔' : '🪵');
+  const thing = h('div', { class: 'field-thing' }, theme.emoji);
   field.append(river, goal, thing);
   const meter = h('div', { class: 'meter' });
   const marker = h('div', { class: 'meter-marker' });

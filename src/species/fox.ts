@@ -123,6 +123,8 @@ export const fox: SpeciesDef = {
       title: 'Links oder rechts?',
       description: 'Der Fuchs versteckt sich hinter einem Busch. Wo ist er?',
       hideout: 'Busch',
+      hideEmoji: '🌳',
+      petEmoji: '🦊',
     },
     catch: {
       title: 'Beeren fangen',
@@ -134,6 +136,8 @@ export const fox: SpeciesDef = {
       title: 'Stöckchen holen',
       description: 'Wirf das Stöckchen möglichst weit, aber nicht in den Bach!',
       thing: 'Stöckchen',
+      emoji: '🪵',
+      water: 'Bach',
     },
     memory: {
       title: 'Spuren lesen',

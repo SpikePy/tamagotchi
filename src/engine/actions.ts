@@ -1,5 +1,5 @@
 import { RULES } from './config';
-import { GameState, Pet, hearts, newPet } from './state';
+import { GameState, Look, Pet, hearts, newPet } from './state';
 import { Rng, SimEvent, addLog, careMistake, fallAsleep, wake } from './sim';
 
 export interface ActionResult {
@@ -16,8 +16,8 @@ function hatchedPet(s: GameState): Pet | null {
   return p && p.stage !== 'egg' ? p : null;
 }
 
-export function startEgg(s: GameState, species: string) {
-  s.pet = newPet(species, s.clock);
+export function startEgg(s: GameState, species: string, look: Look | null = null) {
+  s.pet = newPet(species, s.clock, look);
   s.ending = null;
 }
 
@@ -152,6 +152,7 @@ export function finishGame(s: GameState, won: boolean): ActionResult {
   if (!p) return no('');
   p.weight = Math.max(Math.ceil(RULES.baseWeight[p.stage] * 0.5), p.weight - 1);
   p.tiredness = Math.min(100, p.tiredness + 3);
-  if (won) p.happy = Math.min(RULES.hearts, Math.floor(p.happy + 1 + 1e-9));
-  return yes(won ? 'Gewonnen! Es freut sich.' : 'Verloren … aber es hatte Spaß.');
+  // Spielen macht immer Spaß: +1 Laune, egal ob gewonnen oder verloren
+  p.happy = Math.min(RULES.hearts, Math.floor(p.happy + 1 + 1e-9));
+  return yes(won ? 'Gewonnen! Das hat Spaß gemacht.' : 'Verloren … aber es hatte trotzdem Spaß.');
 }

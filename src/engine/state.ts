@@ -2,6 +2,13 @@ export type Stage = 'egg' | 'baby' | 'child' | 'teen' | 'adult';
 export type Variant = 'normal' | 'good' | 'bad' | 'great' | 'cheeky';
 export type CallType = 'hunger' | 'happy' | 'poop' | 'sick' | 'sleepy' | 'light' | 'fake';
 
+/** Zufälliges Aussehen (z. B. Fellfarbe/Muster der Katze), bleibt ein Leben lang gleich */
+export interface Look {
+  coat: number; // Index in SpeciesDef.coats
+  pattern: string; // Pattern-Name
+  seed: number; // für Flecken-Positionen
+}
+
 export interface Call {
   since: number;
   penalized: boolean;
@@ -15,6 +22,7 @@ export interface LogEntry {
 export interface Pet {
   species: string;
   name: string | null; // wird nach dem Schlüpfen vergeben
+  look?: Look | null;
   stage: Stage;
   variant: Variant;
   createdAt: number;
@@ -62,6 +70,7 @@ export interface Ending {
 export interface Memorial {
   species: string;
   name?: string | null;
+  look?: Look | null;
   stage: Stage;
   variant: Variant;
   ending: Ending;
@@ -100,10 +109,11 @@ export function newGame(now: number): GameState {
   };
 }
 
-export function newPet(species: string, clock: number): Pet {
+export function newPet(species: string, clock: number, look: Look | null = null): Pet {
   return {
     species,
     name: null,
+    look,
     stage: 'egg',
     variant: 'normal',
     createdAt: clock,
