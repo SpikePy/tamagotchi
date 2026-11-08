@@ -1,46 +1,93 @@
-// Kleine Tiere, die draußen ab und zu durchs Bild laufen oder fliegen.
-//  Wald (Fuchs):   Maus, Igel, Reh (klein im Hintergrund, grast), Vogel
-//  Garten (Igel):  Maus, Vogel
-//  Zimmer (Katze, Hund): Vogel fliegt am Fenster vorbei
-import { drawMap, type ColorMap } from './pixels';
+// Kleine Tiere, die ab und zu durchs Bild laufen oder fliegen, und wehende Blätter.
+//  Wald (Fuchs):          Maus, Igel, Reh (klein im Hintergrund, grast), Vogel; grüne Blätter
+//  Garten (Igel):         Maus, Vogel; bunte Herbstblätter
+//  Zimmer (Katze, Hund):  Vogel fliegt am Fenster vorbei
+// Alle Grafiken sind im feinen Pixelraster gezeichnet (1 Zeichen = 1 Bildpixel).
+import { RES, drawPixels, type ColorMap } from './pixels';
 import type { SceneKind } from './outdoor';
 
 const W = 64;
 const FLOOR_Y = 40;
 const GROUND_Y = 33;
+const PX = 1 / RES;
 
 type Kind = 'mouse' | 'hedgehog' | 'deer' | 'bird';
 
-const SPRITES: Record<Kind, { frames: string[][]; colors: ColorMap }> = {
+const MOUSE_BODY = [
+  '..........oo....',
+  '.........oppo...',
+  '......ooooppo...',
+  '....oollllgoo...',
+  '...ollgggggggoo.',
+  '..oggggggggggeoo',
+  'ttoggggggggggggn',
+  't.ogggggggggggo.',
+  '...ooooooooooo..',
+];
+const HOG_BODY = [
+  '....c.c.c.c.......',
+  '...cdcdcdcdc......',
+  '..cdddddddddc.....',
+  '.cddddddddddcbb...',
+  'cdddddddddddcbbb..',
+  'cddddddddddcbbbeb.',
+  'cddddddddddcbbbbbn',
+  '.cdddddddddcbbbbb.',
+  '..ccccccccccbbbb..',
+];
+const DEER_STAND = [
+  '..........o.o..',
+  '..........oao..',
+  '.........oaaao.',
+  '.........oaeaan',
+  '.........oaaao.',
+  '.ooooooooaaao..',
+  'owaaaaaaaaaao..',
+  'oaaaaaaaaaaao..',
+  '.oaaaaaaaaao...',
+  '.obbbbbbbbbo...',
+];
+
+export const SPRITES: Record<Kind, { frames: string[][]; colors: ColorMap }> = {
   mouse: {
     frames: [
-      ['...pp...', 'ttaaaaan', '..o..o..'],
-      ['...pp...', 'ttaaaaan', '.o...o..'],
+      [...MOUSE_BODY, '....f.....f.....'],
+      [...MOUSE_BODY, '.....f...f......'],
     ],
-    colors: { o: '#3a3a3a', a: '#9a9a9a', p: '#f0a0a0', n: '#222222', t: '#b08a8a' },
+    colors: { o: '#4a4248', g: '#9a929a', l: '#c4bcc4', p: '#f2a6b2', e: '#111111', n: '#e07a8a', t: '#c89aa0', f: '#e8a6b0' },
   },
   hedgehog: {
     frames: [
-      ['..c.c..', '.ccccc.', 'cccccbn', '.a..a..'],
-      ['..c.c..', '.ccccc.', 'cccccbn', '..a..a.'],
+      [...HOG_BODY, '...a...a...a..a...'],
+      [...HOG_BODY, '....a...a...a..a..'],
     ],
-    colors: { c: '#6b4a2f', b: '#e8c8a0', n: '#222222', a: '#c98f6b' },
+    colors: { c: '#4a3020', d: '#7a5434', b: '#e8cba0', e: '#111111', n: '#222222', a: '#c98f6b' },
   },
   deer: {
-    // klein, weil weit weg im Hintergrund
     frames: [
-      ['.....o.', '....oan', 'aaaaaa.', 'baaaa..', '.a.a.a.'],
-      ['.....o.', '....oan', 'aaaaaa.', 'baaaa..', 'a.a..a.'],
-      ['.......', '.......', 'aaaaaa.', 'baaaaao', '.a.a.an'],
+      [...DEER_STAND, '..o.o...o.o....', '..o.o...o.o....', '..o.o...o.o....'],
+      [...DEER_STAND, '..o..o..o..o...', '.o...o.o...o...', '.o...o.o....o..'],
+      // grasen: Kopf unten am Boden
+      [
+        '...............', '...............', '...............', '...............', '...............',
+        '.oooooooooo....',
+        'owaaaaaaaaao...',
+        'oaaaaaaaaaaao..',
+        '.oaaaaaaaaaaao.',
+        '.obbbbbbbbboaao',
+        '..o.o...o.oaeao',
+        '..o.o...o.o.oan',
+        '..o.o...o.o....',
+      ],
     ],
-    colors: { a: '#a8703a', b: '#f0dcc0', o: '#4a2e18', n: '#222222' },
+    colors: { a: '#b07840', b: '#e8d0a8', w: '#f4ecdc', o: '#5a3820', e: '#111111', n: '#222222' },
   },
   bird: {
     frames: [
-      ['k...k', '.kkky', '..k..'],
-      ['.....', 'kkkky', '.k.k.'],
+      ['o.......o..', 'wo.....ow..', '.wo...ow...', '..obbbbbo..', '..obbbbeyy.', '...ooooo...'],
+      ['...........', '...........', '..obbbbbo..', '.wobbbbeyy.', 'wo.ooooo...', 'o..........'],
     ],
-    colors: { k: '#3a3a4a', y: '#e0a020' },
+    colors: { o: '#3a2a20', b: '#8a6040', w: '#c8a070', e: '#111111', y: '#f0a020' },
   },
 };
 
@@ -52,6 +99,23 @@ const KINDS: Record<SceneKind, Kind[]> = {
 
 const DURATION: Record<Kind, number> = { mouse: 3000, hedgehog: 14000, deer: 20000, bird: 5000 };
 
+// Blätter: zwei Frames (Drehung), Farben je Umgebung
+export const LEAF_FRAMES = [
+  ['.lg.', 'lggd', '.dd.'],
+  ['.l.', 'lgd', 'ggd', '.d.'],
+];
+export const LEAF_PALETTES: Record<'forest' | 'garden', ColorMap[]> = {
+  forest: [
+    { l: '#9ad46a', g: '#5fa84a', d: '#3f7432' },
+    { l: '#c4e07a', g: '#8ab84a', d: '#5a8a34' },
+  ],
+  garden: [
+    { l: '#f6c46a', g: '#e08a3a', d: '#a8542a' },
+    { l: '#f08a6a', g: '#c95a2a', d: '#8a3a1a' },
+    { l: '#f6e07a', g: '#e0b13a', d: '#a8802a' },
+  ],
+};
+
 interface Active {
   env: SceneKind;
   kind: Kind;
@@ -60,12 +124,33 @@ interface Active {
   y: number;
 }
 
+interface Leaf {
+  x: number;
+  y: number;
+  vx: number;
+  phase: number;
+  colors: ColorMap;
+}
+
+const flipRows = (rows: string[]) => rows.map((r) => [...r].reverse().join(''));
+const snap = (v: number) => Math.round(v * RES) / RES;
+
 export class Critters {
   private active: Active | null = null;
   private nextAt = performance.now() + 4000 + Math.random() * 8000;
+  private leaves: Leaf[] = [];
+  private nextGust = performance.now() + 3000 + Math.random() * 6000;
+  private last = performance.now();
 
   /** win = Fensterausschnitt im Zimmer (Vogel nur dort sichtbar) */
   draw(ctx: CanvasRenderingContext2D, env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }) {
+    const dt = Math.min(0.1, (t - this.last) / 1000);
+    this.last = t;
+    this.drawLeaves(ctx, env, t, dt);
+    this.drawAnimal(ctx, env, day, t, win);
+  }
+
+  private drawAnimal(ctx: CanvasRenderingContext2D, env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }) {
     if (this.active && this.active.env !== env) this.active = null;
     if (!this.active) {
       if (t < this.nextAt || !day) return;
@@ -76,7 +161,7 @@ export class Critters {
         kind,
         start: t,
         dir: Math.random() < 0.5 ? 1 : -1,
-        y: kind === 'bird' ? (env === 'room' && win ? win.y + 2 + Math.random() * (win.h - 6) : 5 + Math.random() * 10) : 0,
+        y: kind === 'bird' ? (env === 'room' && win ? win.y + 2 + Math.random() * (win.h - 6) : 4 + Math.random() * 10) : 0,
       };
     }
     const a = this.active;
@@ -89,48 +174,77 @@ export class Critters {
       return;
     }
     const sp = SPRITES[a.kind];
-    const w = sp.frames[0][0].length;
-    const flip = a.dir < 0;
-    // im Zimmer nur quer durchs Fenster
+    const hPx = sp.frames[0].length;
+    const w = sp.frames[0][0].length * PX;
     const [x0, span] = inRoom ? [win!.x, win!.w] : [0, W];
     const across = (p: number) => x0 + (a.dir > 0 ? -w + p * (span + w * 2) : span + w - p * (span + w * 2));
-    let frame = Math.floor(t / 150) % 2;
-    let x: number;
-    let y: number;
-    let scale = 1;
+    let frame = 0;
+    let x = 0;
+    let y = 0;
     switch (a.kind) {
       case 'mouse':
         x = across(k);
-        y = FLOOR_Y + 3;
-        frame = Math.floor(t / 80) % 2;
+        y = FLOOR_Y + 5 - hPx * PX;
+        frame = Math.floor(t / 70) % 2;
         break;
       case 'hedgehog':
         x = across(k);
-        y = FLOOR_Y + 2;
-        frame = Math.floor(t / 250) % 2;
+        y = FLOOR_Y + 5 - hPx * PX;
+        frame = Math.floor(t / 220) % 2;
         break;
       case 'bird':
         x = across(k);
         y = a.y + Math.sin(k * 12) * 1.2;
-        frame = Math.floor(t / 180) % 2;
+        frame = Math.floor(t / 140) % 2;
         break;
       case 'deer': {
         // läuft rein, grast eine Weile, läuft weiter (klein im Hintergrund)
         const p = k < 0.35 ? (k / 0.35) * 0.45 : k < 0.65 ? 0.45 : 0.45 + ((k - 0.65) / 0.35) * 0.55;
         x = across(p);
-        y = GROUND_Y - 4.5;
-        frame = k >= 0.35 && k < 0.65 ? 2 : Math.floor(t / 300) % 2;
+        y = GROUND_Y + 0.5 - 13 * PX;
+        frame = k >= 0.35 && k < 0.65 ? 2 : Math.floor(t / 260) % 2;
         break;
       }
     }
+    const rows = a.dir < 0 ? flipRows(sp.frames[frame]) : sp.frames[frame];
     ctx.save();
     if (inRoom) {
       ctx.beginPath();
       ctx.rect(win!.x, win!.y, win!.w, win!.h);
       ctx.clip();
     }
-    if (scale !== 1) ctx.scale(scale, scale);
-    drawMap(ctx, sp.frames[frame], sp.colors, x, y, flip);
+    drawPixels(ctx, rows, sp.colors, snap(x), snap(y));
     ctx.restore();
+  }
+
+  /** Windböen: ab und zu wehen ein paar Blätter durchs Bild (nur draußen) */
+  private drawLeaves(ctx: CanvasRenderingContext2D, env: SceneKind, t: number, dt: number) {
+    if (env === 'room') {
+      this.leaves = [];
+      return;
+    }
+    if (t >= this.nextGust) {
+      const dir = Math.random() < 0.5 ? 1 : -1;
+      const n = 2 + Math.floor(Math.random() * 4);
+      const pal = LEAF_PALETTES[env];
+      for (let i = 0; i < n; i++)
+        this.leaves.push({
+          x: dir > 0 ? -2 - Math.random() * 12 : W + 2 + Math.random() * 12,
+          y: 8 + Math.random() * 30,
+          vx: dir * (9 + Math.random() * 7),
+          phase: Math.random() * Math.PI * 2,
+          colors: pal[Math.floor(Math.random() * pal.length)],
+        });
+      this.nextGust = t + 8000 + Math.random() * 16000;
+    }
+    this.leaves = this.leaves.filter((l) => l.x > -16 && l.x < W + 16);
+    for (const l of this.leaves) {
+      l.x += l.vx * dt;
+      l.phase += dt * 4;
+      l.y += Math.sin(l.phase) * dt * 4 + dt * 1.2; // trudelt und sinkt langsam
+      const frame = LEAF_FRAMES[Math.floor(l.phase / 1.5) % 2];
+      const rows = Math.floor(l.phase / 3) % 2 ? flipRows(frame) : frame;
+      drawPixels(ctx, rows, l.colors, snap(l.x), snap(l.y));
+    }
   }
 }

@@ -206,6 +206,12 @@ Bei einem Ei werden die Parameter ignoriert.
 - **Fuchs (Wald):** Eine Maus huscht vorbei, ein Igel läuft vorbei, ein **Reh** läuft klein im Hintergrund vorbei und **grast** zwischendurch, oder ein **Vogel** fliegt vorbei.
 - **Igel (Garten):** eine Maus oder ein Vogel.
 - **Katze und Hund (Zimmer):** Ein Vogel fliegt **am Fenster** vorbei.
+- Die kleinen Tiere sind im feinen Pixelraster mit mehr Details gezeichnet:
+  - **Maus:** grau, mit rosa Ohr, Schwanz und trippelnden Füßchen
+  - **Igel:** zweifarbige Stacheln, helles Gesicht, laufende Füße
+  - **Reh:** weißer Spiegel und Bauch; beim Grasen senkt es den Kopf
+  - **Spatz:** schlagende Flügel, gelber Schnabel
+- **Wehende Blätter:** Draußen kommt alle 8–24 Sekunden eine Windböe, und 2–5 Blätter wehen trudelnd und sich drehend durchs Bild. Beim Fuchs im Wald sind sie grün, beim Igel im Garten bunt (orange, rot, gelb).
 
 Die Hauptansicht zeigt das Tier in seinem Zuhause, die Haufen und alle Statussymbole (Schlaf, Krankheit, Rufen). Darunter liegt eine Aktionsleiste mit:
 
