@@ -161,7 +161,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 ### 6.4a Streicheln
 
 - **Tippt oder klickt man auf das Tier**, wird es gestreichelt.
-- Es **bleibt stehen**, schließt genießerisch die Augen, **wiegt sich** leicht hin und her, und **Herzchen** steigen auf.
+- Es **bleibt stehen**, schließt genießerisch die Augen, **wiegt sich** leicht hin und her, und **Herzchen** steigen auf und driften dabei zufällig nach links oder rechts.
 - Unten erscheint eine passende Meldung: Die Katze „schnurrt“, der Hund „wedelt mit dem Schwanz“, der Fuchs „kuschelt sich an deine Hand“, der Igel „legt die Stacheln an“, das Huhn „gluckst zufrieden“.
 - Streicheln gibt **+25 % Laune**, aber höchstens **einmal pro Minute**. Öfter streicheln geht, bringt aber keine zusätzliche Laune.
 - Schlafende Tiere werden nicht geweckt. Es gibt nur ein einzelnes Herzchen und den Hinweis „psst“.
@@ -268,7 +268,6 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - **Pfoten-Poster** statt Landschaftsbild
   - **Leine** am Haken neben dem Fenster
   - **Wassernapf** neben dem Futternapf
-  - **Quietsche-Ente** und **Seilknoten**
   - **Fußmatte** vorne
 - **Huhn (Hof):**
   - zwei **Sonnenblumen** am Zaun
@@ -360,7 +359,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Deko je Tierart:** Sie ist als Daten in der Tierart angelegt (`room`).
 - **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
-- **Hund:** Auf dem Boden liegen ein Tennisball und ein **Kauknochen**, und vor dem Hundebett liegt ein Paar geklauter **Menschensocken** in L-Form, mit Bündchen, Ringeln und abgesetzter Ferse und Spitze: eine rot-weiß geringelte und eine blau-gelbe, zerknüllte.
+- **Hund:** Auf dem Boden liegen ein Tennisball und ein **Kauknochen**, und vor dem Hundebett liegt ein Paar geklauter **Menschensocken**, **flach hingelegt**, mit Bündchen, Ringeln und abgesetzter Ferse und Spitze: eine rot-weiß und eine blau-gelb geringelte.
 - **Zimmer (Katze, Hund):** An der Wand hängt ein **Bild** mit einer kleinen Landschaft. Unter dem Napf liegt ein ovaler **Teppich** mit Randmuster.
 - **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und wackelt leicht. Eine Zimmerpflanze gibt es nicht mehr.
 

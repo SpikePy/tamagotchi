@@ -89,33 +89,16 @@ const POST_COLORS: ColorMap = { o: '#4a3a30', m: '#b9a58a', r: '#d8c08e', R: '#b
 // Kauknochen und Socken (Hund), in voller Rasterauflösung
 const BONE = ['.oo......oo.', 'owwoooooowwo', '.owwwwwwwwo.', '.owwwwwwwso.', 'owwoooooowso', '.oo......oo.'];
 const BONE_COLORS: ColorMap = { o: '#8a7a5e', w: '#f4ecd8', s: '#cbbd9e' };
-// Socken in L-Form: Bündchen (c/C), Ringel (w), Ferse und Spitze (k), Schatten (R)
+// flach liegende Socken: Bündchen (c/C), Ringel (w), Ferse und Spitze (k), Schatten (R)
 const SOCK = [
-  '.ooooo.....',
-  '.ocCco.....',
-  '.occco.....',
-  '.orrRo.....',
-  '.owwwo.....',
-  '.orrRo.....',
-  '.owwwo.....',
-  '.orrRoooo..',
-  '.orrrrrrRo.',
-  '.okrrrrrkko',
-  '.okkrrRkkko',
-  '..oooooooo.',
+  '.oooooooooooooo..',
+  'occcrrwwrrwwrrrko',
+  'oCccrrwwrrwwrrkko',
+  'occcRRwwRRwwkRkko',
+  '.oooooooookkoooo.',
+  '..........oo.....',
 ];
-const SOCK2 = [
-  '.....ooooo.',
-  '.....ocCco.',
-  '.....occco.',
-  '.....orrRo.',
-  '.....owwwo.',
-  '..ooooRrro.',
-  '.oRrrrrrro.',
-  'okkrrrrrkko',
-  'okkkRrrrkko',
-  '.oooooooo..',
-];
+const SOCK2 = SOCK.map((r) => [...r].reverse().join(''));
 const SOCK_RED: ColorMap = { o: '#5a1a22', r: '#d8404a', R: '#a82a36', w: '#f6f2ea', c: '#f6f2ea', C: '#d8d0c4', k: '#f6f2ea' };
 const SOCK_BLUE: ColorMap = { o: '#1a2a5a', r: '#4a6ad8', R: '#3448a8', w: '#f4d24a', c: '#f6f2ea', C: '#d8d0c4', k: '#f4d24a' };
 
@@ -280,7 +263,7 @@ export class Scene {
     const b = this.petBox;
     if (!b) return;
     for (let i = 0; i < (sleeping ? 1 : 3); i++)
-      this.hearts.push({ x: b.x + b.w / 2 - 1 + (i - 1) * 2.5, y: b.y + 1, born: t + i * 220, drift: (Math.random() - 0.5) * 2 });
+      this.hearts.push({ x: b.x + b.w / 2 - 1 + (i - 1) * 2, y: b.y + 1, born: t + i * 220, drift: (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 5) });
   }
 
   private drawHearts(t: number) {
@@ -290,7 +273,8 @@ export class Scene {
       const k = (t - h.born) / 1300;
       if (k < 0) continue;
       this.ctx.globalAlpha = k > 0.7 ? (1 - k) / 0.3 : 1;
-      drawPixels(this.ctx, HEART, { r: '#ff5a7a' }, Math.round((h.x + h.drift * k) * 2) / 2, Math.round((h.y - k * 7) * 2) / 2);
+      const sway = Math.sin(k * 9 + h.drift) * 0.8;
+      drawPixels(this.ctx, HEART, { r: '#ff5a7a' }, Math.round((h.x + h.drift * k + sway) * 2) / 2, Math.round((h.y - k * 7) * 2) / 2);
       this.ctx.globalAlpha = 1;
     }
   }
@@ -749,8 +733,8 @@ export class Scene {
   private drawFrontDecor(sp: SpeciesDef) {
     drawFrontDecorFor(this.ctx, sp.id);
     if (sp.room?.socks) {
-      drawPixels(this.ctx, SOCK, SOCK_RED, 48.5, FLOOR_Y + 0.5);
-      drawPixels(this.ctx, SOCK2, SOCK_BLUE, 53.5, FLOOR_Y + 1.5);
+      drawPixels(this.ctx, SOCK, SOCK_RED, 46, FLOOR_Y + 3);
+      drawPixels(this.ctx, SOCK2, SOCK_BLUE, 54, FLOOR_Y + 4.5);
     }
   }
 

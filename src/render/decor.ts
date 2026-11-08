@@ -103,10 +103,6 @@ const MOUSE_PORTRAIT = [
 const MOUSE_PORTRAIT_C: ColorMap = { o: '#4a4248', g: '#9a929a', p: '#f2a6b2', e: '#111111', n: '#e07a8a' };
 const TOYMOUSE = ['...pp..', '.ooggo.', 'oggggen', 't.oooo.'];
 const TOYMOUSE_C: ColorMap = { o: '#4a4248', g: '#9a929a', p: '#f2a6b2', e: '#111111', n: '#e07a8a', t: '#c89aa0' };
-const DUCK = ['..ooo...', '.oyyyo..', '.oyeyoOO', 'ooyyyyoo', 'oyyyyyyo', '.oooooo.'];
-const DUCK_C: ColorMap = { o: '#7a5a10', y: '#f6d23c', e: '#111111', O: '#f08a20' };
-const ROPE = ['ooo......ooo', 'oro.oooo.oro', 'orroRrRrorro', 'oro.oooo.oro', 'ooo......ooo'];
-const ROPE_C: ColorMap = { o: '#6a3a2a', r: '#e85a4a', R: '#f4f0e6' };
 const WATERBOWL = ['.ooooooo.', 'olllllllo', '.obbbbbo.', '..ooooo..'];
 const WATER_C: ColorMap = { o: '#5a6a7a', l: '#7ac0f0', b: '#9aa8b8' };
 const MAT = ['oooooooooooooooooooooo', 'obbbbbbbbbbbbbbbbbbbbo', 'obyybyybyybyybyybyybbo', 'obbbbbbbbbbbbbbbbbbbbo', 'oooooooooooooooooooooo'];
@@ -223,8 +219,6 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       rect(ctx, '#5a5a5a', 34, 6, 1, 1);
       for (let i = 0; i < 18; i++) rect(ctx, '#d8343a', 34.5 + (i > 12 ? (i - 12) * 0.25 : 0), 7 + i * 0.5, P, P);
       put(ctx, ['.ooo.', 'o...o', 'o...o', '.ooo.'], { o: '#d8343a' }, 33.5, 15.5);
-      put(ctx, DUCK, DUCK_C, 31, 42);
-      put(ctx, ROPE, ROPE_C, 10, 44.5);
       put(ctx, WATERBOWL, WATER_C, 24.5, 42.5);
       break;
     case 'chicken': {
