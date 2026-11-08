@@ -2,6 +2,8 @@
 
 Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die sich auf Android installieren lässt. Man zieht einen **Fuchs** oder einen **Igel** vom Ei bis zum Erwachsenen groß: füttern, schlafen legen, sauber machen, spielen, erziehen und gesund pflegen. Alles läuft in Echtzeit und geht auch weiter, wenn die App zu ist.
 
+**▶ Jetzt spielen: https://spikepy.github.io/tamagotchi/**
+
 <p align="center">
   <img src="docs/screenshots/fox-day.png" width="260" alt="Ein erwachsener Prachtfuchs in seinem Bau am Tag">
   <img src="docs/screenshots/hedgehog-sick.png" width="260" alt="Ein krankes Igelbaby ruft, zwei Haufen liegen herum">
@@ -49,13 +51,16 @@ npm run screenshots  # README-Screenshots neu erzeugen (braucht laufendes "npm r
 
 ## Auf Android installieren
 
-1. Den Inhalt von `dist/` über **HTTPS** ausliefern, zum Beispiel mit GitHub Pages, Netlify, Cloudflare Pages oder einem eigenen Server. Ohne HTTPS bietet Chrome die Installation nicht an; die einzige Ausnahme ist `localhost`.
-2. Die Seite in Chrome auf Android öffnen.
-3. Im Menü **„App installieren“** bzw. **„Zum Startbildschirm hinzufügen“** wählen. Alternativ gibt es in der App unter **⚙️ Mehr** einen Knopf **„Als App installieren“**.
+1. https://spikepy.github.io/tamagotchi/ in Chrome auf Android öffnen.
+2. Im Menü **„App installieren“** bzw. **„Zum Startbildschirm hinzufügen“** wählen. Alternativ gibt es in der App unter **⚙️ Mehr** einen Knopf **„Als App installieren“**.
 
 Danach startet die App mit eigenem Icon im Vollbild und funktioniert auch offline.
 
 > Hinweis: Benachrichtigungen kommen nur, solange die App im Hintergrund noch läuft. Echte Push-Nachrichten bei komplett geschlossener App bräuchten einen Server.
+
+## Deployment
+
+Bei jedem Push auf `main` testet und baut der GitHub-Actions-Workflow `.github/workflows/pages.yml` die App und veröffentlicht sie auf GitHub Pages.
 
 ## Aufbau
 

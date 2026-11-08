@@ -16,6 +16,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 ## 2a. Plattform
 
 - Die App ist eine **Web-App** mit dem Namen **„Waldling“** (Arbeitstitel).
+- Die App ist öffentlich über **GitHub Pages** erreichbar: https://spikepy.github.io/tamagotchi/ . Bei jedem Push auf `main` wird sie automatisch neu gebaut und veröffentlicht. Auf https://spikepy.github.io/ gibt es einen Link dorthin.
 - Der Spielstand wird **lokal im Browser** gespeichert (localStorage). Es gibt keinen Server und kein Konto.
 - Die App ist eine **PWA**: Unter Android lässt sie sich als eigenständige App installieren, mit eigenem Icon und im Vollbild ohne Browserleiste. Sie funktioniert auch offline.
 - Benachrichtigungen kommen, solange die App im Hintergrund noch läuft. Ist sie komplett beendet, gibt es keine Benachrichtigungen, weil dafür ein Push-Server nötig wäre.
