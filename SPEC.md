@@ -183,7 +183,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
 **Umgebung je Tierart:**
 - **Katze:** wohnt drinnen im Zimmer (siehe unten).
-- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**, einem dicken Baum mit großem Loch unten im Stamm. Gefüttert wird auf einem flachen Stein.
+- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**: Der Baum hat einen schlanken Stamm mit Rindenstruktur, Licht und Schatten, einen Aststummel, Wurzeln und eine schattierte Krone. Unten im Stamm ist eine bogenförmige Höhle mit Laubpolster. Gefüttert wird auf einem flachen Stein.
 - **Igel:** lebt draußen **im Garten**: Hecke, Holzzaun, Busch mit Beeren, Blumen, Rasen mit Herbstlaub. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 

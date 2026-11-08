@@ -145,33 +145,74 @@ function inEllipse(x: number, y: number, rx: number, ry: number, cy = NEST_BASE)
 }
 
 /** halbe Stammbreite je Zeile, unten mit Wurzeln breiter */
-const trunkHalf = (y: number) => 11 + (y > 35 ? y - 35 : 0);
-const HOLE_RX = 10;
-const HOLE_RY = 18;
+const trunkHalf = (y: number) => (y < 37 ? 7 : 7 + Math.round((y - 36) * 1.5));
+const TRUNK_TOP = 15;
+// Höhle: Torbogen mit rundem Dach
+const HOLE_HALF = 6;
+const HOLE_TOP = 25;
+const inHole = (x: number, y: number, grow = 0) => {
+  const r = HOLE_HALF + grow;
+  const archY = HOLE_TOP - grow + r; // Mittelpunkt des runden Dachs
+  if (y > NEST_BASE) return false;
+  if (y >= archY) return Math.abs(x - NEST_CX) <= r;
+  return (x - NEST_CX) ** 2 + (y - archY) ** 2 <= r * r;
+};
+
+function drawCrown(ctx: CanvasRenderingContext2D) {
+  const blobs: [number, number, number, number][] = [
+    [49, 9, 10, 6], [41, 12, 6, 4], [57, 12, 6, 4], [45, 5, 6, 4], [54, 5, 6, 4],
+  ];
+  // erst dunkler Umriss (1 px größer), dann gefüllt mit Licht von links oben
+  for (const pass of [0, 1])
+    for (const [bx, by, rx, ry] of blobs)
+      for (let y = by - ry - 1; y <= by + ry + 1; y++)
+        for (let x = bx - rx - 1; x <= bx + rx + 1; x++) {
+          const g = pass === 0 ? 1 : 0;
+          const d = ((x - bx) / (rx + g)) ** 2 + ((y - by) / (ry + g)) ** 2;
+          if (d > 1) continue;
+          if (pass === 0) {
+            px(ctx, '#24461f', x, y);
+            continue;
+          }
+          const light = (x - bx) / rx + (y - by) / ry;
+          const n = hash(x + 31, y) % 9;
+          let c = '#43783a';
+          if (light < -0.6) c = n < 3 ? '#7cc45a' : '#5fa84a';
+          else if (light > 0.7) c = '#2f5a26';
+          else if (n === 0) c = '#5fa84a';
+          else if (n === 1) c = '#36652f';
+          px(ctx, c, x, y);
+        }
+}
 
 export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
   if (kind === 'forest') {
-    // dicker Baumstamm
-    for (let y = 6; y <= NEST_BASE; y++) {
+    // Stamm mit Licht links, Schatten rechts und Rindenrillen
+    for (let y = TRUNK_TOP; y <= NEST_BASE; y++) {
       const hw = trunkHalf(y);
       for (let x = NEST_CX - hw; x <= NEST_CX + hw; x++) {
-        const edge = x === NEST_CX - hw || x === NEST_CX + hw;
-        const n = hash(x, y);
-        let c = edge ? '#3e2814' : (x + (n % 3 === 0 ? 1 : 0)) % 4 === 0 ? '#5e3d22' : '#7a5230';
-        if (inEllipse(x, y, HOLE_RX + 1, HOLE_RY + 1)) c = '#2e1c0e'; // Rand der Höhle
-        if (inEllipse(x, y, HOLE_RX, HOLE_RY)) c = y < NEST_BASE - 12 ? '#4e3220' : '#5e3e26'; // Innen
+        const rel = x - (NEST_CX - hw);
+        let c = '#7a5230';
+        if (rel <= 1) c = '#946640';
+        else if (x >= NEST_CX + hw - 2) c = '#5e3d22';
+        else if ((x - NEST_CX + 20) % 3 === 0 && hash(x, y) % 5 !== 0) c = '#64422a';
+        if (x === NEST_CX - hw || x === NEST_CX + hw) c = '#3e2814';
         px(ctx, c, x, y);
       }
     }
-    // Baumkrone
-    const blobs: [number, number, number, number][] = [[49, 3, 17, 8], [37, 7, 9, 5], [61, 6, 9, 6], [49, 9, 12, 4]];
-    for (const [bx, by, rx, ry] of blobs)
-      for (let y = by - ry; y <= by + ry; y++)
-        for (let x = bx - rx; x <= bx + rx; x++) {
-          if (((x - bx) / rx) ** 2 + ((y - by) / ry) ** 2 > 1) continue;
-          const n = hash(x + 31, y);
-          px(ctx, n % 4 === 0 ? '#5a9a44' : n % 7 === 0 ? '#2f5a26' : '#43783a', x, y);
-        }
+    // Aststummel links
+    px(ctx, '#3e2814', NEST_CX - 11, 21, 5, 3);
+    px(ctx, '#7a5230', NEST_CX - 10, 22, 4, 1);
+    // Höhle: dunkler Rand, warmes Inneres, Laubpolster am Boden
+    for (let y = HOLE_TOP - 1; y <= NEST_BASE; y++)
+      for (let x = NEST_CX - HOLE_HALF - 1; x <= NEST_CX + HOLE_HALF + 1; x++) {
+        if (!inHole(x, y, 1)) continue;
+        let c = '#2e1c0e';
+        if (inHole(x, y)) c = y < HOLE_TOP + 5 ? '#45291a' : '#583922';
+        if (inHole(x, y) && y >= NEST_BASE - 2) c = ['#a8743e', '#c48a3e', '#8a5a2b'][hash(x, y) % 3];
+        px(ctx, c, x, y);
+      }
+    drawCrown(ctx);
   } else {
     // Laubhaufen mit Mulde, innen etwas heller
     for (let y = NEST_BASE - 11; y <= NEST_BASE; y++)
@@ -187,13 +228,13 @@ export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
 
 export function drawNestFront(ctx: CanvasRenderingContext2D, kind: SceneKind) {
   if (kind === 'forest') {
-    // Wurzeln vor dem Höhleneingang (nur die untersten Zeilen)
-    for (let y = NEST_BASE - 1; y <= NEST_BASE; y++) {
-      const hw = trunkHalf(y);
-      for (let x = NEST_CX - hw; x <= NEST_CX + hw; x++) {
-        const edge = x === NEST_CX - hw || x === NEST_CX + hw || y === NEST_BASE - 1;
-        px(ctx, edge ? '#3e2814' : hash(x, y) % 3 === 0 ? '#5e3d22' : '#7a5230', x, y);
-      }
+    // Wurzeln vor dem Höhleneingang (nur die unterste Zeile)
+    const y = NEST_BASE;
+    const hw = trunkHalf(y);
+    for (let x = NEST_CX - hw; x <= NEST_CX + hw; x++) {
+      const inner = Math.abs(x - NEST_CX) <= HOLE_HALF - 2;
+      if (inner) continue; // in der Mitte liegt das Laubpolster frei
+      px(ctx, Math.abs(x - NEST_CX) >= hw - 1 ? '#3e2814' : '#7a5230', x, y);
     }
   } else {
     // vorderer Laubrand, verdeckt nur die Pfoten
