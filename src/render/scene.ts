@@ -477,7 +477,7 @@ export class Scene {
     // Stehlampe brennt abends und nachts, solange das Licht an ist
     const hour = new Date(s.clock).getHours();
     if (this.env === 'room' && p.lightOn && (hour >= 18 || hour < 7)) drawLampLight(ctx);
-    if (!p.lightOn) this.overlay(0.55); // dunkel, aber das Tier bleibt erkennbar
+    // kein Abdunkeln bei „Licht aus“ – das Bild bleibt hell, auch wenn das Tier schläft
 
     // Zzz (über dem Dunkel, damit man es sieht)
     if (p.stage !== 'egg' && p.asleep) {
