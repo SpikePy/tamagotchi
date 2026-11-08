@@ -381,16 +381,15 @@ export class Scene {
     const ctx = this.ctx;
     const PX = 1 / RES;
     if (p.stage !== 'egg') {
-      const food = hearts(p.hunger);
       const mood = hearts(p.happy);
       // links: Sättigung
       hudPanel(ctx, 0.5, 0.5, 40, 11);
       drawPixels(ctx, HUD_MEAT, HUD_COLORS, 0.5 + 2 * PX, 0.5 + PX);
-      this.drawBar(0.5 + 13 * PX, 0.5 + 2 * PX, food, ['#ffd08a', '#f29a2e', '#b8601a'], t);
+      this.drawBar(0.5 + 13 * PX, 0.5 + 2 * PX, p.hunger / RULES.hearts, ['#ffd08a', '#f29a2e', '#b8601a'], t);
       // rechts: Laune (Gesicht passend zur Stimmung)
       const rx = SCREEN_W - 0.5 - 40 * PX;
       hudPanel(ctx, rx, 0.5, 40, 11);
-      this.drawBar(rx + 2 * PX, 0.5 + 2 * PX, mood, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
+      this.drawBar(rx + 2 * PX, 0.5 + 2 * PX, p.happy / RULES.hearts, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
       drawPixels(ctx, mood >= 3 ? HUD_HAPPY : mood === 2 ? HUD_OK : HUD_SAD, HUD_COLORS, rx + 29 * PX, 0.5 + PX);
     }
     // Mitte: krank / ruft
@@ -409,30 +408,32 @@ export class Scene {
     }
   }
 
-  /** Leiste mit 4 Segmenten (je 5×5 Bildpixel), Glanz oben, Schatten unten; rot blinkend bei 0–1 */
-  private drawBar(x: number, y: number, filled: number, shades: [string, string, string], t: number) {
+  /** durchgehende Leiste (0..1), Glanz oben, Schatten unten; rot blinkend bei höchstens 25 % */
+  private drawBar(x: number, y: number, frac: number, shades: [string, string, string], t: number) {
     const ctx = this.ctx;
     const PX = 1 / RES;
-    const low = filled <= 1 && Math.floor(t / 400) % 2 === 0;
+    const INNER = 23; // Bildpixel
+    const f = Math.max(0, Math.min(1, frac));
+    const low = f <= 0.25 && Math.floor(t / 400) % 2 === 0;
     const [hi, mid, lo] = low ? ['#ff9aa6', '#e2384d', '#9a1c2c'] : shades;
     ctx.fillStyle = '#1a120c';
-    ctx.fillRect(x, y, 25 * PX, 7 * PX);
-    for (let i = 0; i < 4; i++) {
-      const sx = x + PX + i * 6 * PX;
-      const sy = y + PX;
-      if (i < filled) {
-        ctx.fillStyle = mid;
-        ctx.fillRect(sx, sy, 5 * PX, 5 * PX);
+    ctx.fillRect(x, y, (INNER + 2) * PX, 7 * PX);
+    ctx.fillStyle = '#3e3229';
+    ctx.fillRect(x + PX, y + PX, INNER * PX, 5 * PX);
+    ctx.fillStyle = '#2c231c';
+    ctx.fillRect(x + PX, y + PX, INNER * PX, PX);
+    const w = Math.round(f * INNER);
+    if (w > 0) {
+      ctx.fillStyle = mid;
+      ctx.fillRect(x + PX, y + PX, w * PX, 5 * PX);
+      ctx.fillStyle = hi;
+      ctx.fillRect(x + PX, y + PX, w * PX, PX);
+      ctx.fillStyle = lo;
+      ctx.fillRect(x + PX, y + 5 * PX, w * PX, PX);
+      // helle Kante am Ende der Füllung
+      if (w < INNER) {
         ctx.fillStyle = hi;
-        ctx.fillRect(sx, sy, 5 * PX, PX);
-        ctx.fillRect(sx, sy, PX, 3 * PX);
-        ctx.fillStyle = lo;
-        ctx.fillRect(sx, sy + 4 * PX, 5 * PX, PX);
-      } else {
-        ctx.fillStyle = '#3e3229';
-        ctx.fillRect(sx, sy, 5 * PX, 5 * PX);
-        ctx.fillStyle = '#2c231c';
-        ctx.fillRect(sx, sy, 5 * PX, PX);
+        ctx.fillRect(x + w * PX, y + 2 * PX, PX, 3 * PX);
       }
     }
   }

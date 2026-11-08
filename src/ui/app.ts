@@ -18,7 +18,7 @@ import {
 } from '../engine/actions';
 import { DAY, MIN, RULES } from '../engine/config';
 import { advance, ageDays, isOverweight, SimEvent, sleptLast24h } from '../engine/sim';
-import { CallType, GameState, MAX_PETS, Pet, activePet, hearts } from '../engine/state';
+import { CallType, GameState, MAX_PETS, Pet, activePet } from '../engine/state';
 import { notify, requestNotifications } from '../notify';
 import { drawMap, eggColors, eggMap, hiResCanvas, petSprite } from '../render/pixels';
 import { Scene } from '../render/scene';
@@ -517,8 +517,8 @@ export class App {
         rows.push(['Nächste Phase in', duration(left)]);
       }
       rows.push(
-        ['Sättigung', segments(hearts(p.hunger))],
-        ['Laune', segments(hearts(p.happy))],
+        ['Sättigung', meter(p.hunger / 4)],
+        ['Laune', meter(p.happy / 4)],
         ['Müdigkeit', `${Math.round(p.tiredness)} %`],
         ['Schlaf (24 h)', duration(sleptLast24h(p, this.s.clock) * MIN)],
         ['Schlaf bis ausgeschlafen', duration((RULES.sleepNeedMin - p.sleptInCycleMin) * MIN)],
@@ -603,8 +603,10 @@ export class App {
   }
 }
 
-function segments(n: number) {
-  return '▰'.repeat(n) + '▱'.repeat(4 - n) + ` (${n}/4)`;
+function meter(frac: number) {
+  const f = Math.max(0, Math.min(1, frac));
+  const n = Math.round(f * 10);
+  return '▰'.repeat(n) + '▱'.repeat(10 - n) + ` ${Math.round(f * 100)} %`;
 }
 
 function btn(label: string, fn: () => void, cls = '') {

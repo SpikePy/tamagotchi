@@ -26,8 +26,8 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 
 | Wert | Bereich | Beschreibung |
 |---|---|---|
-| Sättigung (Hunger) | Leiste mit 4 Segmenten | Sinkt mit der Zeit. Mahlzeiten füllen sie wieder auf. |
-| Laune | Leiste mit 4 Segmenten | Sinkt mit der Zeit. Spielen und Snacks heben sie. (ergänzt) |
+| Sättigung (Hunger) | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit. Mahlzeiten füllen sie wieder auf. |
+| Laune | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit. Spielen und Snacks heben sie. (ergänzt) |
 | Müdigkeit | 0–100 % | Steigt, solange es wach ist, und sinkt im Schlaf. |
 | Gewicht | in g/kg | Steigt durch Essen und sinkt durch Spielen. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
 | Alter | in Tagen | Zählt ab dem Schlüpfen. |
@@ -38,9 +38,10 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 **HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild**. Alles ist im feinen Pixelraster gezeichnet und sitzt in dunklen Pixel-Rahmen mit abgeschrägten Ecken und heller Oberkante.
-- **Links oben: Sättigung.** Ein Fleisch-Knochen-Symbol und eine Leiste mit **4 Segmenten** (orange).
-- **Rechts oben: Laune.** Eine Leiste mit 4 Segmenten (gelb) und ein **Smiley, das zur Stimmung passt**: lachend ab 3 Segmenten, neutral bei 2, traurig bei 0–1.
-- Die Segmente haben Glanz oben und Schatten unten. Ist nur noch ein Segment voll, wird die Leiste **rot und blinkt**.
+- **Links oben: Sättigung.** Ein Fleisch-Knochen-Symbol und eine **durchgehende Leiste** (orange), die stufenlos mit dem Wert sinkt und steigt.
+- **Rechts oben: Laune.** Eine durchgehende Leiste (gelb) und ein **Smiley, das zur Stimmung passt**: lachend, neutral oder traurig.
+- Die Leisten haben Glanz oben, Schatten unten und eine helle Kante am Ende der Füllung. Bei **höchstens 25 %** werden sie **rot und blinken**.
+- Im Statusbildschirm stehen Sättigung und Laune als Balken mit Prozentangabe.
 - **Oben in der Mitte** stehen die Warnsymbole: ein Totenkopf bei Krankheit und ein blinkendes Ausrufezeichen beim Rufen.
 - Das HUD bleibt auch nachts und bei Licht aus hell.
 
@@ -103,12 +104,12 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.1 Füttern
 
-- **Mahlzeit:** +1 Segment Sättigung, +1 g Gewicht.
-- **Snack** (ergänzt): +1 Segment Laune, +2 g Gewicht. Zu viele Snacks (Vorschlag: mehr als 3 pro Tag) machen das Tier übergewichtig, und es wird eher krank.
+- **Mahlzeit:** +25 % Sättigung, +1 g Gewicht.
+- **Snack** (ergänzt): +25 % Laune, +2 g Gewicht. Zu viele Snacks (Vorschlag: mehr als 3 pro Tag) machen das Tier übergewichtig, und es wird eher krank.
 - Das Tier braucht **3 Mahlzeiten pro Tag**. Der Hunger sinkt gleichmäßig über den Tag.
-- Ist die Sättigung voll (4 Segmente), lehnt das Tier weiteres Essen ab.
+- Ist die Sättigung voll (100 %), lehnt das Tier weiteres Essen ab.
 - **Steht der Hunger zu lange auf 0** (Vorschlag: 2 h), **wird das Tier krank.**
-- Nach dem **Ausschlafen** ist das Tier hungrig (Hunger auf maximal 1 Segment). Wird es zu früh geweckt, bleibt der Hunger unverändert.
+- Nach dem **Ausschlafen** ist das Tier hungrig (Hunger auf maximal 25 %). Wird es zu früh geweckt, bleibt der Hunger unverändert.
 
 ### 6.2 Schlafen
 
@@ -120,7 +121,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - **Müdigkeit beim Schlüpfen:** Sie richtet sich nach der Uhrzeit, so als wäre das Tier um 7 Uhr ausgeschlafen aufgewacht. Die Müdigkeit steigt im Wachzustand in 16 Stunden von 0 auf 100 %. Schlüpft es zum Beispiel um 18 Uhr, startet es mit etwa 69 % und schläft gegen 23 Uhr ein. Schlüpft es nachts zwischen 23 und 7 Uhr, ist es sofort müde.
 - Ist die Müdigkeit bei 100 %, schläft es von selbst ein. Das Licht bleibt dabei an, bis man es ausmacht.
 - **Sobald es insgesamt 8 Stunden geschlafen hat, wacht es automatisch auf.** Nickerchen zählen mit. Dieses Aufwachen gilt als „morgens“, danach beginnt der Zähler wieder bei 0.
-- Man kann es auch vorher wecken. Dann hat es **richtig schlechte Laune (−2 Segmente)**, aber nicht mehr Hunger als vorher. Was es bis dahin geschlafen hat, zählt für die 8 Stunden mit.
+- Man kann es auch vorher wecken. Dann hat es **richtig schlechte Laune (−50 %)**, aber nicht mehr Hunger als vorher. Was es bis dahin geschlafen hat, zählt für die 8 Stunden mit.
 - **Nach dem Ausschlafen hat es Hunger**, siehe 6.1.
 - Bekommt es zu wenig Schlaf (Vorschlag: weniger als 6 h in 24 h), sinkt die Laune stärker. Dauert das länger an, wird es krank (ergänzt).
 
@@ -153,7 +154,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 - Ist das Tier krank, sieht man das an einem Symbol (zum Beispiel einem Totenkopf oder einem Thermometer), und es bewegt sich träge.
 - Um es wieder gesund zu machen, **muss man ihm Medizin geben**. Vorschlag: Je nach Schwere sind 1–2 Dosen nötig (ergänzt).
-- **Unnötige Medizin:** Gibt man einem gesunden Tier Medizin, zählt das als **Pflegefehler**, und die Laune sinkt um 1 Segment.
+- **Unnötige Medizin:** Gibt man einem gesunden Tier Medizin, zählt das als **Pflegefehler**, und die Laune sinkt um 25 %.
 - Ein krankes Tier hat keine Lust zu spielen und isst weniger (ergänzt).
 
 ### 6.6 Disziplin (ergänzt)
@@ -199,8 +200,8 @@ Nach dem Anwenden verschwinden die Parameter aus der Adresse. Unten erscheint ei
 |---|---|---|
 | `pet` | Name, Nummer (ab 1) oder `alle` | Welches Tier gemeint ist. Ohne diesen Parameter gilt es für das angezeigte Tier. |
 | `max` | 1 | Alles perfekt: satt, gute Laune, gesund, sauber, ausgeschlafen, 100 % Disziplin, Normalgewicht |
-| `happy` | 0–4 | Laune (Segmente) |
-| `hunger` | 0–4 | Sättigung (Segmente) |
+| `happy` | 0–4 | Laune (0–4 entspricht 0–100 %) |
+| `hunger` | 0–4 | Sättigung (0–4 entspricht 0–100 %) |
 | `sick` | 1 / 0 | krank machen bzw. heilen |
 | `tired` | 0–100 | Müdigkeit in % |
 | `sleep` | 1 / 0 | schlafen schicken (Licht aus) bzw. aufwecken (gilt als ausgeschlafen) |
