@@ -92,3 +92,43 @@ export function drawLampLight(ctx: CanvasRenderingContext2D) {
   ctx.globalAlpha = 1;
   drawPixels(ctx, ['...oooo...', '..oSSSSo..', '.oSSLSSSo.', 'oSSLLSSSSo', 'oooooooooo'], { o: '#9a7a4a', S: '#fff2c0', L: '#ffffff' }, x - 2.25, shadeY);
 }
+
+/** wie dunkel es ist: 0 = Tag, 1 = Nacht, dazwischen in der Dämmerung */
+export function nightness(sky: Sky): number {
+  if (!sky.day) return sky.edge < 0.05 ? 0.6 + (sky.edge / 0.05) * 0.4 : 1;
+  return sky.edge < 0.05 ? ((0.05 - sky.edge) / 0.05) * 0.5 : 0;
+}
+
+/** bläuliche Abdunklung einer Ebene (Stärke 0..1) */
+export function nightTint(ctx: CanvasRenderingContext2D, amount: number) {
+  if (amount <= 0) return;
+  ctx.fillStyle = `rgba(14,18,52,${amount.toFixed(3)})`;
+  ctx.fillRect(0, 0, 64, 48);
+}
+
+let shadeCanvas: HTMLCanvasElement | null = null;
+/**
+ * Nacht im Zimmer: dunkel, aber um Lichtquellen herum (Lampe, Mondlicht am Fenster) heller –
+ * Lichtkreise in Stufen, damit es zum Pixel-Look passt.
+ */
+export function roomNight(ctx: CanvasRenderingContext2D, amount: number, lights: { x: number; y: number; r: number }[]) {
+  if (amount <= 0) return;
+  const RES = 2;
+  shadeCanvas ??= Object.assign(document.createElement('canvas'), { width: 64 * RES, height: 48 * RES });
+  const c = shadeCanvas.getContext('2d')!;
+  c.setTransform(RES, 0, 0, RES, 0, 0);
+  c.globalCompositeOperation = 'source-over';
+  c.clearRect(0, 0, 64, 48);
+  c.fillStyle = `rgba(12,14,40,${amount.toFixed(3)})`;
+  c.fillRect(0, 0, 64, 48);
+  // Lichtkreise ausstanzen (außen schwach, innen stark)
+  c.globalCompositeOperation = 'destination-out';
+  for (const l of lights)
+    for (const [k, a] of [[1, 0.35], [0.7, 0.35], [0.45, 0.5]] as [number, number][]) {
+      c.globalAlpha = a;
+      pixelCircle(c, l.x, l.y, l.r * k, '#000');
+    }
+  c.globalAlpha = 1;
+  c.globalCompositeOperation = 'source-over';
+  ctx.drawImage(shadeCanvas, 0, 0, 64, 48);
+}

@@ -7,7 +7,7 @@ import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds, drawPrecip, drawPuddles, drawWindowDrops, weatherAt } from './weather';
-import { Ambient, drawLamp, drawLampLight, eveningLight } from './ambient';
+import { Ambient, LAMP, drawLamp, drawLampLight, eveningLight, nightTint, nightness, roomNight } from './ambient';
 import { remapContext, seasonOf, seasonTransform, snowCaps, snowGround } from './season';
 import { NEST_BOX, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
 
@@ -424,13 +424,15 @@ export class Scene {
       }
       this.clouds.draw(ctx, s.clock, t, { x: 0, y: 0, w: SCREEN_W, h: GROUND_Y }, !this.bgDay); // Wolken
       this.critters.draw(ctx, 'sky', t); // Vögel
+      const night = nightness(skyState(s.clock));
       ctx.drawImage(this.bgFar, 0, 0, SCREEN_W, SCREEN_H); // Berge, Hügel / Hecke, Zaun
       if (sp.id === 'fox') drawDecorAnim(ctx, 'fox', t); // Glitzern auf dem Bach
       this.critters.draw(ctx, 'background', t); // Reh
+      nightTint(ctx, night * 0.38); // Ferne nachts am dunkelsten
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H); // Wiese, Bäume, Busch, Schlafplatz
       if (weatherAt(s.clock).precip === 'rain') drawPuddles(ctx, t);
       this.critters.draw(ctx, 'air', t); // wehende Blätter
-      if (!this.bgDay) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
+      nightTint(ctx, night * 0.26); // Nahes etwas weniger dunkel
       if (season !== 'winter') this.ambient.draw(ctx, this.env, skyState(s.clock), t, WIN); // Schmetterlinge / Glühwürmchen
     }
     this.drawDecor(sp, t, 'anim');
@@ -468,6 +470,15 @@ export class Scene {
     this.drawBowl(t);
 
     const skyNow = skyState(s.clock);
+    // Nacht: draußen das Tier nur leicht abdunkeln, drinnen mit Lichtkreisen um Lampe und Fenster
+    const nightNow = nightness(skyNow);
+    const hourNow = new Date(s.clock).getHours();
+    const lampOn = this.env === 'room' && p.lightOn && (hourNow >= 18 || hourNow < 7);
+    if (this.env === 'room') {
+      const lights = [{ x: WIN.x + WIN.w / 2, y: WIN.y + WIN.h, r: 12 }];
+      if (lampOn) lights.push({ x: LAMP.x, y: LAMP.shadeY + 6, r: 22 });
+      roomNight(ctx, nightNow * 0.5, lights);
+    } else nightTint(ctx, nightNow * 0.12);
     if (this.env !== 'room') {
       const wx = weatherAt(s.clock);
       if (wx.precip === 'rain') this.overlay(0.12); // trüber bei Regen
@@ -475,8 +486,7 @@ export class Scene {
     }
     eveningLight(ctx, skyNow);
     // Stehlampe brennt abends und nachts, solange das Licht an ist
-    const hour = new Date(s.clock).getHours();
-    if (this.env === 'room' && p.lightOn && (hour >= 18 || hour < 7)) drawLampLight(ctx);
+    if (lampOn) drawLampLight(ctx);
     // kein Abdunkeln bei „Licht aus“ – das Bild bleibt hell, auch wenn das Tier schläft
 
     // Zzz (über dem Dunkel, damit man es sieht)

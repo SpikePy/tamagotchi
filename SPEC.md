@@ -313,6 +313,11 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - zugefrorener Bach, Schnee-Böen statt Blätter
   - keine Sonnenblumen, keine Schmetterlinge und Glühwürmchen
 
+**Nacht:** Nachts wird nicht einfach ein Filter über alles gelegt, sondern nach Tiefe und Licht abgedunkelt:
+- **Draußen:** Die ferne Landschaft (Berge, Hügel, Hecke) ist am dunkelsten und bläulich, die nahe Landschaft etwas heller, das Tier selbst nur leicht abgedunkelt.
+- **Drinnen:** Das Zimmer wird dunkler. Um die brennende **Stehlampe** bleibt ein warmer, heller Lichtkreis, vom Fenster fällt **Mondlicht** herein (Lichtkreise in Stufen, passend zum Pixel-Look).
+- In der Dämmerung geht es sanft über. Glühwürmchen, Lampe und HUD bleiben hell.
+
 **Wolken und Wetter:** Am Himmel draußen und im Fenster drinnen **ziehen Wolken vorbei**.
 - Das Wetter wechselt etwa **alle 45 Minuten** zufällig, aber in einem moderaten Rahmen: **1 bis 5 Wolken** und **Wind** von schwach bis mäßig, meist von West nach Ost, manchmal andersherum.
 - Wolken kommen am Rand herein und ziehen hinaus. Größere Wolken sind etwas schneller, Wind und Wolkenzahl ändern sich sanft.
