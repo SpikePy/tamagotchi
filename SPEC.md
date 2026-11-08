@@ -187,11 +187,15 @@ Bei einem Ei werden die Parameter ignoriert.
 
 **Größe:** Das Gerät nutzt den Bildschirm aus: Die Breite richtet sich nach der Bildschirmhöhe (bis 1000 px), und Schrift, Knöpfe und Tier-Leiste wachsen mit. Das Gerät ist nur **so hoch wie nötig** und wird nicht auf die Bildschirmhöhe gestreckt. Am Handy nutzt es die volle Breite.
 
-**Grafikstil:** Pixel-Look, aber **nicht grob pixelig**:
-- Das Spielbild wird in 8-facher Auflösung gezeichnet (512 × 384).
-- Alle Sprites werden automatisch **geglättet** (schräge Kanten werden rund) und **schattiert** (Licht oben links, Schatten unten rechts).
-- **Detaillierte Hintergründe:** Himmel mit Farbverlauf, ziehenden Wolken, Sonnenschein und Sternen; Tapete mit Muster, Fußleiste, Dielenboden; Glanz auf der Fensterscheibe; feine Grashalme; Holzmaserung am Zaun.
-- Die Tiere bewegen sich in feinen Schritten.
+**Grafikstil:** Echter, scharfer **Pixel-Look**, aber mit **doppelt so vielen Pixeln** wie das ursprüngliche 64 × 48-Raster. Das Spielbild hat **128 × 96 Pixel** und wird ohne Weichzeichnen hochskaliert.
+- Die Sprites werden einmal mit Scale2x verfeinert, dabei werden Treppen an Schrägen abgerundet. Die Umrisse bleiben **1 Pixel dünn**, dazu kommt eine 1-Pixel-Schattierung (Licht oben links, Schatten unten rechts).
+- Alle Hintergrund-Details liegen auf demselben Pixelraster:
+  - Himmel und Wand mit **Farbstufen** statt weichem Verlauf
+  - Wolken und Sonnenschein aus Pixeln
+  - Tapetenmuster, Fußleiste, Dielen
+  - Fensterspiegelung als Pixel-Diagonalen
+  - Grashalme, Zaunmaserung
+- Die Tiere bewegen sich in halben Schritten.
 
 **Tiere im Hintergrund:** Ab und zu (etwa alle 15–50 Sekunden, nur tagsüber) ist etwas los:
 - **Fuchs (Wald):** Eine Maus huscht vorbei, ein Igel läuft vorbei, ein **Reh** läuft klein im Hintergrund vorbei und **grast** zwischendurch, oder ein **Vogel** fliegt vorbei.

@@ -27,11 +27,11 @@ const SPRITES: Record<Kind, { frames: string[][]; colors: ColorMap }> = {
     colors: { c: '#6b4a2f', b: '#e8c8a0', n: '#222222', a: '#c98f6b' },
   },
   deer: {
+    // klein, weil weit weg im Hintergrund
     frames: [
-      ['.......o..', '......oaa.', '......aaan', '.aaaaaaa..', 'baaaaaaa..', '.aaaaaa...', '.a.a..a.a.', '.a.a..a.a.'],
-      ['.......o..', '......oaa.', '......aaan', '.aaaaaaa..', 'baaaaaaa..', '.aaaaaa...', '..a.a..a.a', '..a.a..a.a'],
-      // grasen: Kopf unten
-      ['..........', '..........', '..........', '.aaaaaaa..', 'baaaaaaaa.', '.aaaaaaaaa', '.a.a..a.an', '.a.a..a.a.'],
+      ['.....o.', '....oan', 'aaaaaa.', 'baaaa..', '.a.a.a.'],
+      ['.....o.', '....oan', 'aaaaaa.', 'baaaa..', 'a.a..a.'],
+      ['.......', '.......', 'aaaaaa.', 'baaaaao', '.a.a.an'],
     ],
     colors: { a: '#a8703a', b: '#f0dcc0', o: '#4a2e18', n: '#222222' },
   },
@@ -116,10 +116,9 @@ export class Critters {
         break;
       case 'deer': {
         // läuft rein, grast eine Weile, läuft weiter (klein im Hintergrund)
-        scale = 0.6;
         const p = k < 0.35 ? (k / 0.35) * 0.45 : k < 0.65 ? 0.45 : 0.45 + ((k - 0.65) / 0.35) * 0.55;
-        x = across(p) / scale;
-        y = (GROUND_Y - 4.5) / scale;
+        x = across(p);
+        y = GROUND_Y - 4.5;
         frame = k >= 0.35 && k < 0.65 ? 2 : Math.floor(t / 300) % 2;
         break;
       }

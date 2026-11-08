@@ -1,7 +1,7 @@
 // Außenszenen für Tiere, die nicht im Haus wohnen:
 //  forest = Waldrand mit Fuchsbau, garden = Garten mit Hecke und Laubnest.
 import { ICONS, drawMap, type ColorMap } from './pixels';
-import { cloud, glow } from './fx';
+import { bands, cloud, glow } from './fx';
 
 export type SceneKind = 'room' | 'forest' | 'garden';
 
@@ -40,11 +40,7 @@ function drawSky(ctx: CanvasRenderingContext2D, sky: Sky, clock: number) {
       : sky.edge < 0.16
         ? ['#8fb0d0', '#e4ecf2']
         : ['#5fb0e8', '#cdeafa'];
-  const g = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-  g.addColorStop(0, top);
-  g.addColorStop(1, bottom);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, GROUND_Y);
+  bands(ctx, 0, 0, W, GROUND_Y, top, bottom, 7);
   if (!sky.day) {
     const STARS = [[3, 3], [11, 7], [19, 2], [27, 9], [34, 4], [42, 11], [50, 3], [58, 8], [7, 14], [23, 16], [46, 17], [61, 15], [15, 11], [38, 7], [55, 13]];
     ctx.fillStyle = '#e8e6c8';
@@ -58,18 +54,18 @@ function drawSky(ctx: CanvasRenderingContext2D, sky: Sky, clock: number) {
   const icon = ICONS[sky.day ? 'sun' : 'moon'];
   const x = -5 + sky.f * (W + 5);
   const y = GROUND_Y - 8 - Math.sin(Math.PI * sky.f) * (GROUND_Y - 12);
-  glow(ctx, x + 2.5, y + 2.5, sky.day ? 9 : 6, sky.day ? 'rgba(255,240,170,0.6)' : 'rgba(220,220,255,0.25)');
+  glow(ctx, x + 2.5, y + 2.5, sky.day ? 7 : 5, sky.day ? '#fff3b0' : '#c8ccf0');
   drawMap(ctx, icon.map, icon.colors, x, y);
 }
 
 /** feine Grashalme auf der Wiese */
 function grassBlades(ctx: CanvasRenderingContext2D, colors: string[]) {
   for (let y = GROUND_Y + 1; y < 48; y += 1.5)
-    for (let x = 0; x < W; x += 1.25) {
+    for (let x = 0; x < W; x += 1) {
       const n = hash(Math.round(x * 4), Math.round(y * 4));
       if (n % 3) continue;
       ctx.fillStyle = colors[n % colors.length];
-      ctx.fillRect(x + (n % 5) * 0.2, y, 0.25, 0.75 + (n % 4) * 0.25);
+      ctx.fillRect(x + (n % 2) * 0.5, y, 0.5, 0.5 + (n % 3) * 0.5);
     }
 }
 
@@ -99,11 +95,7 @@ function drawForest(ctx: CanvasRenderingContext2D) {
   drawPine(ctx, 12, 35, 24);
   drawPine(ctx, 4, 36, 31);
   // Wiese mit Verlauf und Grashalmen
-  const g = ctx.createLinearGradient(0, GROUND_Y, 0, 48);
-  g.addColorStop(0, '#8cc65e');
-  g.addColorStop(1, '#5e9a3e');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, GROUND_Y, W, 48 - GROUND_Y);
+  bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#8cc65e', '#5e9a3e', 4);
   grassBlades(ctx, ['#4f8a34', '#9ad46a', '#6aa84a']);
 }
 
@@ -123,21 +115,17 @@ function drawGarden(ctx: CanvasRenderingContext2D) {
     px(ctx, '#c9a26a', x + 2, 21, 1, 1);
     // Holzmaserung
     ctx.fillStyle = 'rgba(122,90,52,0.45)';
-    ctx.fillRect(x + 2, 23, 0.25, GROUND_Y - 24);
-    ctx.fillRect(x + 3.25, 26, 0.25, GROUND_Y - 28);
+    ctx.fillRect(x + 2, 23, 0.5, GROUND_Y - 24);
+    ctx.fillRect(x + 3, 26, 0.5, GROUND_Y - 28);
     ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    ctx.fillRect(x + 1, 22, 0.25, GROUND_Y - 22);
+    ctx.fillRect(x + 1, 22, 0.5, GROUND_Y - 22);
   }
   px(ctx, '#7a5a34', 0, 25, W, 2);
   px(ctx, '#b08850', 0, 25, W, 1);
   px(ctx, '#7a5a34', 0, 30, W, 2);
   px(ctx, '#b08850', 0, 30, W, 1);
   // Rasen mit Verlauf und Grashalmen
-  const g = ctx.createLinearGradient(0, GROUND_Y, 0, 48);
-  g.addColorStop(0, '#94c262');
-  g.addColorStop(1, '#6a9640');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, GROUND_Y, W, 48 - GROUND_Y);
+  bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#94c262', '#6a9640', 4);
   grassBlades(ctx, ['#5a8a38', '#a6d070', '#7aa84a']);
   // Busch mit Beeren links
   for (let y = 22; y <= 40; y++)

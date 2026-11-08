@@ -639,10 +639,11 @@ summary {
   justify-content: center;
 }
 
-/* hochaufgelöstes Spielbild: weich skalieren */
+/* Spielbild: echtes Pixelraster, scharf skaliert */
 .screen,
 .game-canvas,
 .tab-pic,
 .species-pic {
-  image-rendering: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
