@@ -11,6 +11,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 </p>
 
 <p align="center">
+  <img src="docs/screenshots/multi.png" width="260" alt="Drei Tiere mit Umschalter oben">
   <img src="docs/screenshots/cat-day.png" width="260" alt="Eine getigerte graue Katze und ihr Körbchen">
   <img src="docs/screenshots/cats.png" width="520" alt="Alle Tiere in allen Stufen und die Katzen-Fellvarianten">
 </p>
@@ -31,12 +32,20 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 - **Bedürfnisse:** Hunger und Laune (je 4 Herzen), Müdigkeit, Gewicht, Disziplin und Gesundheit.
 - **Schlafen:** Das Tier wacht nach insgesamt 8 Stunden Schlaf automatisch auf. Danach hat es Hunger und kackt innerhalb einer Stunde.
 - **Hygiene:** Es kackt alle 1–3 Stunden. Liegt ein Haufen länger als 4 Stunden, wird es krank.
+- **Mehrere Tiere:** bis zu 4 gleichzeitig, Umschalter oben
+- **Umgebung:** Fuchs am Waldrand mit Baumhöhle, Igel im Garten mit Laubhaufen, Katze im Zimmer mit Körbchen und Kratzbaum
 - **Katzen-Fell:** 6 Fellfarben × 4 Muster (einfarbig, getigert, gefleckt, weiße Pfoten), zufällig pro Tier.
 - **5 Minispiele pro Tier:** zum Beispiel Mäusesprung, Links oder rechts?, Beeren fangen, Stöckchen holen und Spuren lesen.
 - **Rufen:** Braucht das Tier etwas, ruft es mit Ton und Benachrichtigung. Reagiert man nicht innerhalb von 15 Minuten, zählt das als Pflegefehler.
 - **Offline und installierbar (PWA):** Der Spielstand liegt nur lokal im Browser (localStorage).
 
 Alle Regeln stehen in der **[SPEC.md](SPEC.md)**.
+
+### URL-Parameter zum Testen
+
+Setzen Werte des gerade angezeigten Tiers, z. B. https://spikepy.github.io/tamagotchi/?happy=4&hunger=4&sick=0
+
+`happy=0–4` · `hunger=0–4` · `sick=1|0` · `tired=0–100` · `sleep=1|0`
 
 ## Entwicklung
 

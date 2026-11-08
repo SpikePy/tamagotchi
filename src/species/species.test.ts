@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SPECIES, lookName, randomLook } from '.';
+import { SPECIES, lookName, randomLook, weightLabel } from '.';
 import { applyPattern, petSprite } from '../render/pixels';
 
 describe('Tierarten', () => {
@@ -26,5 +26,12 @@ describe('Tierarten', () => {
       const out = applyPattern(rows, p, 42);
       out.forEach((r, y) => [...r].forEach((ch, x) => rows[y][x] !== 'a' && expect(ch).toBe(rows[y][x])));
     }
+  });
+
+  it('zeigt realistische Gewichte', () => {
+    expect(weightLabel(SPECIES.fox, { stage: 'adult', weight: 30 })).toBe('6 kg');
+    expect(weightLabel(SPECIES.hedgehog, { stage: 'baby', weight: 5 })).toBe('25 g');
+    expect(weightLabel(SPECIES.hedgehog, { stage: 'adult', weight: 33 })).toBe('1,1 kg');
+    expect(weightLabel(SPECIES.cat, { stage: 'teen', weight: 20 })).toBe('2,5 kg');
   });
 });

@@ -1,8 +1,9 @@
 import { MIN, RULES } from '../engine/config';
-import type { GameState, Pet } from '../engine/state';
+import { activePet, type GameState, type Pet } from '../engine/state';
 import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, drawMap, eggColors, eggMap, petSprite } from './pixels';
+import { PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoor } from './outdoor';
 
 export const SCREEN_W = 64;
 export const SCREEN_H = 48;
@@ -40,7 +41,6 @@ const BASKET_FRONT = [
 const BOWL_X = 12;
 const BOWL_Y = FLOOR_Y + 2;
 const BOWL = ['.ooooooo.', 'ohhhhhhho', '.obbbbbo.', '..ooooo..'];
-const BOWL_COLORS: ColorMap = { o: '#2e4a7a', h: '#8fb3e6', b: '#5b86c9' };
 const FOOD_LEVELS = [
   [], // leer
   ['.......', '..fkf..'],
@@ -143,6 +143,17 @@ export class Scene {
   private walkX = 30;
   private walkDir = 1;
   private lastFrame = performance.now();
+  private env: SceneKind = 'room';
+  private shownPetId: string | null = null;
+
+  /** Animationen zurücksetzen (z. B. beim Umschalten auf ein anderes Tier) */
+  reset() {
+    this.meal = null;
+    this.fx = null;
+    this.walkX = 30;
+    this.walkDir = 1;
+    this.hatchStart = this.flashStart = this.jumpStart = this.shakeStart = -Infinity;
+  }
 
   constructor(canvas: HTMLCanvasElement) {
     canvas.width = SCREEN_W;
@@ -183,14 +194,24 @@ export class Scene {
   draw(s: GameState) {
     const ctx = this.ctx;
     const t = performance.now();
-    const p = s.pet;
+    const p = activePet(s);
+    if ((p?.id ?? null) !== this.shownPetId) {
+      this.shownPetId = p?.id ?? null;
+      this.reset();
+    }
     const sp = species(p?.species ?? s.memorials[0]?.species ?? 'fox');
 
-    this.drawRoom(sp, s.clock, t);
-    drawMap(ctx, BASKET_BACK, BASKET_COLORS, BASKET_X, BASKET_Y);
+    this.env = sp.room?.scene ?? 'room';
+    if (this.env === 'room') this.drawRoom(sp, s.clock, t);
+    else {
+      const day = drawOutdoor(ctx, this.env, s.clock);
+      this.drawDecor(sp, t);
+      if (!day) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
+    }
+    this.nestBack();
 
     if (!p) {
-      drawMap(ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + 3);
+      this.nestFront();
       this.overlay(0.2);
       return;
     }
@@ -200,18 +221,18 @@ export class Scene {
     const hatching = t - this.hatchStart < HATCH_MS;
     if (p.stage === 'egg') {
       this.drawEgg(s, p, sp, t);
-      drawMap(ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + 3);
+      this.nestFront();
     } else if (p.asleep || hatching) {
       this.drawPetInBasket(p, sp, t, hatching);
     } else {
-      drawMap(ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + 3);
+      this.nestFront();
       this.drawPetWalking(p, sp, t);
     }
 
     // Napf liegt vorne auf dem Boden, also nach dem Tier zeichnen
     this.drawBowl(t);
 
-    if (!p.lightOn) this.overlay(0.72);
+    if (!p.lightOn) this.overlay(0.55); // dunkel, aber das Tier bleibt erkennbar
 
     // Zzz (über dem Dunkel, damit man es sieht)
     if (p.stage !== 'egg' && p.asleep) {
@@ -238,6 +259,18 @@ export class Scene {
     if (Object.keys(p.calls).length > 0 && Math.floor(t / 500) % 2 === 0) {
       drawMap(ctx, ICONS.bang.map, ICONS.bang.colors, ix, 2);
     }
+  }
+
+  /** Schlafplatz hinten: Körbchen, Fuchsbau oder Laubnest */
+  private nestBack() {
+    if (this.env === 'room') drawMap(this.ctx, BASKET_BACK, BASKET_COLORS, BASKET_X, BASKET_Y);
+    else drawNestBack(this.ctx, this.env);
+  }
+
+  /** Vorderseite des Schlafplatzes, verdeckt den unteren Teil des Tiers */
+  private nestFront() {
+    if (this.env === 'room') drawMap(this.ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + 3);
+    else drawNestFront(this.ctx, this.env);
   }
 
   private drawRoom(sp: SpeciesDef, clock: number, t: number) {
@@ -354,7 +387,7 @@ export class Scene {
       level = 3 - Math.min(3, Math.floor(k * 3));
     }
     if (m && level > 0) drawMap(this.ctx, FOOD_LEVELS[level], FOOD_COLORS[m.kind], BOWL_X + 1, BOWL_Y - 2);
-    drawMap(this.ctx, BOWL, BOWL_COLORS, BOWL_X, BOWL_Y);
+    drawMap(this.ctx, BOWL, PLATE_COLORS[this.env], BOWL_X, BOWL_Y);
   }
 
   private drawEgg(s: GameState, p: Pet, sp: SpeciesDef, t: number) {
@@ -398,7 +431,7 @@ export class Scene {
         }
       }
     }
-    drawMap(ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + 3);
+    this.nestFront();
   }
 
   private drawPetWalking(p: Pet, sp: SpeciesDef, t: number) {

@@ -23,7 +23,9 @@ export const hedgehog: SpeciesDef = {
     cheeky: { c: '#4f3320', b: '#e9c39c' },
     great: { c: '#7d5634', b: '#fbe6c8' },
   },
-  room: { floor: 'leaves' },
+  // Braunbrustigel: Neugeboren ~25 g, Jungtier ~150 g, Herbst ~450 g, erwachsen ~1 kg
+  weightGrams: { baby: 25, child: 150, teen: 450, adult: 1000 },
+  room: { scene: 'garden', floor: 'leaves' },
   egg: { shell: '#f2d7b6', spots: '#6b4a2f' },
   sprites: {
     baby: [

@@ -20,6 +20,7 @@ export interface LogEntry {
 }
 
 export interface Pet {
+  id: string;
   species: string;
   name: string | null; // wird nach dem Schlüpfen vergeben
   look?: Look | null;
@@ -82,11 +83,14 @@ export interface Settings {
   notifications: boolean;
 }
 
+export const MAX_PETS = 4;
+
 export interface GameState {
-  version: 1;
+  version: 2;
   clock: number; // Spielzeit (ms) = echte Zeit, minutengenau nachgerechnet
   lastReal: number; // echte Zeit der letzten Berechnung
-  pet: Pet | null;
+  pets: Pet[]; // alle lebenden Tiere, alle laufen gleichzeitig in Echtzeit
+  activeId: string | null; // das Tier, das gerade angezeigt wird
   ending: Ending | null; // gesetzt, solange der Abschiedsbildschirm gezeigt wird
   memorials: Memorial[];
   settings: Settings;
@@ -99,18 +103,20 @@ export function dayKeyOf(clock: number): string {
 
 export function newGame(now: number): GameState {
   return {
-    version: 1,
+    version: 2,
     clock: now,
     lastReal: now,
-    pet: null,
+    pets: [],
+    activeId: null,
     ending: null,
     memorials: [],
     settings: { sound: true, notifications: false },
   };
 }
 
-export function newPet(species: string, clock: number, look: Look | null = null): Pet {
+export function newPet(species: string, clock: number, look: Look | null = null, id = `${clock.toString(36)}-${Math.random().toString(36).slice(2, 7)}`): Pet {
   return {
+    id,
     species,
     name: null,
     look,
@@ -143,6 +149,11 @@ export function newPet(species: string, clock: number, look: Look | null = null)
     adultLifespanDays: null,
     log: [{ at: clock, text: 'Ein Ei ist da.' }],
   };
+}
+
+/** Das gerade angezeigte Tier */
+export function activePet(s: GameState): Pet | null {
+  return s.pets.find((p) => p.id === s.activeId) ?? null;
 }
 
 export const hearts = (v: number) => Math.max(0, Math.min(4, Math.ceil(v - 1e-9)));

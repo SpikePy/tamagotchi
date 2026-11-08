@@ -33,6 +33,8 @@ export const cat: SpeciesDef = {
     { name: 'Weiß', colors: { a: '#f6f2ea', d: '#e3913f', b: '#ffffff', e: '#4f8fc0' } },
   ],
   patterns: ['solid', 'tabby', 'patches', 'socks'],
+  // Hauskatze: Neugeboren ~100 g, 2 Monate ~1 kg, 6 Monate ~2,5 kg, erwachsen ~4,5 kg
+  weightGrams: { baby: 100, child: 1000, teen: 2500, adult: 4500 },
   room: { scratchingPost: true },
   egg: { shell: '#fbf6ee', spots: '#e8964a' },
   sprites: {

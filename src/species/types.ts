@@ -38,8 +38,10 @@ export interface SpeciesDef {
   variantPalettes: Partial<Record<Variant, Partial<Palette>>>;
   sprites: Record<Exclude<Stage, 'egg'>, Sprite>;
   egg: { shell: string; spots: string };
+  /** realistisches Gewicht in Gramm bei Normalgewicht je Stufe (Anzeige) */
+  weightGrams: Record<Exclude<Stage, 'egg'>, number>;
   /** Deko im Raum passend zur Art */
-  room?: { floor?: 'grass' | 'leaves'; scratchingPost?: boolean };
+  room?: { scene?: 'room' | 'forest' | 'garden'; floor?: 'grass' | 'leaves'; scratchingPost?: boolean };
   /** optional: zufällige Fellfarbe + Muster pro Tier */
   coats?: Coat[];
   patterns?: Pattern[];

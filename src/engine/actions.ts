@@ -1,5 +1,5 @@
 import { RULES } from './config';
-import { GameState, Look, Pet, hearts, newPet } from './state';
+import { GameState, Look, MAX_PETS, Pet, activePet, hearts, newPet } from './state';
 import { Rng, SimEvent, addLog, careMistake, fallAsleep, wake } from './sim';
 
 export interface ActionResult {
@@ -12,19 +12,28 @@ const no = (msg: string): ActionResult => ({ ok: false, msg });
 const yes = (msg: string, events?: SimEvent[]): ActionResult => ({ ok: true, msg, events });
 
 function hatchedPet(s: GameState): Pet | null {
-  const p = s.pet;
+  const p = activePet(s);
   return p && p.stage !== 'egg' ? p : null;
 }
 
-export function startEgg(s: GameState, species: string, look: Look | null = null) {
-  s.pet = newPet(species, s.clock, look);
+/** Legt ein neues Ei an und zeigt es an. false, wenn schon MAX_PETS Tiere da sind. */
+export function startEgg(s: GameState, species: string, look: Look | null = null): boolean {
+  if (s.pets.length >= MAX_PETS) return false;
+  const p = newPet(species, s.clock, look);
+  s.pets.push(p);
+  s.activeId = p.id;
   s.ending = null;
+  return true;
+}
+
+export function switchPet(s: GameState, id: string) {
+  if (s.pets.some((p) => p.id === id)) s.activeId = id;
 }
 
 export const NAME_MAX = 14;
 
 export function renamePet(s: GameState, raw: string): ActionResult {
-  const p = s.pet;
+  const p = activePet(s);
   if (!p) return no('Da ist noch niemand.');
   const name = raw.replace(/\s+/g, ' ').trim().slice(0, NAME_MAX);
   if (!name) return no('Bitte gib einen Namen ein.');
@@ -43,7 +52,7 @@ export function canAct(s: GameState) {
     medicine: !!p && !p.asleep,
     clean: !!p && p.poops.length > 0,
     scold: !!p && !p.asleep,
-    status: !!s.pet,
+    status: !!activePet(s),
   };
 }
 

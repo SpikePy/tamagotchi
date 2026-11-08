@@ -13,15 +13,16 @@ import {
   lightButton,
   scold,
   startEgg,
+  switchPet,
   wakeUp,
 } from '../engine/actions';
 import { DAY, MIN, RULES } from '../engine/config';
 import { advance, ageDays, isOverweight, SimEvent, sleptLast24h } from '../engine/sim';
-import { CallType, GameState, Pet, hearts } from '../engine/state';
+import { CallType, GameState, MAX_PETS, Pet, activePet, hearts } from '../engine/state';
 import { notify, requestNotifications } from '../notify';
-import { drawMap, petSprite } from '../render/pixels';
+import { drawMap, eggColors, eggMap, petSprite } from '../render/pixels';
 import { Scene } from '../render/scene';
-import { SPECIES, lookName, randomLook, species } from '../species';
+import { SPECIES, lookName, randomLook, species, weightLabel } from '../species';
 import { save, wipe } from '../storage';
 import { h } from './dom';
 import { GAME_IDS, GameId, runGame } from './games';
@@ -64,6 +65,13 @@ export class App {
   private sheetTitle: HTMLElement;
   private onSheetClose: (() => void) | null = null;
   private hud: HTMLElement;
+  private tabs: HTMLElement;
+  private tabsKey = '';
+
+  /** das gerade angezeigte Tier */
+  private get pet(): Pet | null {
+    return activePet(this.s);
+  }
 
   constructor(
     root: HTMLElement,
@@ -73,6 +81,7 @@ export class App {
     const canvas = h('canvas', { class: 'pixel screen', 'aria-label': 'Haustier' }) as HTMLCanvasElement;
     this.scene = new Scene(canvas);
     this.hud = h('div', { class: 'hud' });
+    this.tabs = h('div', { class: 'pet-tabs', role: 'tablist', 'aria-label': 'Deine Tiere' });
     this.msgEl = h('div', { class: 'msg', role: 'status' });
 
     const nav = h('nav', { class: 'actions' });
@@ -109,12 +118,12 @@ export class App {
       this.onSheetClose = null;
       fn?.();
       // noch kein Name? Nachfragen, sobald der Dialog zu ist
-      const p = this.s.pet;
+      const p = this.pet;
       if (p && p.stage !== 'egg' && p.name === null) setTimeout(() => this.askName(), 300);
     });
 
     root.append(
-      h('main', { class: 'device' }, this.hud, h('div', { class: 'screen-wrap' }, canvas), this.msgEl, nav),
+      h('main', { class: 'device' }, this.tabs, this.hud, h('div', { class: 'screen-wrap' }, canvas), this.msgEl, nav),
       this.dialog,
     );
 
@@ -142,57 +151,113 @@ export class App {
   }
 
   private handleEvents(events: SimEvent[], quiet: boolean) {
-    const p = this.s.pet;
-    const name = p ? petName(p) : '';
     for (const e of events) {
+      const p = this.s.pets.find((x) => x.id === e.petId) ?? null;
+      const isActive = !!p && p.id === this.s.activeId;
+      const name = p ? petName(p) : e.kind === 'ended' ? (e.name ?? '') : '';
       switch (e.kind) {
         case 'hatched':
-          this.say('Es schlüpft!');
-          if (!quiet) {
-            beep.win();
-            this.scene.hatch();
-          }
-          setTimeout(() => this.askName(), quiet ? 300 : 2000);
+          if (!quiet) beep.win();
+          if (isActive) {
+            this.say('Es schlüpft!');
+            if (!quiet) this.scene.hatch();
+            setTimeout(() => this.askName(), quiet ? 300 : 2000);
+          } else this.say(`Ein Ei ist geschlüpft! Tippe oben auf das Tier, um ihm einen Namen zu geben.`);
           break;
         case 'evolved':
           this.say(`${name} hat sich entwickelt: ${p ? stageName(p) : ''}!`);
           if (!quiet) {
             beep.win();
-            this.scene.evolve();
+            if (isActive) this.scene.evolve();
           }
           break;
         case 'call':
-          if (quiet) break;
+          if (quiet || !p) break;
           if (e.call !== 'sleepy') beep.call();
-          if (document.hidden && this.s.settings.notifications && p) {
+          if (!isActive) this.say(`${name} ${CALL_TEXT[e.call]}`);
+          if (document.hidden && this.s.settings.notifications) {
             void notify(name, `${species(p.species).article === 'der' ? 'Dein' : 'Deine'} ${name} ${CALL_TEXT[e.call]}`);
           }
           break;
         case 'sick':
-          if (!quiet) this.say('Oh nein, es ist krank geworden!');
+          if (!quiet) this.say(isActive ? 'Oh nein, es ist krank geworden!' : `Oh nein, ${name} ist krank geworden!`);
           break;
         case 'woke':
-          if (!quiet) this.say('Guten Morgen! Es hat Hunger.');
+          if (!quiet && isActive) this.say('Guten Morgen! Es hat Hunger.');
           break;
         case 'ended':
           break;
       }
     }
-    if (quiet && p) {
-      const calls = Object.keys(p.calls) as CallType[];
-      if (calls.length) this.say(`Während du weg warst: ${name} ${CALL_TEXT[calls[0]]}`);
+    if (quiet) {
+      const calling = this.s.pets.filter((x) => Object.keys(x.calls).length);
+      if (calling.length) {
+        const x = calling[0];
+        this.say(`Während du weg warst: ${petName(x)} ${CALL_TEXT[Object.keys(x.calls)[0] as CallType]}`);
+      }
     }
     if (events.some((e) => e.kind === 'ended')) this.checkScreens();
   }
 
+  /** Leiste oben zum Umschalten zwischen den Tieren */
+  private renderTabs() {
+    const s = this.s;
+    const key = JSON.stringify([
+      s.activeId,
+      s.pets.map((p) => [p.id, p.name, p.stage, p.variant, p.asleep, Object.keys(p.calls).length > 0, !!p.sick]),
+    ]);
+    if (key === this.tabsKey) return;
+    this.tabsKey = key;
+    this.tabs.replaceChildren();
+    for (const p of s.pets) {
+      const sp = species(p.species);
+      const c = h('canvas', { class: 'pixel tab-pic', width: '20', height: '20' }) as HTMLCanvasElement;
+      const ctx = c.getContext('2d')!;
+      if (p.stage === 'egg') drawMap(ctx, eggMap(), eggColors(sp, p.look), 4, 4);
+      else {
+        const img = petSprite(sp, p, { eyesClosed: p.asleep });
+        drawMap(ctx, img.map, img.colors, Math.floor((20 - img.w) / 2), Math.floor((20 - img.h) / 2));
+      }
+      const active = p.id === s.activeId;
+      const label = p.stage === 'egg' ? 'Ei' : petName(p);
+      const b = h(
+        'button',
+        { class: `pet-tab${active ? ' active' : ''}`, role: 'tab', 'aria-selected': String(active), title: label },
+        c,
+        h('span', { class: 'tab-name' }, label),
+        Object.keys(p.calls).length ? h('span', { class: 'tab-dot', 'aria-label': 'ruft' }) : null,
+        p.asleep ? h('span', { class: 'tab-z' }, 'z') : null,
+      );
+      b.onclick = () => {
+        if (active) return;
+        beep.click();
+        switchPet(s, p.id);
+        this.scene.reset();
+        save(s);
+        this.refresh();
+        this.checkScreens();
+      };
+      this.tabs.append(b);
+    }
+    if (s.pets.length < MAX_PETS) {
+      const add = h('button', { class: 'pet-tab add', title: 'Neues Ei', 'aria-label': 'Neues Tier' }, h('span', { class: 'plus' }, '+'));
+      add.onclick = () => {
+        beep.click();
+        this.chooseSheet();
+      };
+      this.tabs.append(add);
+    }
+  }
+
   private refresh() {
     const s = this.s;
-    const p = s.pet;
+    const p = activePet(s);
     const can = canAct(s);
     for (const [id, b] of Object.entries(this.buttons)) {
       const enabled = id === 'settings' || (can as Record<string, boolean>)[id];
       b.disabled = !enabled;
     }
+    this.renderTabs();
     const lightB = this.buttons.light;
     lightB.querySelector('span:last-child')!.textContent = p?.asleep && !p.lightOn ? 'Wecken' : 'Licht';
 
@@ -221,6 +286,12 @@ export class App {
     return `${petName(p)} · ${Math.floor(ageDays(p, this.s.clock))} Tage alt`;
   }
 
+  /** Meldung von außen (z. B. URL-Parameter) */
+  notice(text: string) {
+    this.say(text);
+    this.msgUntil = performance.now() + 6000;
+  }
+
   private say(text: string) {
     this.msgEl.textContent = text;
     this.msgUntil = performance.now() + 3500;
@@ -239,7 +310,7 @@ export class App {
   // ---------- Aktionen ----------
 
   private light() {
-    const p = this.s.pet;
+    const p = this.pet;
     if (p?.asleep && !p.lightOn) {
       if (confirm('Wirklich aufwecken? Es wird schlecht gelaunt sein.')) this.act(wakeUp(this.s));
       return;
@@ -260,7 +331,7 @@ export class App {
   private playMenu() {
     const check = canPlay(this.s);
     if (!check.ok) return this.act(check);
-    const sp = species(this.s.pet!.species);
+    const sp = species(this.pet!.species);
     const body = h('div', { class: 'game-list' });
     GAME_IDS.forEach((id, i) => {
       const g = sp.games[id];
@@ -272,7 +343,7 @@ export class App {
   }
 
   private startGame(id: GameId) {
-    const p = this.s.pet!;
+    const p = this.pet!;
     const sp = species(p.species);
     const body = h('div', { class: 'game' });
     this.openSheet(sp.games[id].title, body);
@@ -302,13 +373,14 @@ export class App {
 
   private checkScreens() {
     if (this.s.ending) return this.goodbyeSheet();
-    if (!this.s.pet) return this.chooseSheet();
-    if (this.s.pet.stage !== 'egg' && this.s.pet.name === null) this.askName();
+    if (this.s.pets.length === 0) return this.chooseSheet();
+    const p = this.pet;
+    if (p && p.stage !== 'egg' && p.name === null) this.askName();
   }
 
   /** Namensvergabe nach dem Schlüpfen (oder Umbenennen aus dem Status) */
   private askName(rename = false) {
-    const p = this.s.pet;
+    const p = this.pet;
     if (!p || p.stage === 'egg') return;
     if (!rename && (p.name !== null || this.dialog.open)) return;
     const sp = species(p.species);
@@ -368,7 +440,8 @@ export class App {
         sp.coats ? h('small', {}, 'Fell & Muster: Überraschung!') : null,
       );
       b.onclick = () => {
-        startEgg(this.s, sp.id, randomLook(sp));
+        if (!startEgg(this.s, sp.id, randomLook(sp))) return this.act({ ok: false, msg: `Mehr als ${MAX_PETS} Tiere gehen nicht.` });
+        this.scene.reset();
         save(this.s);
         this.closeSheet(true);
         this.say(`Ein ${sp.name}-Ei! Es schlüpft in einer Minute.`);
@@ -376,7 +449,12 @@ export class App {
       };
       body.append(b);
     }
-    this.openSheet('Welches Tier möchtest du?', h('div', {}, h('p', {}, 'Wähle ein Ei:'), body), true);
+    const first = this.s.pets.length === 0;
+    this.openSheet(
+      first ? 'Welches Tier möchtest du?' : 'Noch ein Tier?',
+      h('div', {}, h('p', {}, first ? 'Wähle ein Ei:' : `Wähle ein Ei (${this.s.pets.length}/${MAX_PETS} Tiere):`), body),
+      first,
+    );
   }
 
   private goodbyeSheet() {
@@ -397,18 +475,30 @@ export class App {
       ),
       h('p', {}, `Alter: ${Math.floor(e.ageDays)} Tage`),
       m ? h('details', {}, h('summary', {}, 'Lebenslauf'), logList(m.log)) : null,
-      btn('Neues Ei', () => {
-        this.s.ending = null;
-        save(this.s);
-        this.closeSheet(true);
-        this.chooseSheet();
-      }),
+      this.s.pets.length
+        ? btn(`Weiter zu ${this.pet ? petName(this.pet) : 'deinen Tieren'}`, () => {
+            this.s.ending = null;
+            save(this.s);
+            this.closeSheet(true);
+            this.scene.reset();
+            this.refresh();
+            this.checkScreens();
+          })
+        : null,
+      this.s.pets.length < MAX_PETS
+        ? btn('Neues Ei', () => {
+            this.s.ending = null;
+            save(this.s);
+            this.closeSheet(true);
+            this.chooseSheet();
+          })
+        : null,
     );
     this.openSheet('Abschied', body, true);
   }
 
   private statusSheet() {
-    const p = this.s.pet;
+    const p = this.pet;
     if (!p) return;
     const sp = species(p.species);
     const rows: [string, string][] = [
@@ -430,7 +520,7 @@ export class App {
         ['Müdigkeit', `${Math.round(p.tiredness)} %`],
         ['Schlaf (24 h)', duration(sleptLast24h(p, this.s.clock) * MIN)],
         ['Schlaf bis ausgeschlafen', duration((RULES.sleepNeedMin - p.sleptInCycleMin) * MIN)],
-        ['Gewicht', `${p.weight} g${isOverweight(p) ? ' (zu dick!)' : ''}`],
+        ['Gewicht', `${weightLabel(sp, p)}${isOverweight(p) ? ' (zu dick!)' : ''}`],
         ['Disziplin', `${p.discipline} %`],
         ['Gesundheit', p.sick ? `krank (noch ${p.sick.doses}× Medizin)` : 'gesund'],
         ['Snacks heute', `${p.snacksToday} / ${RULES.snackLimitPerDay}`],

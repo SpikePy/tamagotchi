@@ -3,7 +3,7 @@ import { CallType, GameState, Pet, Stage, Variant, dayKeyOf, hearts } from './st
 
 export type Rng = () => number;
 
-export type SimEvent =
+export type SimEvent = (
   | { kind: 'hatched' }
   | { kind: 'evolved'; stage: Stage; variant: Variant }
   | { kind: 'pooped' }
@@ -11,7 +11,8 @@ export type SimEvent =
   | { kind: 'call'; call: CallType }
   | { kind: 'fellAsleep' }
   | { kind: 'woke' }
-  | { kind: 'ended' };
+  | { kind: 'ended'; name: string | null }
+) & { petId?: string };
 
 const MAX_CATCHUP_MIN = 60 * 24 * 60; // 60 Tage
 
@@ -22,7 +23,7 @@ export function advance(s: GameState, realNow: number, rng: Rng = Math.random): 
 
   let n = 0;
   while (s.clock + MIN <= target) {
-    if (!s.pet || n >= MAX_CATCHUP_MIN) {
+    if (s.pets.length === 0 || n >= MAX_CATCHUP_MIN) {
       s.clock = target;
       break;
     }
@@ -99,15 +100,15 @@ export function wake(p: Pet, natural: boolean, clock: number, rng: Rng, events: 
   events.push({ kind: 'woke' });
 }
 
-export function endLife(s: GameState, reason: 'forest' | 'death', cause: string, events: SimEvent[]) {
-  const p = s.pet!;
+export function endLife(s: GameState, p: Pet, reason: 'forest' | 'death', cause: string, events: SimEvent[]) {
   const ending = { at: s.clock, reason, cause, ageDays: ageDays(p, s.clock) };
   addLog(p, s.clock, reason === 'forest' ? 'In den Wald zurückgezogen.' : `Gestorben (${cause}).`);
   s.memorials.unshift({ species: p.species, name: p.name, look: p.look, stage: p.stage, variant: p.variant, ending, log: p.log });
   if (s.memorials.length > 20) s.memorials.length = 20;
   s.ending = ending;
-  s.pet = null;
-  events.push({ kind: 'ended' });
+  s.pets = s.pets.filter((x) => x.id !== p.id);
+  if (s.activeId === p.id) s.activeId = s.pets[0]?.id ?? null;
+  events.push({ kind: 'ended', name: p.name });
 }
 
 const STAGE_DE: Record<Stage, string> = { egg: 'Ei', baby: 'Baby', child: 'Kind', teen: 'Teenager', adult: 'Erwachsen' };
@@ -193,9 +194,16 @@ function updateCalls(p: Pet, clock: number, events: SimEvent[]) {
   }
 }
 
+/** Eine Minute für alle Tiere. Ereignisse bekommen die petId angehängt. */
 export function step(s: GameState, rng: Rng, events: SimEvent[]) {
-  const p = s.pet;
-  if (!p) return;
+  for (const p of [...s.pets]) {
+    const local: SimEvent[] = [];
+    stepPet(s, p, rng, local);
+    for (const e of local) events.push({ ...e, petId: p.id });
+  }
+}
+
+function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
   const now = s.clock;
 
   const dk = dayKeyOf(now);
@@ -271,13 +279,13 @@ export function step(s: GameState, rng: Rng, events: SimEvent[]) {
   }
 
   if (p.sick && now - p.sick.since >= RULES.sickDeathAfterMin * MIN) {
-    return endLife(s, 'death', 'Krankheit', events);
+    return endLife(s, p, 'death', 'Krankheit', events);
   }
   if (p.hungerZeroSince !== null && now - p.hungerZeroSince >= RULES.hungerDeathAfterMin * MIN) {
-    return endLife(s, 'death', 'Hunger', events);
+    return endLife(s, p, 'death', 'Hunger', events);
   }
   if (p.careMistakesStage >= RULES.careMistakesDeathPerStage) {
-    return endLife(s, 'death', 'Vernachlässigung', events);
+    return endLife(s, p, 'death', 'Vernachlässigung', events);
   }
 
   updateCalls(p, now, events);
@@ -287,6 +295,6 @@ export function step(s: GameState, rng: Rng, events: SimEvent[]) {
     const days = RULES.stageDays[p.stage as keyof typeof RULES.stageDays];
     if (now - p.stageStartedAt >= days * DAY) evolve(p, next, now, events);
   } else if (p.adultLifespanDays !== null && now - p.stageStartedAt >= p.adultLifespanDays * DAY) {
-    endLife(s, 'forest', 'Lebensende', events);
+    endLife(s, p, 'forest', 'Lebensende', events);
   }
 }

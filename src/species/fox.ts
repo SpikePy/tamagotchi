@@ -23,7 +23,9 @@ export const fox: SpeciesDef = {
     cheeky: { a: '#d4562a', c: '#4a1c0a' },
     great: { a: '#f5862f', b: '#ffffff', c: '#7a3a14' },
   },
-  room: { floor: 'grass' },
+  // Rotfuchs: Welpe ~100 g, nach 2 Monaten ~1 kg, Jungfuchs ~3 kg, erwachsen ~6 kg
+  weightGrams: { baby: 100, child: 1000, teen: 3000, adult: 6000 },
+  room: { scene: 'forest', floor: 'grass' },
   egg: { shell: '#fff4e2', spots: '#e8772e' },
   sprites: {
     baby: [

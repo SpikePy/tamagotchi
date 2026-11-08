@@ -11,7 +11,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 - **Echtzeit:** Die Zeit im Spiel läuft genauso schnell wie die echte Zeit. Ein Tag im Spiel ist ein echter Tag.
 - **Läuft weiter, wenn die App zu ist** (ergänzt): Ist die App geschlossen, läuft die Zeit trotzdem weiter. Beim nächsten Öffnen wird alles nachberechnet, was in der Zwischenzeit passiert ist (Hunger, Kacke, Krankheit usw.).
 - **Alles über die UI:** Jede Pflegeaktion löst der Spieler selbst über die Oberfläche aus. Nichts passiert automatisch zugunsten des Tiers.
-- **Ein Tier gleichzeitig** (ergänzt): Es gibt immer nur ein aktives Tier.
+- **Mehrere Tiere:** Man kann bis zu **4 Tiere** gleichzeitig haben. Alle leben parallel in Echtzeit, auch wenn sie gerade nicht angezeigt werden. Über eine **Leiste oben** schaltet man zwischen ihnen um. Jedes Tier hat dort ein Mini-Bild und seinen Namen; ein roter Punkt zeigt, dass es ruft, ein „z“, dass es schläft. Mit „+“ legt man ein neues Ei an. Ruft ein Tier, das gerade nicht angezeigt wird, piept es, und unten erscheint eine Meldung mit seinem Namen. Stirbt ein Tier oder zieht in den Wald, geht es mit den übrigen weiter.
 
 ## 2a. Plattform
 
@@ -29,7 +29,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 | Hunger | 0–4 Herzen | Sinkt mit der Zeit. Mahlzeiten füllen ihn wieder auf. |
 | Laune | 0–4 Herzen | Sinkt mit der Zeit. Spielen und Snacks heben sie. (ergänzt) |
 | Müdigkeit | 0–100 % | Steigt, solange es wach ist, und sinkt im Schlaf. |
-| Gewicht | in g | Steigt durch Essen und sinkt durch Spielen. (ergänzt) |
+| Gewicht | in g/kg | Steigt durch Essen und sinkt durch Spielen. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
 | Alter | in Tagen | Zählt ab dem Schlüpfen. |
 | Disziplin | 0–100 % | Steigt durch richtiges Schimpfen. (ergänzt) |
 | Gesundheit | gesund / krank | Siehe Abschnitt 6. |
@@ -151,6 +151,20 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 Stirbt das Tier, sieht man einen Abschiedsbildschirm mit Alter und Lebenslauf. Danach kann man ein neues Ei starten.
 
+## 7a. URL-Parameter (Testen)
+
+Über die Adresse kann man Werte des **gerade angezeigten** Tiers direkt setzen, zum Beispiel `https://spikepy.github.io/tamagotchi/?happy=4&sick=0&sleep=1`. Nach dem Anwenden werden die Parameter aus der Adresse entfernt. Unten erscheint eine Meldung mit den Änderungen, und im Tagebuch steht ein Eintrag.
+
+| Parameter | Werte | Wirkung |
+|---|---|---|
+| `happy` | 0–4 | Laune (Herzen) |
+| `hunger` | 0–4 | Hunger (Herzen) |
+| `sick` | 1 / 0 | krank machen bzw. heilen |
+| `tired` | 0–100 | Müdigkeit in % |
+| `sleep` | 1 / 0 | schlafen schicken (Licht aus) bzw. aufwecken (ohne Laune-Abzug, gilt als ausgeschlafen) |
+
+Bei einem Ei werden die Parameter ignoriert.
+
 ## 8. UI
 
 Die Hauptansicht zeigt das Tier in seinem Zuhause, die Haufen und alle Statussymbole (Schlaf, Krankheit, Rufen). Darunter liegt eine Aktionsleiste mit:
@@ -167,7 +181,13 @@ Die Hauptansicht zeigt das Tier in seinem Zuhause, die Haufen und alle Statussym
 
 Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
-**Einrichtung:** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein geflochtener Weidenkorb mit geflochtenem Rand, nach unten schmaler werdend und mit Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Neben der Pflanze steht ein **Futternapf**. Die Haufen landen zwischen Napf und Körbchen.
+**Umgebung je Tierart:**
+- **Katze:** wohnt drinnen im Zimmer (siehe unten).
+- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**, einem dicken Baum mit großem Loch unten im Stamm. Gefüttert wird auf einem flachen Stein.
+- **Igel:** lebt draußen **im Garten**: Hecke, Holzzaun, Busch mit Beeren, Blumen, Rasen mit Herbstlaub. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
+- Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
+
+**Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein geflochtener Weidenkorb mit geflochtenem Rand, nach unten schmaler werdend und mit Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Neben der Pflanze steht ein **Futternapf**. Die Haufen landen zwischen Napf und Körbchen.
 
 **Fenster:** An der Wand hängt ein großes Fenster, durch das man die echte Tageszeit sieht:
 - Die **Sonne** wandert zwischen 7 und 20 Uhr im Bogen durchs Fenster. Sie geht links unten auf, steht mittags oben und geht rechts unten unter.

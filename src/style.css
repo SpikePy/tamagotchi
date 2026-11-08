@@ -512,3 +512,99 @@ summary {
   border-color: var(--ink);
   transform: scale(1.05);
 }
+
+/* ---------- Tier-Umschalter ---------- */
+
+.pet-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: -2px -2px 0;
+  padding: 2px;
+}
+
+.pet-tabs:empty {
+  display: none;
+}
+
+.pet-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 3px 9px 3px 3px;
+  border-radius: 999px;
+  border: 2px solid var(--btn-border);
+  background: var(--btn);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  opacity: 0.75;
+}
+
+.pet-tab.active {
+  opacity: 1;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  font-weight: 600;
+}
+
+.pet-tab.add {
+  padding: 3px 12px;
+  opacity: 1;
+  border-style: dashed;
+}
+
+.pet-tab .plus {
+  font-size: 20px;
+  line-height: 28px;
+  color: var(--muted);
+}
+
+.tab-pic {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}
+
+.tab-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 72px;
+}
+
+.tab-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #e2384d;
+  border: 2px solid var(--device);
+  animation: pulse 1s infinite alternate;
+}
+
+.tab-z {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+@keyframes pulse {
+  to {
+    transform: scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-dot {
+    animation: none;
+  }
+}
