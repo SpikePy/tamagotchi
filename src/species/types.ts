@@ -15,11 +15,21 @@ export type PaletteKey = 'o' | 'a' | 'b' | 'c' | 'n' | 'E' | 'e' | 'p' | 'w' | '
 export type Palette = Record<Exclude<PaletteKey, 'd'>, string> & { d?: string };
 
 /** Fellmuster, die der Renderer auf die Hauptfarbe 'a' anwendet */
-export type Pattern = 'solid' | 'tabby' | 'patches' | 'socks';
+export type Pattern = 'solid' | 'tabby' | 'patches' | 'socks' | 'spots' | 'saddle' | 'points';
 
 export interface Coat {
   name: string; // z. B. "Rot"
   colors: Partial<Palette>; // überschreibt die Grundpalette, 'd' = Musterfarbe
+  patterns?: Pattern[]; // nur diese Muster passen zu dieser Farbe (sonst die der Art/Rasse)
+}
+
+/** Rasse: eigenes Aussehen, eigene Fellfarben/Muster und eigenes Gewicht */
+export interface Breed {
+  name: string;
+  sprites: Record<Exclude<Stage, 'egg'>, Sprite>;
+  coats: Coat[];
+  patterns?: Pattern[];
+  adultGrams: number;
 }
 
 export interface GameTheme {
@@ -45,6 +55,8 @@ export interface SpeciesDef {
   /** optional: zufällige Fellfarbe + Muster pro Tier */
   coats?: Coat[];
   patterns?: Pattern[];
+  /** optional: zufällige Rasse pro Tier (überschreibt sprites/coats/patterns) */
+  breeds?: Breed[];
   stageNames: Record<Stage, Partial<Record<Variant, string>>>;
   games: {
     timing: GameTheme & { target: string; hit: string };

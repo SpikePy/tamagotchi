@@ -1,5 +1,5 @@
 import type { Look, Stage, Variant } from '../engine/state';
-import type { Palette, Pattern, SpeciesDef, Sprite } from '../species/types';
+import type { Breed, Palette, Pattern, SpeciesDef, Sprite } from '../species/types';
 
 export type ColorMap = Record<string, string>;
 
@@ -24,8 +24,9 @@ export function drawMap(
   }
 }
 
-export function paletteFor(sp: SpeciesDef, variant: Variant, coat?: number): Palette {
-  const coatColors = coat !== undefined ? (sp.coats?.[coat]?.colors ?? {}) : {};
+export function paletteFor(sp: SpeciesDef, variant: Variant, coat?: number, breed?: Breed): Palette {
+  const coats = breed?.coats ?? sp.coats;
+  const coatColors = coat !== undefined ? (coats?.[coat]?.colors ?? {}) : {};
   return { ...sp.palette, ...(sp.variantPalettes[variant] ?? {}), ...coatColors } as Palette;
 }
 
@@ -64,6 +65,19 @@ export function applyPattern(rows: string[], pattern: string, seed: number): str
       const v = (y + 0.5) / h;
       return blobs.some(([bx, by, r]) => (u - bx) ** 2 + (v - by) ** 2 < r * r) ? 'd' : null;
     };
+  } else if (pattern === 'spots') {
+    // Tupfen (Dalmatiner)
+    test = (x, y) => {
+      let n = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(seed, 2654435761)) >>> 0;
+      n = Math.imul(n ^ (n >>> 13), 1274126177) >>> 0;
+      return (n ^ (n >>> 16)) % 6 === 0 ? 'd' : null;
+    };
+  } else if (pattern === 'saddle') {
+    // dunkler Sattel auf dem Rücken (Schäferhund, Beagle)
+    test = (_x, y) => (y >= h * 0.55 && y < h * 0.85 ? 'd' : null);
+  } else if (pattern === 'points') {
+    // helle Abzeichen an den Beinen (Black & Tan)
+    test = (_x, y) => (y >= h - 4 ? 'd' : null);
   } else if (pattern === 'socks') {
     // weiße Pfoten/Beine und weißes Kinn
     test = (_x, y) => (y >= h - 5 ? 'b' : null);
@@ -91,8 +105,9 @@ export function petSprite(
   pet: { stage: Stage; variant: Variant; look?: Look | null },
   opts: { eyesClosed?: boolean } = {},
 ) {
-  const sprite = sp.sprites[pet.stage === 'egg' ? 'baby' : pet.stage];
   const look = pet.look ?? null;
+  const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
+  const sprite = (breed?.sprites ?? sp.sprites)[pet.stage === 'egg' ? 'baby' : pet.stage];
   return {
     map: petMap(sprite, {
       eyesClosed: opts.eyesClosed,
@@ -100,7 +115,7 @@ export function petSprite(
       pattern: look?.pattern,
       seed: look?.seed,
     }),
-    colors: paletteFor(sp, pet.variant, look?.coat) as unknown as ColorMap,
+    colors: paletteFor(sp, pet.variant, look?.coat, breed) as unknown as ColorMap,
     w: sprite[0].length,
     h: sprite.length,
   };
@@ -108,7 +123,8 @@ export function petSprite(
 
 /** Farben fürs Ei; bei zufälligem Fell zeigen die Flecken schon die Fellfarbe */
 export function eggColors(sp: SpeciesDef, look?: Look | null): ColorMap {
-  const coat = look ? sp.coats?.[look.coat]?.colors : undefined;
+  const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
+  const coat = look ? (breed?.coats ?? sp.coats)?.[look.coat]?.colors : undefined;
   return { o: '#3a2a1a', s: sp.egg.shell, x: coat?.a ?? sp.egg.spots };
 }
 

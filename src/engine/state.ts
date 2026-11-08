@@ -4,7 +4,8 @@ export type CallType = 'hunger' | 'happy' | 'poop' | 'sick' | 'sleepy' | 'light'
 
 /** Zufälliges Aussehen (z. B. Fellfarbe/Muster der Katze), bleibt ein Leben lang gleich */
 export interface Look {
-  coat: number; // Index in SpeciesDef.coats
+  breed?: number; // Index in SpeciesDef.breeds (z. B. Hunderassen)
+  coat: number; // Index in SpeciesDef.coats bzw. Breed.coats
   pattern: string; // Pattern-Name
   seed: number; // für Flecken-Positionen
 }

@@ -88,14 +88,16 @@ export function wake(p: Pet, natural: boolean, clock: number, rng: Rng, events: 
   p.asleep = false;
   p.lightOn = true;
   delete p.calls.light;
-  p.hunger = Math.min(p.hunger, RULES.hungryAfterWake);
   if (natural) {
+    // ausgeschlafen: hat Hunger
+    p.hunger = Math.min(p.hunger, RULES.hungryAfterWake);
     p.sleptInCycleMin = 0;
     p.poopInMin = randBetween(rng, RULES.morningPoopMin);
     addLog(p, clock, 'Ausgeschlafen aufgewacht.');
   } else {
-    p.happy = Math.max(0, p.happy - 1);
-    addLog(p, clock, 'Geweckt worden (schlecht gelaunt).');
+    // zu früh geweckt: Hunger bleibt, aber richtig schlechte Laune
+    p.happy = Math.max(0, p.happy - RULES.wokenEarlyHappyLoss);
+    addLog(p, clock, 'Zu früh geweckt (richtig schlecht gelaunt).');
   }
   events.push({ kind: 'woke' });
 }

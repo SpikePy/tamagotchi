@@ -312,7 +312,7 @@ export class App {
   private light() {
     const p = this.pet;
     if (p?.asleep && !p.lightOn) {
-      if (confirm('Wirklich aufwecken? Es wird schlecht gelaunt sein.')) this.act(wakeUp(this.s));
+      if (confirm('Wirklich aufwecken? Es wird richtig schlecht gelaunt sein (−2 Laune).')) this.act(wakeUp(this.s));
       return;
     }
     this.act(lightButton(this.s));
@@ -437,7 +437,7 @@ export class App {
         { class: 'choice' },
         c,
         h('b', {}, sp.name),
-        sp.coats ? h('small', {}, 'Fell & Muster: Überraschung!') : null,
+        sp.breeds ? h('small', {}, 'Rasse & Fell: Überraschung!') : sp.coats ? h('small', {}, 'Fell & Muster: Überraschung!') : null,
       );
       b.onclick = () => {
         if (!startEgg(this.s, sp.id, randomLook(sp))) return this.act({ ok: false, msg: `Mehr als ${MAX_PETS} Tiere gehen nicht.` });
@@ -504,7 +504,7 @@ export class App {
     const rows: [string, string][] = [
       ['Name', p.name ?? '–'],
       ['Tier', `${stageName(p)} (${sp.name})`],
-      ...(lookName(sp, p.look) ? [['Fell', lookName(sp, p.look)!] as [string, string]] : []),
+      ...(lookName(sp, p.look) ? [[sp.breeds ? 'Rasse & Fell' : 'Fell', lookName(sp, p.look)!] as [string, string]] : []),
       ['Phase', STAGE_LABEL[p.stage]],
       ['Alter', `${Math.floor(ageDays(p, this.s.clock))} Tage`],
     ];

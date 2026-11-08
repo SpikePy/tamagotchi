@@ -13,7 +13,8 @@ export const RULES = {
   // Minuten pro verlorenem Herz (nur im Wachzustand)
   hungerMinPerHeart: { baby: 120, other: 320 }, // 3 Mahlzeiten / 16 h wach
   happyMinPerHeart: { baby: 120, other: 240 },
-  hungryAfterWake: 1, // max. Herzen nach dem Aufwachen
+  hungryAfterWake: 1, // max. Herzen nach dem Ausschlafen
+  wokenEarlyHappyLoss: 2, // zu früh geweckt: so viele Herzen Laune weniger
 
   snackLimitPerDay: 3,
   overweightFactor: 1.6, // Gewicht > Basis * Faktor = übergewichtig

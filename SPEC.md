@@ -61,6 +61,22 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
   - **Muster:** einfarbig, getigert, gefleckt oder mit weißen Pfoten.
   - Bei der Auswahl steht „Fell & Muster: Überraschung!“. Die Flecken auf dem Ei zeigen aber schon die Fellfarbe. Im Status steht das Fell, zum Beispiel „Grau, getigert“.
   - Katzen-Minispiele: Laserpunkt (Timing), Links oder rechts? (in welchem Karton), Fische fangen (alte Socken meiden), Wollknäuel (nicht in die Wasserschale) und Spuren lesen.
+- **Hund:** wohnt drinnen (Zimmer mit Körbchen und Napf, wie die Katze, aber ohne Kratzbaum). Beim Anlegen des Eis werden **Rasse, Fellfarbe und Muster zufällig** festgelegt. Bei der Auswahl steht „Rasse & Fell: Überraschung!“, im Status zum Beispiel „Beagle, Dreifarbig, mit Sattel“. Es gibt **10 typische Rassen** mit eigenem Aussehen (Ohren, Schnauze, Schwanz, Beinlänge), passenden Farben und Mustern und eigenem Erwachsenengewicht:
+
+  | Rasse | Aussehen | Farben | Muster | Gewicht erwachsen |
+  |---|---|---|---|---|
+  | Labrador | Schlappohren | Schwarz, Blond, Schoko | einfarbig | 30 kg |
+  | Schäferhund | Stehohren | Schwarz-Braun, Grau | Sattel | 32 kg |
+  | Dackel | lange Schlappohren, kurze Beine | Rot, Schwarz-Braun | einfarbig / Abzeichen | 9 kg |
+  | Mops | kleine Ohren, dunkle platte Schnauze, Ringelschwanz | Beige, Schwarz | einfarbig | 7 kg |
+  | Husky | Stehohren, Ringelschwanz, blaue Augen | Grau-, Schwarz-, Rot-Weiß | einfarbig / weiße Pfoten | 23 kg |
+  | Beagle | lange Schlappohren, weiße Schwanzspitze | Dreifarbig, Zweifarbig | Sattel / gefleckt | 12 kg |
+  | Dalmatiner | Schlappohren | Schwarz oder Leberbraun getupft | getupft | 27 kg |
+  | Pudel | Wuschelohren, Haarschopf | Weiß, Schwarz, Apricot, Grau | einfarbig | 22 kg |
+  | Border Collie | Kippohren | Schwarz-Weiß, Braun-Weiß | einfarbig / weiße Pfoten / gefleckt | 18 kg |
+  | Corgi | große Stehohren, kurze Beine, kein Schwanz | Rot-Weiß, Dreifarbig | einfarbig / weiße Pfoten / Abzeichen | 12 kg |
+
+  Welpen wiegen etwa 1,5 %, Junghunde 20 % und Halbstarke 65 % des Erwachsenengewichts. Hunde-Minispiele: Frisbee fangen, In welchem Korb?, Leckerli fangen (Zitronen meiden), Ball werfen (nicht in die Pfütze) und Spuren lesen.
 - Fellfarben und Muster sind als Daten angelegt (`coats`, `patterns`) und lassen sich auch für andere Arten nutzen.
 - Die Architektur muss es erlauben, neue Tierarten hinzuzufügen, ohne die Spiellogik zu ändern. Eine Tierart besteht also aus Daten und Grafiken, nicht aus eigenem Code.
 
@@ -73,7 +89,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - Das Tier braucht **3 Mahlzeiten pro Tag**. Der Hunger sinkt gleichmäßig über den Tag.
 - Ist der Hunger bei 4 Herzen, lehnt das Tier weiteres Essen ab.
 - **Steht der Hunger zu lange auf 0** (Vorschlag: 2 h), **wird das Tier krank.**
-- Nach dem Aufwachen ist das Tier immer hungrig (Hunger auf maximal 1 Herz).
+- Nach dem **Ausschlafen** ist das Tier hungrig (Hunger auf maximal 1 Herz). Wird es zu früh geweckt, bleibt der Hunger unverändert.
 
 ### 6.2 Schlafen
 
@@ -85,8 +101,8 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - **Müdigkeit beim Schlüpfen:** Sie richtet sich nach der Uhrzeit, so als wäre das Tier um 7 Uhr ausgeschlafen aufgewacht. Die Müdigkeit steigt im Wachzustand in 16 Stunden von 0 auf 100 %. Schlüpft es zum Beispiel um 18 Uhr, startet es mit etwa 69 % und schläft gegen 23 Uhr ein. Schlüpft es nachts zwischen 23 und 7 Uhr, ist es sofort müde.
 - Ist die Müdigkeit bei 100 %, schläft es von selbst ein. Das Licht bleibt dabei an, bis man es ausmacht.
 - **Sobald es insgesamt 8 Stunden geschlafen hat, wacht es automatisch auf.** Nickerchen zählen mit. Dieses Aufwachen gilt als „morgens“, danach beginnt der Zähler wieder bei 0.
-- Man kann es auch vorher wecken, dann ist es aber schlecht gelaunt (ergänzt). Was es bis dahin geschlafen hat, zählt für die 8 Stunden mit.
-- **Hat es nach dem Aufwachen Hunger**, siehe 6.1.
+- Man kann es auch vorher wecken. Dann hat es **richtig schlechte Laune (−2 Herzen)**, aber nicht mehr Hunger als vorher. Was es bis dahin geschlafen hat, zählt für die 8 Stunden mit.
+- **Nach dem Ausschlafen hat es Hunger**, siehe 6.1.
 - Bekommt es zu wenig Schlaf (Vorschlag: weniger als 6 h in 24 h), sinkt die Laune stärker. Dauert das länger an, wird es krank (ergänzt).
 
 ### 6.3 Hygiene
@@ -183,7 +199,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
 **Umgebung je Tierart:**
 - **Katze:** wohnt drinnen im Zimmer (siehe unten).
-- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**: Der Baum hat einen schlanken Stamm mit Rindenstruktur, Licht und Schatten, einen Aststummel, Wurzeln und eine schattierte Krone. Unten im Stamm ist eine bogenförmige Höhle mit Laubpolster. Gefüttert wird auf einem flachen Stein.
+- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist eine bogenförmige Höhle mit Laubpolster. Gefüttert wird auf einem flachen Stein.
 - **Igel:** lebt draußen **im Garten**: Hecke, Holzzaun, Busch mit Beeren, Blumen, Rasen mit Herbstlaub. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 
@@ -194,12 +210,10 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - Morgens und abends ist der Himmel **orange**, in der Dämmerung blassblau.
 - Nachts zieht der **Mond** seinen Bogen, dazu leuchten Sterne.
 
-**Pflanze:** Links auf dem Boden steht eine große **Zimmerpflanze** im Topf. Sie bewegt sich nicht.
-
 **Deko je Tierart:** Sie ist als Daten in der Tierart angelegt (`room`).
 - **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
-- **Katze:** ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt.
+- **Katze:** ganz links im Zimmer steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt. Eine Zimmerpflanze gibt es nicht mehr.
 
 **Animationen:**
 - **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.

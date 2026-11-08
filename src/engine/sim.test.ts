@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DAY, HOUR, MIN } from './config';
 import { activePet, newGame } from './state';
 import { advance, tirednessAtHatch } from './sim';
-import { clean, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg } from './actions';
+import { clean, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg, wakeUp } from './actions';
 
 const T0 = new Date(2026, 0, 1, 8, 0).getTime();
 const rng = () => 0.5;
@@ -227,5 +227,22 @@ describe('Mehrere Tiere', () => {
     expect(s.version).toBe(2);
     expect(s.pets).toHaveLength(1);
     expect(s.activeId).toBe(s.pets[0].id);
+  });
+});
+
+describe('Zu früh wecken', () => {
+  it('kostet 2 Laune, aber macht nicht hungrig', () => {
+    const s = game();
+    run(s, MIN);
+    const p = activePet(s)!;
+    p.tiredness = 90;
+    lightButton(s);
+    run(s, HOUR);
+    p.hunger = 4;
+    p.happy = 4;
+    expect(wakeUp(s).ok).toBe(true);
+    expect(p.asleep).toBe(false);
+    expect(p.hunger).toBe(4);
+    expect(p.happy).toBe(2);
   });
 });

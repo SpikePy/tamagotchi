@@ -146,7 +146,7 @@ function inEllipse(x: number, y: number, rx: number, ry: number, cy = NEST_BASE)
 
 /** halbe Stammbreite je Zeile, unten mit Wurzeln breiter */
 const trunkHalf = (y: number) => (y < 37 ? 7 : 7 + Math.round((y - 36) * 1.5));
-const TRUNK_TOP = 15;
+const TRUNK_TOP = 0; // Stamm reicht über den oberen Bildrand hinaus, Krone nicht sichtbar
 // Höhle: Torbogen mit rundem Dach
 const HOLE_HALF = 6;
 const HOLE_TOP = 25;
@@ -157,33 +157,6 @@ const inHole = (x: number, y: number, grow = 0) => {
   if (y >= archY) return Math.abs(x - NEST_CX) <= r;
   return (x - NEST_CX) ** 2 + (y - archY) ** 2 <= r * r;
 };
-
-function drawCrown(ctx: CanvasRenderingContext2D) {
-  const blobs: [number, number, number, number][] = [
-    [49, 9, 10, 6], [41, 12, 6, 4], [57, 12, 6, 4], [45, 5, 6, 4], [54, 5, 6, 4],
-  ];
-  // erst dunkler Umriss (1 px größer), dann gefüllt mit Licht von links oben
-  for (const pass of [0, 1])
-    for (const [bx, by, rx, ry] of blobs)
-      for (let y = by - ry - 1; y <= by + ry + 1; y++)
-        for (let x = bx - rx - 1; x <= bx + rx + 1; x++) {
-          const g = pass === 0 ? 1 : 0;
-          const d = ((x - bx) / (rx + g)) ** 2 + ((y - by) / (ry + g)) ** 2;
-          if (d > 1) continue;
-          if (pass === 0) {
-            px(ctx, '#24461f', x, y);
-            continue;
-          }
-          const light = (x - bx) / rx + (y - by) / ry;
-          const n = hash(x + 31, y) % 9;
-          let c = '#43783a';
-          if (light < -0.6) c = n < 3 ? '#7cc45a' : '#5fa84a';
-          else if (light > 0.7) c = '#2f5a26';
-          else if (n === 0) c = '#5fa84a';
-          else if (n === 1) c = '#36652f';
-          px(ctx, c, x, y);
-        }
-}
 
 export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
   if (kind === 'forest') {
@@ -201,8 +174,10 @@ export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
       }
     }
     // Aststummel links
-    px(ctx, '#3e2814', NEST_CX - 11, 21, 5, 3);
-    px(ctx, '#7a5230', NEST_CX - 10, 22, 4, 1);
+    px(ctx, '#3e2814', NEST_CX - 11, 12, 5, 3);
+    px(ctx, '#7a5230', NEST_CX - 10, 13, 4, 1);
+    // Astloch weiter oben
+    px(ctx, '#3e2814', NEST_CX + 2, 6, 3, 2);
     // Höhle: dunkler Rand, warmes Inneres, Laubpolster am Boden
     for (let y = HOLE_TOP - 1; y <= NEST_BASE; y++)
       for (let x = NEST_CX - HOLE_HALF - 1; x <= NEST_CX + HOLE_HALF + 1; x++) {
@@ -212,7 +187,6 @@ export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
         if (inHole(x, y) && y >= NEST_BASE - 2) c = ['#a8743e', '#c48a3e', '#8a5a2b'][hash(x, y) % 3];
         px(ctx, c, x, y);
       }
-    drawCrown(ctx);
   } else {
     // Laubhaufen mit Mulde, innen etwas heller
     for (let y = NEST_BASE - 11; y <= NEST_BASE; y++)

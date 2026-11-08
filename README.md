@@ -1,6 +1,6 @@
 # Waldling – virtuelles Haustier
 
-Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die sich auf Android installieren lässt. Man zieht einen **Fuchs**, einen **Igel** oder eine **Katze** (mit zufälliger Fellfarbe und Muster) vom Ei bis zum Erwachsenen groß: füttern, schlafen legen, sauber machen, spielen, erziehen und gesund pflegen. Alles läuft in Echtzeit und geht auch weiter, wenn die App zu ist.
+Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die sich auf Android installieren lässt. Man zieht einen **Fuchs**, einen **Igel**, eine **Katze** (mit zufälliger Fellfarbe und Muster) oder einen **Hund** (10 Rassen, zufällige Farbe und Muster) vom Ei bis zum Erwachsenen groß: füttern, schlafen legen, sauber machen, spielen, erziehen und gesund pflegen. Alles läuft in Echtzeit und geht auch weiter, wenn die App zu ist.
 
 **▶ Jetzt spielen: https://spikepy.github.io/tamagotchi/**
 
@@ -13,7 +13,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 <p align="center">
   <img src="docs/screenshots/multi.png" width="260" alt="Drei Tiere mit Umschalter oben">
   <img src="docs/screenshots/cat-day.png" width="260" alt="Eine getigerte graue Katze und ihr Körbchen">
-  <img src="docs/screenshots/cats.png" width="520" alt="Alle Tiere in allen Stufen und die Katzen-Fellvarianten">
+  <img src="docs/screenshots/cats.png" width="520" alt="Alle Tiere in allen Stufen, Katzen-Fellvarianten und Hunderassen">
 </p>
 
 <p align="center">
@@ -34,6 +34,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 - **Hygiene:** Es kackt alle 1–3 Stunden. Liegt ein Haufen länger als 4 Stunden, wird es krank.
 - **Mehrere Tiere:** bis zu 4 gleichzeitig, Umschalter oben
 - **Umgebung:** Fuchs am Waldrand mit Baumhöhle, Igel im Garten mit Laubhaufen, Katze im Zimmer mit Körbchen und Kratzbaum
+- **Hunde:** 10 Rassen (Labrador, Schäferhund, Dackel, Mops, Husky, Beagle, Dalmatiner, Pudel, Border Collie, Corgi), zufällig mit passender Farbe und Muster
 - **Katzen-Fell:** 6 Fellfarben × 4 Muster (einfarbig, getigert, gefleckt, weiße Pfoten), zufällig pro Tier.
 - **5 Minispiele pro Tier:** zum Beispiel Mäusesprung, Links oder rechts?, Beeren fangen, Stöckchen holen und Spuren lesen.
 - **Rufen:** Braucht das Tier etwas, ruft es mit Ton und Benachrichtigung. Reagiert man nicht innerhalb von 15 Minuten, zählt das als Pflegefehler.

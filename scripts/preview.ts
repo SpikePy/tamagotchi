@@ -17,6 +17,17 @@ for (const stage of ['baby', 'adult'] as Stage[])
   for (const pattern of cat.patterns!)
     rows.push(cat.coats!.map((_, coat) => ({ sp: 'cat', stage, look: { coat, pattern, seed: 7 + coat } })));
 
+const dog = SPECIES.dog;
+dog.breeds!.forEach((b, breed) => {
+  const row: Cell[] = (['baby', 'child', 'teen', 'adult'] as Stage[]).map((stage) => ({
+    sp: 'dog', stage, look: { breed, coat: 0, pattern: (b.coats[0].patterns ?? b.patterns ?? ['solid'])[0], seed: 5 },
+  }));
+  b.coats.forEach((c, coat) => (c.patterns ?? b.patterns ?? ['solid']).forEach((pattern) =>
+    row.push({ sp: 'dog', stage: 'adult', look: { breed, coat, pattern, seed: 9 + coat } })));
+  rows.push(row);
+});
+const only = process.argv[3];
+if (only) rows.splice(0, rows.length, ...rows.filter((r) => r[0].sp === only));
 const cols = Math.max(...rows.map((r) => r.length));
 const W = cols * CELL * S, H = rows.length * CELL * S;
 const buf = Buffer.alloc(W * H * 4, 255);

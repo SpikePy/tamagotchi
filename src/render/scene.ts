@@ -68,38 +68,8 @@ const WIN = { x: 37, y: 3, w: 22, h: 16 };
 const SUNRISE = 7;
 const SUNSET = 20;
 const STARS: [number, number][] = [[2, 2], [8, 1], [15, 3], [19, 7], [4, 9], [12, 6], [17, 12], [6, 13]];
-const PLANT_COLORS: ColorMap = { g: '#4d9a3a', l: '#7cc45a', d: '#2f6b2a', o: '#3a2a1a', t: '#c0623a', s: '#e07a4a' };
-// große Zimmerpflanze links auf dem Boden
-const PLANT_X = 0;
-const PLANT_LEAVES = [
-  '.....l......',
-  '....lgl...l.',
-  '.l..lgl..lgl',
-  'lgl.lgl..lgl',
-  'lgl..g..lggl',
-  'lggl.g.lggl.',
-  '.lggdgdggl..',
-  '..lgdgdgl...',
-  '.l.dgggd.l..',
-  'lgl.dgd.lgl.',
-  'lggl.d.lggl.',
-  '.lggdgdggl..',
-  '...dgggd....',
-  '....dgd.....',
-  '.....d......',
-];
-const PLANT_POT = [
-  '.oooooooooo.',
-  '.osssssssso.',
-  '..otttttto..',
-  '..otttttto..',
-  '..otttttto..',
-  '...otttto...',
-  '...oooooo...',
-];
-
 // Kratzbaum (Katze)
-const POST_X = 24;
+const POST_X = 1; // ganz links im Zimmer
 const POST = [
   '..ooooooo..',
   '.ommmmmmmo.',
@@ -285,7 +255,6 @@ export class Scene {
     ctx.fillRect(0, FLOOR_Y, SCREEN_W, 1);
     this.drawWindow(clock);
     this.drawDecor(sp, t);
-    this.drawPlant();
   }
 
   /** Fenster: Sonne (7–20 Uhr) bzw. Mond wandern im Bogen über den Himmel */
@@ -323,13 +292,6 @@ export class Scene {
     ctx.fillRect(WIN.x, WIN.y + WIN.h / 2, WIN.w, 1);
     ctx.fillStyle = '#7a5c3c';
     ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 2);
-  }
-
-  /** Große Zimmerpflanze links auf dem Boden */
-  private drawPlant() {
-    const potY = FLOOR_Y + 1 - PLANT_POT.length;
-    drawMap(this.ctx, PLANT_LEAVES, PLANT_COLORS, PLANT_X, potY - PLANT_LEAVES.length);
-    drawMap(this.ctx, PLANT_POT, PLANT_COLORS, PLANT_X, potY);
   }
 
   /** Deko passend zur Tierart: Gras, Laub, Kratzbaum */

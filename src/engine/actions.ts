@@ -102,7 +102,7 @@ export function wakeUp(s: GameState, rng: Rng = Math.random): ActionResult {
   if (!p || !p.asleep) return no('Es ist wach.');
   const events: SimEvent[] = [];
   wake(p, false, s.clock, rng, events);
-  return yes('Aufgeweckt. Es ist grummelig.', events);
+  return yes('Aufgeweckt. Es ist richtig schlecht gelaunt!', events);
 }
 
 export function giveMedicine(s: GameState): ActionResult {
