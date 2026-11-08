@@ -33,9 +33,34 @@ body {
   padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
 
+/* Gerät so groß wie möglich: Breite richtet sich nach der Bildschirmhöhe
+   (Bild 4:3 + ca. 340 px für Leisten, Meldung und Knöpfe) */
 #app {
   width: 100%;
-  max-width: 440px;
+  max-width: max(360px, min(1000px, calc((100dvh - 480px) * 4 / 3)));
+  container-type: inline-size;
+}
+
+/* Schrift und Knöpfe wachsen mit dem Gerät mit */
+.act {
+  font-size: clamp(12px, 2.2cqw, 18px) !important;
+  padding: clamp(8px, 1.6cqw, 16px) 2px !important;
+}
+.act .ico {
+  font-size: clamp(22px, 4.4cqw, 40px);
+}
+.msg {
+  font-size: clamp(15px, 2.6cqw, 22px) !important;
+}
+.hud {
+  font-size: clamp(14px, 2.2cqw, 19px) !important;
+}
+.pet-tab {
+  font-size: clamp(13px, 2cqw, 17px) !important;
+}
+.tab-pic {
+  width: clamp(28px, 4.5cqw, 40px) !important;
+  height: clamp(28px, 4.5cqw, 40px) !important;
 }
 
 .device {
@@ -607,4 +632,19 @@ summary {
   .tab-dot {
     animation: none;
   }
+}
+
+/* Gerät füllt die volle Bildschirmhöhe; übriger Platz geht an die Meldungszeile */
+.device {
+  min-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
+}
+.device .msg {
+  flex: 1 1 auto;
+}
+.device .actions {
+  flex: none;
+  grid-auto-rows: clamp(64px, 10dvh, 110px);
+}
+.device .act {
+  justify-content: center;
 }

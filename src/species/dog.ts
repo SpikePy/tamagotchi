@@ -15,6 +15,60 @@ function shape(d: DogShape) {
   return { sprites: buildDogSprites(d), sleep: sleepOf(d) };
 }
 
+const DACKEL = {
+  baby: [
+    '..oooo........',
+    '.oaaaao.......',
+    'oaaEaaco......',
+    'oaaeaacco...o.',
+    'nbaaaacccoooao',
+    'obbaaacccaaaao',
+    '.ooooaoccaaao.',
+    '...obbaobbbao.',
+    '...oaoooooao..',
+    '...ooo..ooo...',
+  ],
+  child: [
+    '..oooo............',
+    '.oaaaao...........',
+    'oaaEaaco..........',
+    'oaaeaacco.......o.',
+    'nbaaaacccoooooooao',
+    'obbaaacccaaaaaaaao',
+    '.oooaaoccaaaaaaao.',
+    '...obbbaobbbbbaao.',
+    '...oaoaooooooaoao.',
+    '...ooooo....oooo..',
+  ],
+  teen: [
+    '...oooo.............',
+    '..oaaaao............',
+    '.oaaEaaco...........',
+    'oaaaeaacco........o.',
+    'nbaaaaacccoooooooaao',
+    'obbaaaacccaaaaaaaaao',
+    '.ooooaaoccaaaaaaaao.',
+    '....oaaaocaaaaaaaao.',
+    '....obbbaobbbbbbbao.',
+    '....oaoaooooooooaoo.',
+    '....ooooo......ooo..',
+  ],
+  adult: [
+    '...oooo...............',
+    '..oaaaao..............',
+    '.oaaEaaco.............',
+    'oaaaeaacco..........o.',
+    'nbaaaaacccooooooooooao',
+    'obbaaaacccaaaaaaaaaaao',
+    '.ooooaaoccaaaaaaaaaao.',
+    '....oaaaocaaaaaaaaaao.',
+    '....obbbaobbbbbbbaaao.',
+    '....oaoaoooooooooaoao.',
+    '....oaoao.......oaoao.',
+    '....ooooo.......ooooo.',
+  ],
+};
+
 export const DOG_BREEDS: Breed[] = [
   {
     name: 'Labrador',
@@ -38,7 +92,9 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Dackel',
+    // eigene, handgezeichnete Seitenansicht: langer, niedriger Körper, kurze Beine
     ...shape({ ears: 'floppyLong', tail: 'straight', short: true }),
+    sprites: DACKEL,
     coats: [
       { name: 'Rot', colors: { a: '#b0582a', c: '#8a4220', b: '#c06a38' } },
       { name: 'Schwarz-Braun', colors: { a: '#2a2420', c: '#1e1a18', b: '#b5793e', d: '#b5793e', ...DARK_EYES }, patterns: ['points'] },
@@ -142,7 +198,7 @@ export const dog: SpeciesDef = {
   },
   // Standard-Gewichte (Labrador); je Rasse wird über breeds[].adultGrams gerechnet
   weightGrams: { baby: 450, child: 6000, teen: 20000, adult: 30000 },
-  room: {},
+  room: { ball: true },
   breeds: DOG_BREEDS,
   egg: { shell: '#f6efe4', spots: '#c8925a' },
   sprites: DOG_BREEDS[0].sprites,

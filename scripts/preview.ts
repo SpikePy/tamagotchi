@@ -30,7 +30,8 @@ dog.breeds!.forEach((b, breed) => {
 rows.push(Object.keys(SPECIES).flatMap((id) => (['child', 'adult'] as Stage[]).map((stage) => ({ sp: id, stage, sleeping: true, look: id === 'cat' ? { coat: 1, pattern: 'tabby', seed: 3 } : null }))));
 rows.push(SPECIES.dog.breeds!.map((b, breed) => ({ sp: 'dog', stage: 'adult' as Stage, sleeping: true, look: { breed, coat: 0, pattern: (b.coats[0].patterns ?? b.patterns ?? ['solid'])[0], seed: 5 } })));
 const only = process.argv[3];
-if (only === 'sleep') rows.splice(0, rows.length, ...rows.filter((r) => r[0].sleeping));
+if (only === 'dackel') rows.splice(0, rows.length, ...rows.filter((r) => r[0].sp === 'dog' && r[0].look?.breed === 2));
+else if (only === 'sleep') rows.splice(0, rows.length, ...rows.filter((r) => r[0].sleeping));
 else if (only) rows.splice(0, rows.length, ...rows.filter((r) => r[0].sp === only));
 const cols = Math.max(...rows.map((r) => r.length));
 const W = cols * CELL * S, H = rows.length * CELL * S;

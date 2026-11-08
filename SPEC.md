@@ -37,7 +37,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
-**HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild** als Leisten mit je **4 Segmenten** (links ein Keulen-Symbol für Sättigung, daneben ein Smiley für Laune). Ist nur noch ein Segment voll, wird die Leiste rot und blinkt. Rechts im HUD stehen die Warnsymbole (Totenkopf bei Krankheit, Ausrufezeichen beim Rufen). Das HUD bleibt auch nachts und bei Licht aus hell.
+**HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild** als schmale Leisten mit je **4 Segmenten**: **Sättigung links oben** (Keulen-Symbol), **Laune rechts oben** (Smiley). Ist nur noch ein Segment voll, wird die Leiste rot und blinkt. Die Warnsymbole (Totenkopf bei Krankheit, Ausrufezeichen beim Rufen) stehen oben in der Mitte. Alle HUD-Elemente haben einen kleinen dunklen Hintergrund. Das HUD bleibt auch nachts und bei Licht aus hell.
 
 ## 4. Lebenszyklus
 
@@ -69,7 +69,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
   |---|---|---|---|---|
   | Labrador | Schlappohren | Schwarz, Blond, Schoko | einfarbig | 30 kg |
   | Schäferhund | Stehohren | Schwarz-Braun, Grau | Sattel | 32 kg |
-  | Dackel | lange Schlappohren, kurze Beine | Rot, Schwarz-Braun | einfarbig / Abzeichen | 9 kg |
+  | Dackel | eigene Seitenansicht: langer, niedriger Körper, kurze Beine, lange Schnauze, Schlappohr | Rot, Schwarz-Braun | einfarbig / Abzeichen | 9 kg |
   | Mops | kleine Ohren, dunkle platte Schnauze, Ringelschwanz | Beige, Schwarz | einfarbig | 7 kg |
   | Husky | Stehohren, Ringelschwanz, blaue Augen | Grau-, Schwarz-, Rot-Weiß | einfarbig / weiße Pfoten | 23 kg |
   | Beagle | lange Schlappohren, weiße Schwanzspitze | Dreifarbig, Zweifarbig | Sattel / gefleckt | 12 kg |
@@ -185,6 +185,8 @@ Bei einem Ei werden die Parameter ignoriert.
 
 ## 8. UI
 
+**Größe:** Das Gerät nutzt den Bildschirm aus. Die Breite richtet sich nach der Bildschirmhöhe (bis 1000 px), und das Gerät füllt die volle Höhe. Schrift, Knöpfe und Tier-Leiste wachsen mit. Am Handy füllt es die ganze Breite und Höhe.
+
 Die Hauptansicht zeigt das Tier in seinem Zuhause, die Haufen und alle Statussymbole (Schlaf, Krankheit, Rufen). Darunter liegt eine Aktionsleiste mit:
 
 | Aktion | Funktion |
@@ -205,7 +207,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Igel:** lebt draußen **im Garten**: Hecke, Holzzaun, Busch mit Beeren, Blumen, Rasen mit Herbstlaub. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 
-**Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein geflochtener Weidenkorb mit geflochtenem Rand, nach unten schmaler werdend und mit Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Neben der Pflanze steht ein **Futternapf**. Die Haufen landen zwischen Napf und Körbchen.
+**Einrichtung (Katze, drinnen):** Das **Körbchen** steht rechts unter dem Fenster. Es ist ein geflochtener Weidenkorb mit geflochtenem Rand, nach unten schmaler werdend und mit Kissen. Das Ei liegt darin, und zum Schlafen legt sich das Tier hinein. Wach läuft es im Raum herum. Links im Raum steht ein **Futternapf** (bzw. Stein/Tonschale draußen). Die Haufen landen zwischen Napf und Körbchen.
 
 **Fenster:** An der Wand hängt ein großes Fenster, durch das man die echte Tageszeit sieht:
 - Die **Sonne** wandert zwischen 7 und 20 Uhr im Bogen durchs Fenster. Sie geht links unten auf, steht mittags oben und geht rechts unten unter.
@@ -215,6 +217,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Deko je Tierart:** Sie ist als Daten in der Tierart angelegt (`room`).
 - **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
+- **Hund:** auf dem Boden liegt ein Tennisball.
 - **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt. Eine Zimmerpflanze gibt es nicht mehr.
 
 **Animationen:**

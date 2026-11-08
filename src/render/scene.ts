@@ -38,7 +38,7 @@ const BASKET_FRONT = [
 ];
 
 // Futternapf neben der Pflanze
-const BOWL_X = 12;
+const BOWL_X = 15;
 const BOWL_Y = FLOOR_Y + 2;
 const BOWL = ['.ooooooo.', 'ohhhhhhho', '.obbbbbo.', '..ooooo..'];
 const FOOD_LEVELS = [
@@ -82,6 +82,10 @@ const POST = [
   'ooooooooooo',
 ];
 const POST_COLORS: ColorMap = { o: '#4a3a30', m: '#b9a58a', r: '#d8c08e', R: '#b89a62', l: '#5a4a40', y: '#e2384d' };
+
+// Tennisball (Hund)
+const BALL = ['.ooo.', 'oyyso', 'oysyo', 'osyyo', '.ooo.'];
+const BALL_COLORS: ColorMap = { o: '#5a6a1a', y: '#d8e84a', s: '#f6f6e4' };
 
 // Grasbüschel (Fuchs) und Herbstlaub (Igel)
 const TUFT = ['l.l.l', '.lgl.', 'ggggg'];
@@ -227,38 +231,48 @@ export class Scene {
     this.drawHud(p, t);
   }
 
-  /** HUD oben im Bild wie in einem Videospiel: Sättigung, Laune, Warnsymbole */
+  /** HUD oben im Bild wie in einem Videospiel: Sättigung links, Laune rechts, Warnsymbole in der Mitte */
   private drawHud(p: Pet, t: number) {
     const ctx = this.ctx;
-    ctx.fillStyle = 'rgba(20,16,12,0.45)';
-    ctx.fillRect(0, 0, SCREEN_W, 9);
+    const BAR_W = 13;
     if (p.stage !== 'egg') {
-      drawMap(ctx, HUD_FOOD, HUD_ICON_COLORS, 1, 2);
-      this.drawBar(7, 2, hearts(p.hunger), '#f2a23a', t);
-      drawMap(ctx, HUD_SMILE, HUD_ICON_COLORS, 26, 2);
-      this.drawBar(32, 2, hearts(p.happy), '#f2d64b', t);
+      ctx.fillStyle = 'rgba(20,16,12,0.4)';
+      ctx.fillRect(0, 0, 20, 7);
+      ctx.fillRect(SCREEN_W - 20, 0, 20, 7);
+      drawMap(ctx, HUD_FOOD, HUD_ICON_COLORS, 1, 1);
+      this.drawBar(6, 1, hearts(p.hunger), '#f2a23a', t);
+      this.drawBar(SCREEN_W - 1 - BAR_W, 1, hearts(p.happy), '#f2d64b', t);
+      drawMap(ctx, HUD_SMILE, HUD_ICON_COLORS, SCREEN_W - 2 - BAR_W - 5, 1);
     }
-    // rechts: krank / ruft
-    let ix = SCREEN_W - 3;
-    if (Object.keys(p.calls).length > 0 && Math.floor(t / 500) % 2 === 0) {
-      ix -= 2;
-      drawMap(ctx, ICONS.bang.map, ICONS.bang.colors, ix, 2);
-    } else if (Object.keys(p.calls).length > 0) ix -= 2;
-    if (p.sick) drawMap(ctx, ICONS.skull.map, ICONS.skull.colors, ix - 7, 2);
+    // Mitte: krank / ruft
+    const calling = Object.keys(p.calls).length > 0;
+    const icons: { map: string[]; colors: ColorMap }[] = [];
+    if (p.sick) icons.push(ICONS.skull);
+    if (calling && Math.floor(t / 500) % 2 === 0) icons.push(ICONS.bang);
+    const width = (p.sick ? 5 : 0) + (calling ? 2 : 0) + (p.sick && calling ? 2 : 0);
+    let x = Math.round(SCREEN_W / 2 - width / 2);
+    if (width) {
+      ctx.fillStyle = 'rgba(20,16,12,0.4)';
+      ctx.fillRect(x - 2, 0, width + 4, 7);
+    }
+    for (const icon of icons) {
+      drawMap(ctx, icon.map, icon.colors, x, 1);
+      x += icon.map[0].length + 2;
+    }
   }
 
-  /** Leiste mit 4 Segmenten; bei 0–1 Segment rot blinkend */
+  /** schmale Leiste mit 4 Segmenten; bei 0–1 Segment rot blinkend */
   private drawBar(x: number, y: number, filled: number, color: string, t: number) {
     const ctx = this.ctx;
     const low = filled <= 1 && Math.floor(t / 400) % 2 === 0;
     ctx.fillStyle = '#1a140e';
-    ctx.fillRect(x, y, 4 * 4 + 1, 5);
+    ctx.fillRect(x, y, 13, 5);
     for (let i = 0; i < 4; i++) {
       ctx.fillStyle = i < filled ? (low ? '#e2384d' : color) : '#4a4038';
-      ctx.fillRect(x + 1 + i * 4, y + 1, 3, 3);
+      ctx.fillRect(x + 1 + i * 3, y + 1, 2, 3);
       if (i < filled) {
         ctx.fillStyle = 'rgba(255,255,255,0.45)';
-        ctx.fillRect(x + 1 + i * 4, y + 1, 3, 1);
+        ctx.fillRect(x + 1 + i * 3, y + 1, 2, 1);
       }
     }
   }
@@ -338,6 +352,7 @@ export class Scene {
     if (room.floor === 'leaves') {
       for (const [x, y, c, shape] of LEAVES) drawMap(ctx, LEAF_SHAPES[shape], { x: LEAF_COLORS[c] }, x, y);
     }
+    if (room.ball) drawMap(ctx, BALL, BALL_COLORS, 6, FLOOR_Y + 2);
     if (room.scratchingPost) {
       const top = FLOOR_Y + 1 - POST.length;
       drawMap(ctx, POST, POST_COLORS, POST_X, top);
@@ -358,7 +373,7 @@ export class Scene {
     const cleaning = t < this.cleaningUntil;
     p.poops.slice(0, 6).forEach((_, i) => {
       // zwischen Pflanze und Körbchen, 3 nebeneinander, dann eine zweite Reihe
-      const x = 23 + (i % 3) * 4 + (Math.floor(i / 3) % 2) * 2 + (cleaning ? (this.cleaningUntil - t) / 20 : 0);
+      const x = 26 + (i % 3) * 4 + (Math.floor(i / 3) % 2) * 2 + (cleaning ? (this.cleaningUntil - t) / 20 : 0);
       const y = FLOOR_Y + 1 - Math.floor(i / 3) * 2 + (i % 2);
       drawMap(ctx, ICONS.poop.map, ICONS.poop.colors, x, y);
       if (!cleaning) {

@@ -55,7 +55,7 @@ export interface SpeciesDef {
   /** Schlafpose (eingerollt) */
   sleep: SleepShape;
   /** Deko im Raum passend zur Art */
-  room?: { scene?: 'room' | 'forest' | 'garden'; floor?: 'grass' | 'leaves'; scratchingPost?: boolean };
+  room?: { scene?: 'room' | 'forest' | 'garden'; floor?: 'grass' | 'leaves'; scratchingPost?: boolean; ball?: boolean };
   /** optional: zufällige Fellfarbe + Muster pro Tier */
   coats?: Coat[];
   patterns?: Pattern[];
