@@ -8,24 +8,49 @@ export const SCREEN_W = 64;
 export const SCREEN_H = 48;
 const FLOOR_Y = 40;
 
-// Körbchen unter dem Fenster
+// Körbchen unter dem Fenster (geflochten, mit Kissen)
 const BASKET_X = 37;
 const BASKET_Y = FLOOR_Y - 6;
-const BASKET_CX = BASKET_X + 11;
-const BASKET_COLORS: ColorMap = { o: '#4a2f17', a: '#b5824a', c: '#8a5a2b', b: '#d9a86a', p: '#6c8fd1' };
+const BASKET_CX = BASKET_X + 12;
+const BASKET_COLORS: ColorMap = {
+  o: '#4a2f17', // Umriss
+  b: '#e0b57a', // Flechtrand hell
+  c: '#a8743e', // Flechtrand dunkel
+  a: '#c48f55', // Geflecht
+  x: '#8a5a2b', // Weidenstäbe
+  i: '#5a3a20', // Innenschatten
+  p: '#6c8fd1', // Kissen
+};
 const BASKET_BACK = [
-  '...oooooooooooooooo...',
-  '..obbbbbbbbbbbbbbbbo..',
-  '.oppppppppppppppppppo.',
+  '....oooooooooooooooo....',
+  '..oobbbbbbbbbbbbbbbboo..',
+  '.oiippppppppppppppppiio.',
 ];
 const BASKET_FRONT = [
-  'oooooooooooooooooooooo',
-  'obbbbbbbbbbbbbbbbbbbbo',
-  'oaacaacaacaacaacaacaao',
-  'ocaacaacaacaacaacaacao',
-  'oaacaacaacaacaacaacaao',
-  '.oooooooooooooooooooo.',
+  'oobcbcbcbcbcbcbcbcbcbcoo',
+  'ocbcbcbcbcbcbcbcbcbcbcbo',
+  'oxaaxaaxaaxaaxaaxaaxaaxo',
+  '.oaxaaxaaxaaxaaxaaxaaxo.',
+  '.oxaaxaaxaaxaaxaaxaaxao.',
+  '..oaxaaxaaxaaxaaxaaxao..',
+  '...oooooooooooooooooo...',
 ];
+
+// Futternapf neben der Pflanze
+const BOWL_X = 12;
+const BOWL_Y = FLOOR_Y + 2;
+const BOWL = ['.ooooooo.', 'ohhhhhhho', '.obbbbbo.', '..ooooo..'];
+const BOWL_COLORS: ColorMap = { o: '#2e4a7a', h: '#8fb3e6', b: '#5b86c9' };
+const FOOD_LEVELS = [
+  [], // leer
+  ['.......', '..fkf..'],
+  ['.......', '.fkfkf.'],
+  ['..fkf..', '.fkfkf.'],
+];
+const FOOD_COLORS: Record<'food' | 'candy', ColorMap> = {
+  food: { f: '#8a5a2b', k: '#b07a42' },
+  candy: { f: '#e46fb1', k: '#fff2f8' },
+};
 
 // Risse im Ei (relativ zum Ei), je Stufe kommen mehr dazu
 const CRACKS: [number, number][][] = [
@@ -70,7 +95,8 @@ const PLANT_POT = [
 type FxKind = 'food' | 'candy' | 'pill' | 'heart' | 'angry' | 'sparkle';
 
 const HATCH_MS = 1800;
-const EAT_MS = 1500;
+const EAT_MS = 2400; // Fressen am Napf
+const WALK_SPEED_TO_BOWL = 28; // Pixel pro Sekunde
 
 export class Scene {
   private ctx: CanvasRenderingContext2D;
@@ -80,7 +106,10 @@ export class Scene {
   private flashStart = -Infinity;
   private jumpStart = -Infinity;
   private shakeStart = -Infinity;
-  private lastX = 30;
+  private meal: { kind: 'food' | 'candy'; eatStart: number | null } | null = null;
+  private walkX = 30;
+  private walkDir = 1;
+  private lastFrame = performance.now();
 
   constructor(canvas: HTMLCanvasElement) {
     canvas.width = SCREEN_W;
@@ -90,8 +119,13 @@ export class Scene {
 
   effect(kind: FxKind) {
     const now = performance.now();
+    if (kind === 'food' || kind === 'candy') {
+      // Futter erscheint im Napf, das Tier läuft hin und frisst
+      this.meal = { kind, eatStart: null };
+      return;
+    }
     this.fx = { kind, start: now, until: now + 1500 };
-    if (kind === 'heart' || kind === 'candy' || kind === 'sparkle') this.jumpStart = now + (kind === 'candy' ? EAT_MS : 0);
+    if (kind === 'heart' || kind === 'sparkle') this.jumpStart = now;
     if (kind === 'angry') this.shakeStart = now;
   }
 
@@ -140,6 +174,9 @@ export class Scene {
       drawMap(ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + 3);
       this.drawPetWalking(p, sp, t);
     }
+
+    // Napf liegt vorne auf dem Boden, also nach dem Tier zeichnen
+    this.drawBowl(t);
 
     if (!p.lightOn) this.overlay(0.72);
 
@@ -236,7 +273,7 @@ export class Scene {
     const cleaning = t < this.cleaningUntil;
     p.poops.slice(0, 6).forEach((_, i) => {
       // zwischen Pflanze und Körbchen, 3 nebeneinander, dann eine zweite Reihe
-      const x = 13 + (i % 3) * 7 + (Math.floor(i / 3) % 2) * 3 + (cleaning ? (this.cleaningUntil - t) / 20 : 0);
+      const x = 23 + (i % 3) * 4 + (Math.floor(i / 3) % 2) * 2 + (cleaning ? (this.cleaningUntil - t) / 20 : 0);
       const y = FLOOR_Y + 1 - Math.floor(i / 3) * 2 + (i % 2);
       drawMap(ctx, ICONS.poop.map, ICONS.poop.colors, x, y);
       if (!cleaning) {
@@ -249,6 +286,17 @@ export class Scene {
         }
       }
     });
+  }
+
+  private drawBowl(t: number) {
+    const m = this.meal;
+    let level = 0;
+    if (m) {
+      const k = m.eatStart === null ? 0 : (t - m.eatStart) / EAT_MS;
+      level = 3 - Math.min(3, Math.floor(k * 3));
+    }
+    if (m && level > 0) drawMap(this.ctx, FOOD_LEVELS[level], FOOD_COLORS[m.kind], BOWL_X + 1, BOWL_Y - 2);
+    drawMap(this.ctx, BOWL, BOWL_COLORS, BOWL_X, BOWL_Y);
   }
 
   private drawEgg(s: GameState, p: Pet, sp: SpeciesDef, t: number) {
@@ -297,27 +345,46 @@ export class Scene {
 
   private drawPetWalking(p: Pet, sp: SpeciesDef, t: number) {
     const ctx = this.ctx;
+    const dt = Math.min(0.1, (t - this.lastFrame) / 1000);
+    this.lastFrame = t;
     const blink = t % 3500 < 150;
     const { map, colors: pal, w, h } = petSprite(sp, p, { eyesClosed: blink });
-    const fx = this.fx && t < this.fx.until ? this.fx : null;
-    const eating = fx && (fx.kind === 'food' || fx.kind === 'candy') && t - fx.start < EAT_MS;
 
     const from = 12;
     const to = Math.max(from + 8, 58 - w);
-    let x: number;
-    let flip = false;
-    if (eating) {
-      x = this.lastX; // beim Essen bleibt es stehen
+    let eating = false;
+    const m = this.meal;
+    if (m) {
+      // zum Napf laufen, dann fressen
+      const target = BOWL_X + BOWL[0].length / 2 - w / 2; // mittig über dem Napf
+      const diff = target - this.walkX;
+      if (m.eatStart === null) {
+        if (Math.abs(diff) <= 0.5) m.eatStart = t;
+        else {
+          this.walkDir = Math.sign(diff);
+          this.walkX += this.walkDir * Math.min(Math.abs(diff), WALK_SPEED_TO_BOWL * dt);
+        }
+      }
+      if (m.eatStart !== null) {
+        eating = true;
+        if (t - m.eatStart >= EAT_MS) {
+          if (m.kind === 'candy') this.jumpStart = t;
+          this.meal = null;
+          eating = false;
+        }
+      }
     } else {
-      const speed = p.sick ? 9000 : 4500;
-      const phase = (t % speed) / speed;
-      const pos = phase < 0.5 ? phase * 2 : 2 - phase * 2;
-      x = from + Math.round(pos * (to - from));
-      flip = phase >= 0.5;
-      this.lastX = x;
+      // gemütlich hin und her laufen
+      const speed = ((to - from) / (p.sick ? 4.5 : 2.25)) * dt;
+      this.walkX += this.walkDir * speed;
+      if (this.walkX >= to) (this.walkX = to), (this.walkDir = -1);
+      if (this.walkX <= from) (this.walkX = from), (this.walkDir = 1);
     }
+    let x = Math.round(this.walkX);
+    const flip = this.walkDir < 0;
 
     let bob = p.sick ? 0 : Math.floor(t / 400) % 2;
+    if (eating) bob = -(Math.floor(t / 250) % 2); // Kopf in den Napf
     const j = t - this.jumpStart;
     if (j >= 0 && j < 900) bob = Math.round(Math.abs(Math.sin((j / 900) * Math.PI * 2)) * 5);
     const s = t - this.shakeStart;
@@ -330,18 +397,11 @@ export class Scene {
       drawMap(ctx, ICONS.sparkle.map, ICONS.sparkle.colors, x + w - 2, y - 4);
     }
 
+    const fx = this.fx && t < this.fx.until ? this.fx : null;
     if (!fx) return;
     const icon = ICONS[fx.kind];
-    if (eating) {
-      // Futter vor dem Maul, wird in Bissen kleiner
-      const bites = Math.floor(((t - fx.start) / EAT_MS) * 3);
-      const cut = [5, 3, 1][bites] ?? 0;
-      const food = icon.map.map((row) => row.slice(0, cut));
-      drawMap(ctx, food, icon.colors, x + w, FLOOR_Y - 5);
-    } else {
-      const rise = Math.floor((t - fx.start) / 250);
-      drawMap(ctx, icon.map, icon.colors, x + w / 2 - 2, y - 7 - rise);
-    }
+    const rise = Math.floor((t - fx.start) / 250);
+    drawMap(ctx, icon.map, icon.colors, x + w / 2 - 2, y - 7 - rise);
   }
 
   private overlay(alpha: number) {
