@@ -29,7 +29,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 ## Features
 
 - **Lebenszyklus:** Ei (1 min) → Baby (1 Tag) → Kind (5 Tage) → Teenager (5 Tage) → Erwachsen. Welche Form das Tier annimmt, hängt von Pflegefehlern und Disziplin ab. Am Lebensende zieht es sich in den Wald zurück.
-- **Bedürfnisse:** Hunger und Laune (je 4 Herzen), Müdigkeit, Gewicht, Disziplin und Gesundheit.
+- **Bedürfnisse:** Sättigung und Laune (HUD-Leisten mit je 4 Segmenten), Müdigkeit, Gewicht, Disziplin und Gesundheit.
 - **Schlafen:** Das Tier wacht nach insgesamt 8 Stunden Schlaf automatisch auf. Danach hat es Hunger und kackt innerhalb einer Stunde.
 - **Hygiene:** Es kackt alle 1–3 Stunden. Liegt ein Haufen länger als 4 Stunden, wird es krank.
 - **Mehrere Tiere:** bis zu 4 gleichzeitig, Umschalter oben
