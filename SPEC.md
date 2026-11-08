@@ -250,7 +250,9 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Verhalten (wach):** Die Tiere bewegen sich zufällig und nie gleich:
 - Sie laufen zu zufälligen Stellen im Raum, mal schneller, mal langsamer. Kranke Tiere schleichen nur.
 - Sie machen **Pausen**: stehen bleiben, sich umschauen (die Augen wandern nach links und rechts).
-- **Katze, Hund und Fuchs** **putzen** sich ab und zu (Kopf nickt, Zunge blitzt auf, danach ein Glitzern) oder **strecken** sich (werden kurz breiter und flacher, Augen zu).
+- **Katze, Hund und Fuchs** **putzen** sich ab und zu (Kopf nickt, Zunge blitzt auf, danach ein Glitzern).
+- Ab dem Teenager-Alter **strecken** sie sich auch, und zwar mit einer eigenen, gezeichneten **Streck-Animation** statt verzerrter Pixel. Die Pose ist eine Seitenansicht: Erst beugen sie sich vor (Vorderbeine nach vorn, Po hoch, Schwanz aufgestellt), dann strecken sie sich ganz und **gähnen** mit offenem Maul, dann kommen sie zurück. Ohren und Schwanz passen zum Tier bzw. zur Hunderasse (Steh-, Schlapp- oder kleine Ohren; weiße Schwanzspitze beim Fuchs; Corgi ohne Schwanz).
+- Sie laufen **nicht immer auf derselben Höhe**, sondern auch mal **weiter vorne oder weiter hinten** im Raum. Ein kleiner Schatten zeigt, wo sie stehen. Weiter hinten verdecken die Haufen und der Napf das Tier.
 - Kommt ein **Tier vorbei** (Maus, Igel, Reh, Vogel, auch der Vogel am Fenster), bleibt das Haustier **kurz stehen**, dreht sich hin und **schaut ihm nach**.
 
 **Animationen:**

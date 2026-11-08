@@ -146,3 +146,88 @@ export function sleepSprite(shape: SleepShape, big: boolean): string[] {
   }
   return s;
 }
+
+// ---------- Streck-Pose (Seitenansicht, Kopf links) ----------
+// 0 = Vorbeugen (Po hoch, Vorderbeine nach vorn), 1 = volle Streckung mit Gähnen
+const STRETCH_TPL = [
+  [
+    '.....................oXo',
+    '.....................oTo',
+    '..............oooooooTo.',
+    '............ooaaaaaaaao.',
+    '...PP......oaaaaaaaaaao.',
+    '..oPPo...ooaaaaaaaaaaao.',
+    '.oaaFFoooaaaaaaaaaaaao..',
+    'oaaZFFaaaaaaaaaaaaaaao..',
+    'nbaaFaaaaaaaabbbbaaaao..',
+    'obbbaaaaaaaobbbbo.oaao..',
+    '.obbboaaaaoooooo..oaao..',
+    '..obbaaaaaaao.....oaao..',
+    '...ooooooooo......oaao..',
+    '..................oooo..',
+  ],
+  [
+    '......................oX',
+    '.....................oTo',
+    '...............ooooooTo.',
+    '.............ooaaaaaaao.',
+    '..PP........oaaaaaaaaao.',
+    '.oPPo......oaaaaaaaaaao.',
+    'oaaFFo...ooaaaaaaaaaao..',
+    'oaZFFaoooaaaaaaaaaaaao..',
+    'nMaFaaaaaaaaaabbbaaaao..',
+    'oMbbaaaaaaaaobbbo.oaao..',
+    '.obbbbaaaaaoooooo.oaao..',
+    'obbaaaaaaaao......oaao..',
+    '.oooooooooo.......oaao..',
+    '..................oooo..',
+  ],
+];
+
+/** Streck-Pose, Ohren und Schwanz passend zum Tier (Kopf zeigt nach links) */
+export function stretchSprite(s: SleepShape, frame: 0 | 1): string[] {
+  const key = JSON.stringify(['stretch', s, frame]);
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const tpl = STRETCH_TPL[frame];
+  const hasTail = !!s.tail && s.tail !== 'none';
+  const pRows = tpl.map((r, y) => (r.includes('P') ? y : -1)).filter((y) => y >= 0);
+  const lastP = pRows[pRows.length - 1];
+  const g = tpl.map((row, y) =>
+    [...row].map((ch, x) => {
+      // ohne Schwanz: alles oberhalb des Rückens rechts weg
+      if (!hasTail && y < 3 && x > 18) return '.';
+      switch (ch) {
+        case 'P':
+          if (s.ears === 'pointy') return y === lastP ? 'c' : 'a';
+          if (s.ears === 'small' && y === lastP) return 'c';
+          if (s.ears === 'floppy') return y === lastP ? 'a' : '.';
+          return y === lastP ? 'a' : '.';
+        case 'F':
+          return s.ears === 'floppy' ? 'c' : 'a';
+        case 'Z':
+          return 'o';
+        case 'M':
+          return 'p';
+        case 'X':
+          return hasTail ? (s.tailTip ? 'b' : 'a') : '.';
+        case 'T':
+          return hasTail ? (s.tail === 'thin' && (x + y) % 2 ? 'a' : 'a') : '.';
+        default:
+          return ch;
+      }
+    }),
+  );
+  // Stehohren bekommen seitlich einen Umriss
+  if (s.ears === 'pointy')
+    for (const y of pRows.slice(0, -1)) {
+      const row = g[y];
+      const first = row.findIndex((c) => c === 'a');
+      if (first > 0 && row[first - 1] === '.') row[first - 1] = 'o';
+      const last = row.lastIndexOf('a');
+      if (last >= 0 && row[last + 1] === '.') row[last + 1] = 'o';
+    }
+  const out = g.map((r) => r.join(''));
+  cache.set(key, out);
+  return out;
+}

@@ -1,6 +1,6 @@
 import type { Look, Stage, Variant } from '../engine/state';
 import type { Breed, Palette, Pattern, SpeciesDef, Sprite } from '../species/types';
-import { sleepSprite } from './sleepers';
+import { sleepSprite, stretchSprite } from './sleepers';
 
 export type ColorMap = Record<string, string>;
 
@@ -239,11 +239,13 @@ export function petMap(sprite: Sprite, look: PetLook): string[] {
 export function petSprite(
   sp: SpeciesDef,
   pet: { stage: Stage; variant: Variant; look?: Look | null },
-  opts: { eyesClosed?: boolean; sleeping?: boolean; gaze?: number } = {},
+  opts: { eyesClosed?: boolean; sleeping?: boolean; gaze?: number; stretch?: 0 | 1 } = {},
 ) {
   const look = pet.look ?? null;
   const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
-  const sprite = opts.sleeping
+  const sprite = opts.stretch !== undefined
+    ? stretchSprite(breed?.sleep ?? sp.sleep, opts.stretch)
+    : opts.sleeping
     ? sleepSprite(breed?.sleep ?? sp.sleep, pet.stage === 'teen' || pet.stage === 'adult')
     : (breed?.sprites ?? sp.sprites)[pet.stage === 'egg' ? 'baby' : pet.stage];
   return {
@@ -257,7 +259,7 @@ export function petSprite(
     colors: paletteFor(sp, pet.variant, look?.coat, breed) as unknown as ColorMap,
     w: sprite[0].length,
     h: sprite.length,
-    facesLeft: !opts.sleeping && !!breed?.facesLeft,
+    facesLeft: opts.stretch !== undefined || (!opts.sleeping && !!breed?.facesLeft),
   };
 }
 

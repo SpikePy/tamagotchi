@@ -207,7 +207,8 @@ export class Scene {
   private meal: { kind: 'food' | 'candy'; eatStart: number | null } | null = null;
   private walkX = 30;
   private walkDir = 1;
-  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch'; start: number; until: number; target?: number; speed?: number } = {
+  private depth = 1; // 0 = hinten, 3.5 = vorne im Raum
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch'; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
     kind: 'idle',
     start: 0,
     until: 0,
@@ -309,18 +310,21 @@ export class Scene {
       return;
     }
 
-    this.drawPoops(p, t);
-
     const hatching = t - this.hatchStart < HATCH_MS;
+    const walking = p.stage !== 'egg' && !p.asleep && !hatching;
+    // Haufen liegen vorne: steht das Tier weiter hinten, verdecken sie es
+    const poopsInFront = walking && this.depth < 1.5;
+    if (!poopsInFront) this.drawPoops(p, t);
     if (p.stage === 'egg') {
       this.drawEgg(s, p, sp, t);
       this.nestFront();
-    } else if (p.asleep || hatching) {
+    } else if (!walking) {
       this.drawPetInBasket(p, sp, t, hatching);
     } else {
       this.nestFront();
       this.drawPetWalking(p, sp, t);
     }
+    if (poopsInFront) this.drawPoops(p, t);
 
     // Napf liegt vorne auf dem Boden, also nach dem Tier zeichnen
     this.drawBowl(t);
@@ -691,12 +695,14 @@ export class Scene {
       let target = from + Math.random() * (to - from);
       if (Math.abs(target - this.walkX) < 4) target = this.walkX < (from + to) / 2 ? to : from;
       const speed = p.sick ? 2.5 + Math.random() * 2 : 4 + Math.random() * 9;
-      return { kind: 'walk' as const, start: t, until: t + 20000, target, speed };
+      const targetDepth = Math.round(Math.random() * 7) / 2; // mal weiter vorne, mal weiter hinten
+      return { kind: 'walk' as const, start: t, until: t + 20000, target, targetDepth, speed };
     }
     if (r < 0.66) return { kind: 'idle' as const, start: t, until: t + 1000 + Math.random() * 3000 };
     if (r < 0.8 || !groomer || p.sick) return { kind: 'look' as const, start: t, until: t + 2000 + Math.random() * 2000 };
-    if (r < 0.92) return { kind: 'groom' as const, start: t, until: t + 2400 };
-    return { kind: 'stretch' as const, start: t, until: t + 1600 };
+    const grown = p.stage === 'teen' || p.stage === 'adult';
+    if (r < 0.92 || !grown) return { kind: 'groom' as const, start: t, until: t + 2400 };
+    return { kind: 'stretch' as const, start: t, until: t + 2600 };
   }
 
   private drawPetWalking(p: Pet, sp: SpeciesDef, t: number) {
@@ -724,6 +730,7 @@ export class Scene {
           face = this.walkDir;
           this.walkX += this.walkDir * Math.min(Math.abs(diff), WALK_SPEED_TO_BOWL * dt);
         }
+        this.depth = Math.max(0, this.depth - 4 * dt); // Napf steht vorne, Tier dahinter
       }
       if (m.eatStart !== null) {
         eating = true;
@@ -746,10 +753,15 @@ export class Scene {
       const a = this.act;
       if (a.kind === 'walk') {
         const diff = (a.target ?? this.walkX) - this.walkX;
-        if (Math.abs(diff) < 0.3) a.until = t;
+        const dd = (a.targetDepth ?? this.depth) - this.depth;
+        if (Math.abs(diff) < 0.3 && Math.abs(dd) < 0.1) a.until = t;
         else {
-          this.walkDir = Math.sign(diff);
-          this.walkX += this.walkDir * Math.min(Math.abs(diff), (a.speed ?? 6) * dt);
+          // auf geradem Weg zum Ziel (links/rechts und vor/zurück gleichzeitig)
+          const dist = Math.hypot(diff, dd * 2);
+          const step = Math.min(dist, (a.speed ?? 6) * dt);
+          if (Math.abs(diff) >= 0.3) this.walkDir = Math.sign(diff);
+          this.walkX += (diff / dist) * step;
+          this.depth += ((dd * 2) / dist) * step * 0.5;
         }
         face = this.walkDir;
       } else if (a.kind === 'watch' && crit) {
@@ -781,15 +793,18 @@ export class Scene {
     const s = t - this.shakeStart;
     if (s >= 0 && s < 600) x += Math.round(Math.sin(s / 25) * 1.5);
 
-    const y = FLOOR_Y - h + 1 - bob;
+    const ground = FLOOR_Y + Math.round(this.depth * 2) / 2;
+    const y = ground - h + 1 - bob;
+    // kleiner Schatten unter dem Tier
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.fillRect(Math.round((x + 2) * 2) / 2, ground + 0.5, Math.round((w - 4) * 2) / 2, 0.5);
+    ctx.fillRect(Math.round((x + 3) * 2) / 2, ground + 1, Math.round((w - 6) * 2) / 2, 0.5);
     if (stretching) {
-      // Strecken: breiter und flacher, am Boden verankert
-      const e = Math.sin(Math.PI * Math.min(1, k));
-      ctx.save();
-      ctx.translate(x + w / 2, FLOOR_Y + 1);
-      ctx.scale(1 + 0.18 * e, 1 - 0.14 * e);
-      drawMap(ctx, img.map, img.colors, -w / 2, -h, flip);
-      ctx.restore();
+      // Strecken: Vorbeugen -> volle Streckung mit Gähnen -> Vorbeugen
+      const frame: 0 | 1 = k < 0.25 || k > 0.8 ? 0 : 1;
+      const st = petSprite(sp, p, { stretch: frame });
+      const sflip = face > 0; // Pose schaut von Haus aus nach links
+      drawMap(ctx, st.map, st.colors, x + w / 2 - st.w / 2, ground - st.h + 1, sflip);
     } else drawMap(ctx, img.map, img.colors, x, y, flip);
 
     if (grooming) {
