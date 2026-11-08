@@ -117,22 +117,63 @@ function mushroom(ctx: CanvasRenderingContext2D, x: number, y: number) {
   rows.forEach((r, j) => [...r].forEach((ch, i) => ch !== '.' && px(ctx, c[ch], x + i * P, y + j * P, P, P)));
 }
 
-function drawForest(ctx: CanvasRenderingContext2D) {
-  hills(ctx, (x) => 23 + Math.sin(x / 9) * 2 + Math.sin(x / 4.3) + Math.sin(x / 1.7) * 0.3, '#86ad6c', '#a4c886', '#73995c');
-  // kleine Bäume auf der fernen Hügelkette
-  for (const x of [20, 23.5, 38, 41, 57]) drawPine(ctx, x, 26 + Math.sin(x / 9) * 2, 5, true);
-  hills(ctx, (x) => 28 + Math.sin(x / 6 + 1) * 1.5 + Math.sin(x / 2.3) * 0.4, '#5e8a4a', '#78a45e', '#4f7a3e');
+/** ferne Bergkette mit Schneegipfeln, schattigen Hängen und Dunst */
+function mountains(ctx: CanvasRenderingContext2D) {
+  const peaks: [number, number, number][] = [
+    [6, 13, 0.75],
+    [19, 9.5, 0.7],
+    [31, 14, 0.8],
+    [44, 10.5, 0.65],
+    [58, 12.5, 0.75],
+  ];
+  const ridge = (x: number) => Math.min(...peaks.map(([c, h, k]) => h + Math.abs(x - c) * k));
+  const peakOf = (x: number) => peaks.reduce((best, p) => (Math.abs(x - p[0]) < Math.abs(x - best[0]) ? p : best));
+  for (let x = 0; x < W; x += P) {
+    const top = Math.round(ridge(x + P / 2) * 2) / 2;
+    const [c, h] = peakOf(x + P / 2);
+    const shadow = x + P / 2 > c; // rechte Hänge im Schatten
+    for (let y = top; y < 27; y += P) {
+      const depth = y - top;
+      let col = shadow ? '#8ea2bc' : '#a8bcd2';
+      if (y > 21) col = shadow ? '#9cb0c4' : '#b2c4d6'; // Dunst unten
+      if (depth < 1.5 && top < h + 3.5) col = shadow ? '#d4e0ec' : '#f4f8fc'; // Schnee
+      else if (depth < 2.5 && top < h + 2.5 && (Math.round(x * 2) + Math.round(y * 2)) % 3 === 0) col = shadow ? '#c0d0e0' : '#e4ecf4';
+      px(ctx, col, x, y, P, P);
+    }
+  }
+}
+
+/** dunstiger Waldsaum vor den Bergen */
+function hazyForest(ctx: CanvasRenderingContext2D) {
+  for (let x = 0; x < W; x += P) {
+    const k = Math.round(x * 2);
+    const tip = 21.5 + ((k * 7) % 5) * 0.5 - (k % 4 === 0 ? 1 : 0) + Math.sin(x / 5) * 0.8;
+    const y0 = Math.round(tip * 2) / 2;
+    px(ctx, '#7f9f9a', x, y0, P, 27 - y0);
+    px(ctx, '#93b2aa', x, y0, P, P);
+  }
+}
+
+/** Fern-Ebene: Berge, Waldsaum, Hügel mit kleinen Bäumen */
+function drawForestFar(ctx: CanvasRenderingContext2D) {
+  mountains(ctx);
+  hazyForest(ctx);
+  hills(ctx, (x) => 24 + Math.sin(x / 9) * 2 + Math.sin(x / 4.3) + Math.sin(x / 1.7) * 0.3, '#86ad6c', '#a4c886', '#73995c');
+  for (const x of [20, 23.5, 38, 41, 57]) drawPine(ctx, x, 27 + Math.sin(x / 9) * 2, 5, true);
+  hills(ctx, (x) => 28.5 + Math.sin(x / 6 + 1) * 1.5 + Math.sin(x / 2.3) * 0.4, '#5e8a4a', '#78a45e', '#4f7a3e');
   drawPine(ctx, 29, 31, 9, true);
   drawPine(ctx, 33.5, 31.5, 7, true);
-  drawPine(ctx, 12, 35, 24);
-  drawPine(ctx, 4, 36, 31);
-  // Wiese mit Verlauf und Grashalmen
+}
+
+/** Nah-Ebene: Wiese, große Tannen, Steine, Pilz, Busch */
+function drawForestNear(ctx: CanvasRenderingContext2D) {
   bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#8cc65e', '#5e9a3e', 4);
   grassBlades(ctx, ['#4f8a34', '#9ad46a', '#6aa84a']);
+  drawPine(ctx, 12, 35, 24);
+  drawPine(ctx, 4, 36, 31);
   stone(ctx, 27, 44.5);
   stone(ctx, 60, 43);
   mushroom(ctx, 33, 39);
-  // Busch links vorne
   drawBush(ctx, 7, 36, 7, 5.5, '#5a2a6a');
 }
 
@@ -146,7 +187,7 @@ function tulip(ctx: CanvasRenderingContext2D, x: number, color: string, light: s
   rows.forEach((r, j) => [...r].forEach((ch, i) => ch !== '.' && px(ctx, ch === 'l' ? light : color, x + i * P, y + j * P, P, P)));
 }
 
-function drawGarden(ctx: CanvasRenderingContext2D) {
+function drawGardenFar(ctx: CanvasRenderingContext2D) {
   // Hecke aus einzelnen Blättern
   const topOf = (x: number) => 11 + Math.sin(x / 3) * 1.2 + Math.sin(x / 7) * 1.5 + Math.sin(x * 1.3) * 0.4;
   for (let x = 0; x < W; x += P) {
@@ -187,6 +228,9 @@ function drawGarden(ctx: CanvasRenderingContext2D) {
     ctx.fillRect(0, ry + 1.5, W, P);
     for (let x = 3; x < W; x += 6) px(ctx, '#3a2a1a', x, ry + P, P, P); // Nägel
   }
+}
+
+function drawGardenNear(ctx: CanvasRenderingContext2D) {
   // Rasen mit Verlauf und Grashalmen
   bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#94c262', '#6a9640', 4);
   grassBlades(ctx, ['#5a8a38', '#a6d070', '#7aa84a']);
@@ -241,10 +285,16 @@ export function drawOutdoorSky(ctx: CanvasRenderingContext2D, clock: number): bo
   return sky.day;
 }
 
-/** Landschaft draußen (auf transparentem Grund, liegt über Himmel und Wolken) */
-export function drawOutdoorScenery(ctx: CanvasRenderingContext2D, kind: SceneKind) {
-  if (kind === 'forest') drawForest(ctx);
-  else drawGarden(ctx);
+/** Fern-Ebene draußen (liegt über Himmel, Wolken und Vögeln) */
+export function drawOutdoorFar(ctx: CanvasRenderingContext2D, kind: SceneKind) {
+  if (kind === 'forest') drawForestFar(ctx);
+  else drawGardenFar(ctx);
+}
+
+/** Nah-Ebene draußen (liegt über Reh & Co. im Hintergrund) */
+export function drawOutdoorNear(ctx: CanvasRenderingContext2D, kind: SceneKind) {
+  if (kind === 'forest') drawForestNear(ctx);
+  else drawGardenNear(ctx);
 }
 
 // ---------- Schlafplatz draußen: Baumhöhle (Fuchs) bzw. Laubhaufen (Igel) ----------

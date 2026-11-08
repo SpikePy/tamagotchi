@@ -5,7 +5,7 @@ import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, RES, drawMap, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
 import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
-import { GROUND_Y, PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoorScenery, drawOutdoorSky, skyState } from './outdoor';
+import { GROUND_Y, PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds } from './weather';
 
 export const SCREEN_W = 64;
@@ -220,6 +220,7 @@ export class Scene {
   private shownPetId: string | null = null;
   private bg = hiResCanvas(SCREEN_W, SCREEN_H);
   private bgSky = hiResCanvas(SCREEN_W, SCREEN_H);
+  private bgFar = hiResCanvas(SCREEN_W, SCREEN_H);
   private clouds = new Clouds();
   private bgKey = '';
   private bgDay = true;
@@ -299,26 +300,35 @@ export class Scene {
         const skyCtx = this.bgSky.getContext('2d')!;
         skyCtx.clearRect(0, 0, SCREEN_W, SCREEN_H);
         this.bgDay = drawOutdoorSky(skyCtx, s.clock);
-        drawOutdoorScenery(this.ctx, this.env);
+        const farCtx = this.bgFar.getContext('2d')!;
+        farCtx.clearRect(0, 0, SCREEN_W, SCREEN_H);
+        drawOutdoorFar(farCtx, this.env);
+        drawOutdoorNear(this.ctx, this.env);
         this.drawDecor(sp, t, 'static');
       }
       this.nestBack();
       this.ctx = main;
       this.bgKey = bgKey;
     }
+    // Ebenen von hinten nach vorn; bewegte Dinge liegen jeweils dazwischen
+    this.critters.update(this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN);
     if (this.env === 'room') {
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
-      // Wolken im Fenster, dann Fensterkreuz und Spiegelung wieder darüber
+      // im Fenster: Wolken, Vogel, dann Fensterkreuz und Spiegelung darüber
       this.clouds.draw(ctx, s.clock, t, WIN, !skyState(s.clock).day);
+      this.critters.draw(ctx, 'window', t);
       this.drawWindowFront();
     } else {
-      ctx.drawImage(this.bgSky, 0, 0, SCREEN_W, SCREEN_H);
-      this.clouds.draw(ctx, s.clock, t, { x: 0, y: 0, w: SCREEN_W, h: GROUND_Y }, !this.bgDay);
-      ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
+      ctx.drawImage(this.bgSky, 0, 0, SCREEN_W, SCREEN_H); // Himmel
+      this.clouds.draw(ctx, s.clock, t, { x: 0, y: 0, w: SCREEN_W, h: GROUND_Y }, !this.bgDay); // Wolken
+      this.critters.draw(ctx, 'sky', t); // Vögel
+      ctx.drawImage(this.bgFar, 0, 0, SCREEN_W, SCREEN_H); // Berge, Hügel / Hecke, Zaun
+      this.critters.draw(ctx, 'background', t); // Reh
+      ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H); // Wiese, Bäume, Busch, Schlafplatz
+      this.critters.draw(ctx, 'air', t); // wehende Blätter
       if (!this.bgDay) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
     }
     this.drawDecor(sp, t, 'anim');
-    this.critters.draw(ctx, this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN);
 
     if (!p) {
       this.nestFront();
@@ -341,6 +351,7 @@ export class Scene {
       this.drawPetWalking(p, sp, t);
     }
     if (poopsInFront) this.drawPoops(p, t);
+    this.critters.draw(ctx, 'foreground', t); // Maus/Igel laufen vor dem Haustier vorbei
 
     // Napf liegt vorne auf dem Boden, also nach dem Tier zeichnen
     this.drawBowl(t);

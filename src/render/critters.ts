@@ -12,6 +12,7 @@ const GROUND_Y = 33;
 const PX = 1 / RES;
 
 type Kind = 'mouse' | 'hedgehog' | 'deer' | 'bird';
+export type CritterLayer = 'sky' | 'window' | 'background' | 'foreground';
 
 const MOUSE_BODY = [
   '..........oo....',
@@ -148,16 +149,43 @@ export class Critters {
     return this.seen;
   }
 
-  /** win = Fensterausschnitt im Zimmer (Vogel nur dort sichtbar) */
-  draw(ctx: CanvasRenderingContext2D, env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }) {
-    const dt = Math.min(0.1, (t - this.last) / 1000);
+  private frame: { layer: CritterLayer; rows: string[]; colors: ColorMap; x: number; y: number; clip?: { x: number; y: number; w: number; h: number } } | null = null;
+  private dt = 0;
+  private env: SceneKind = 'room';
+
+  /** einmal pro Bild: Positionen berechnen (win = Fensterausschnitt im Zimmer) */
+  update(env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }) {
+    this.dt = Math.min(0.1, (t - this.last) / 1000);
     this.last = t;
+    this.env = env;
     this.seen = null;
-    this.drawLeaves(ctx, env, t, dt);
-    this.drawAnimal(ctx, env, day, t, win);
+    this.frame = null;
+    this.updateAnimal(env, day, t, win);
   }
 
-  private drawAnimal(ctx: CanvasRenderingContext2D, env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }) {
+  /**
+   * Zeichnet, was auf dieser Ebene liegt:
+   *  sky        – Vögel draußen (hinter Bergen/Hecke nicht nötig, sie fliegen oben)
+   *  window     – Vogel im Zimmerfenster (hinter dem Fensterkreuz)
+   *  background – Reh (hinter Tannen, Busch und Baum)
+   *  air        – wehende Blätter (vor der Landschaft, hinter dem Haustier)
+   *  foreground – Maus und Igel (vor dem Haustier)
+   */
+  draw(ctx: CanvasRenderingContext2D, layer: CritterLayer | 'air', t: number) {
+    if (layer === 'air') return this.drawLeaves(ctx, this.env, t, this.dt);
+    const f = this.frame;
+    if (!f || f.layer !== layer) return;
+    ctx.save();
+    if (f.clip) {
+      ctx.beginPath();
+      ctx.rect(f.clip.x, f.clip.y, f.clip.w, f.clip.h);
+      ctx.clip();
+    }
+    drawPixels(ctx, f.rows, f.colors, snap(f.x), snap(f.y));
+    ctx.restore();
+  }
+
+  private updateAnimal(env: SceneKind, day: boolean, t: number, win?: { x: number; y: number; w: number; h: number }) {
     if (this.active && this.active.env !== env) this.active = null;
     if (!this.active) {
       if (t < this.nextAt || !day) return;
@@ -214,14 +242,8 @@ export class Critters {
       }
     }
     const rows = a.dir < 0 ? flipRows(sp.frames[frame]) : sp.frames[frame];
-    ctx.save();
-    if (inRoom) {
-      ctx.beginPath();
-      ctx.rect(win!.x, win!.y, win!.w, win!.h);
-      ctx.clip();
-    }
-    drawPixels(ctx, rows, sp.colors, snap(x), snap(y));
-    ctx.restore();
+    const layer: CritterLayer = inRoom ? 'window' : a.kind === 'bird' ? 'sky' : a.kind === 'deer' ? 'background' : 'foreground';
+    this.frame = { layer, rows, colors: sp.colors, x, y, clip: inRoom ? win : undefined };
     const cx = x + w / 2;
     const visible = inRoom ? cx > win!.x && cx < win!.x + win!.w : cx > 0 && cx < W;
     if (visible) this.seen = { id: a.start, x: cx };
