@@ -1,5 +1,5 @@
 import { MIN, RULES } from '../engine/config';
-import { activePet, hearts, type GameState, type Pet } from '../engine/state';
+import { activePet, type GameState, type Pet } from '../engine/state';
 import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, RES, drawMap, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
@@ -147,50 +147,6 @@ const LEAVES_BACK: [number, number, number, number][] = Array.from({ length: 26 
 
 // kleines Schlaf-Z in voller Rasterauflösung
 const Z_SMALL = ['www', '..w', '.w.', 'www'];
-
-// HUD-Symbole in voller Rasterauflösung (1 Zeichen = 1 Bildpixel)
-const HUD_COLORS: ColorMap = {
-  o: '#2a1a10',
-  b: '#c0622e',
-  h: '#ee9a5c',
-  w: '#f4ecd8',
-  y: '#f6d23c',
-  l: '#fff2a0',
-  k: '#2a1a10',
-  s: '#f0f0f0',
-  r: '#e2384d',
-  z: '#c8d0ff',
-};
-const HUD_HAPPY_S = ['.ooooo.', 'oyyyyyo', 'oykykyo', 'oyyyyyo', 'okyyyko', 'oykkkyo', '.ooooo.'];
-const HUD_OK_S = ['.ooooo.', 'oyyyyyo', 'oykykyo', 'oyyyyyo', 'oyyyyyo', 'oykkkyo', '.ooooo.'];
-const HUD_SAD_S = ['.ooooo.', 'oyyyyyo', 'oykykyo', 'oyyyyyo', 'oykkkyo', 'okyyyko', '.ooooo.'];
-const SMILEY_COLORS: ColorMap = { o: '#a8780e', y: '#f6d23c', k: '#4a3a10' };
-const HUD_MEAT_S = ['.....ow', '..ooowo', '.obhbo.', 'obbbbo.', '.oooo..'];
-const HUD_MOON_S = ['.oo..zz', 'oyo...z', 'oy...z.', 'oyo.zz.', '.oo....'];
-const HUD_SKULL = [
-  '..ooooo..',
-  '.ossssso.',
-  'ossssssso',
-  'osoosooso',
-  'osoosooso',
-  'osssossso',
-  '.ossssso.',
-  '..ososo..',
-  '..ooooo..',
-]
-const HUD_BANG = ['ooo', 'oro', 'oro', 'oro', 'oro', 'ooo', '...', 'ooo', 'oro', 'ooo'];
-
-/** HUD-Rahmen: dunkel, helle Kante, abgeschrägte Ecken (Maße in Bildpixeln) */
-function hudPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  const PX = 1 / RES;
-  ctx.fillStyle = 'rgba(30,20,12,0.72)';
-  ctx.fillRect(x + PX, y, (w - 2) * PX, h * PX);
-  ctx.fillRect(x, y + PX, w * PX, (h - 2) * PX);
-  ctx.fillStyle = 'rgba(255,236,200,0.35)';
-  ctx.fillRect(x + PX, y, (w - 2) * PX, PX);
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.fillRect(x + PX, y + (h - 1) * PX, (w - 2) * PX, PX);
-}
 
 type FxKind = 'food' | 'candy' | 'pill' | 'heart' | 'angry' | 'sparkle';
 
@@ -479,68 +435,6 @@ export class Scene {
     }
 
     this.drawHearts(t);
-    this.drawHud(p, t);
-  }
-
-  /** HUD oben im Bild wie in einem Videospiel: Sättigung links, Laune rechts, Warnsymbole in der Mitte */
-  private drawHud(p: Pet, t: number) {
-    const ctx = this.ctx;
-    const PX = 1 / RES;
-    const top = 0.5;
-    if (p.stage !== 'egg') {
-      const mood = hearts(p.happy);
-      // eine Zeile: Sättigung | Müdigkeit | Laune
-      const x0 = 1.5;
-      hudPanel(ctx, x0, top, 121, 9);
-      const y = top + 2 * PX;
-      drawPixels(ctx, HUD_MEAT_S, HUD_COLORS, x0 + 1 * PX, y);
-      this.drawBar(x0 + 9 * PX, y, p.hunger / RULES.hearts, ['#ffd08a', '#f29a2e', '#b8601a'], t);
-      drawPixels(ctx, HUD_MOON_S, HUD_COLORS, x0 + 41 * PX, y);
-      this.drawBar(x0 + 49 * PX, y, p.tiredness / 100, ['#c8b8ff', '#8a74e8', '#5a46b0'], t, true);
-      this.drawBar(x0 + 81 * PX, y, p.happy / RULES.hearts, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
-      drawPixels(ctx, mood >= 3 ? HUD_HAPPY_S : mood === 2 ? HUD_OK_S : HUD_SAD_S, SMILEY_COLORS, x0 + 112 * PX, top + 1 * PX);
-    }
-    // darunter mittig: krank / ruft
-    const calling = Object.keys(p.calls).length > 0;
-    const blinkOn = Math.floor(t / 500) % 2 === 0;
-    if (p.sick || calling) {
-      const w = (p.sick ? 9 : 0) + (calling ? 3 : 0) + (p.sick && calling ? 2 : 0) + 4;
-      const x = Math.round((SCREEN_W / 2 - (w * PX) / 2) * RES) / RES;
-      const wy = p.stage !== 'egg' ? top + 5 : top;
-      hudPanel(ctx, x, wy, w, 12);
-      let ix = x + 2 * PX;
-      if (p.sick) {
-        drawPixels(ctx, HUD_SKULL, HUD_COLORS, ix, wy + 1.5 * PX + PX / 2);
-        ix += 11 * PX;
-      }
-      if (calling && blinkOn) drawPixels(ctx, HUD_BANG, HUD_COLORS, ix, wy + PX);
-    }
-  }
-
-  /**
-   * schmale durchgehende Leiste (0..1), 5 Bildpixel hoch.
-   * Blinkt rot bei höchstens 25 % – bzw. bei alertHigh (Müdigkeit) ab 80 %.
-   */
-  private drawBar(x: number, y: number, frac: number, shades: [string, string, string], t: number, alertHigh = false) {
-    const ctx = this.ctx;
-    const PX = 1 / RES;
-    const INNER = 27; // Bildpixel
-    const f = Math.max(0, Math.min(1, frac));
-    const alert = (alertHigh ? f >= 0.8 : f <= 0.25) && Math.floor(t / 400) % 2 === 0;
-    const [hi, mid, lo] = alert ? ['#ff9aa6', '#e2384d', '#9a1c2c'] : shades;
-    ctx.fillStyle = '#1a120c';
-    ctx.fillRect(x, y, (INNER + 2) * PX, 5 * PX);
-    ctx.fillStyle = '#3e3229';
-    ctx.fillRect(x + PX, y + PX, INNER * PX, 3 * PX);
-    const w = Math.round(f * INNER);
-    if (w > 0) {
-      ctx.fillStyle = hi;
-      ctx.fillRect(x + PX, y + PX, w * PX, PX);
-      ctx.fillStyle = mid;
-      ctx.fillRect(x + PX, y + 2 * PX, w * PX, PX);
-      ctx.fillStyle = lo;
-      ctx.fillRect(x + PX, y + 3 * PX, w * PX, PX);
-    }
   }
 
   /** Schlafplatz hinten: Körbchen, Fuchsbau oder Laubnest */

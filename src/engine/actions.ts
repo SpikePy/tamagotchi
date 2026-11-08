@@ -192,3 +192,10 @@ export function collectEggs(s: GameState): ActionResult {
   addLog(p, s.clock, `${n} ${n === 1 ? 'Ei' : 'Eier'} eingesammelt.`);
   return yes(`🥚 ${n} ${n === 1 ? 'Ei' : 'Eier'} eingesammelt! (insgesamt ${p.eggsCollected})`);
 }
+
+/** Reihenfolge der Tiere ändern (Drag & Drop in der Leiste) */
+export function movePet(s: GameState, from: number, to: number) {
+  if (from === to || from < 0 || to < 0 || from >= s.pets.length || to >= s.pets.length) return;
+  const [p] = s.pets.splice(from, 1);
+  s.pets.splice(to, 0, p);
+}

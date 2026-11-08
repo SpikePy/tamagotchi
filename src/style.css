@@ -652,3 +652,93 @@ summary {
   cursor: pointer;
   touch-action: manipulation;
 }
+
+/* ---------- Status-Leisten über dem Spielbild ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(6px, 1.6cqw, 14px);
+}
+.stats.hidden {
+  visibility: hidden;
+}
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.stat-ico {
+  font-size: clamp(16px, 2.6cqw, 22px);
+  line-height: 1;
+  flex: none;
+}
+.stat .bar {
+  flex: 1;
+  height: clamp(9px, 1.5cqw, 13px);
+  background: #3e3229;
+  border: 2px solid #1a120c;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.stat .fill {
+  height: 100%;
+  width: 0;
+  transition: width 0.6s ease;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+.stat.food .fill {
+  background: #f29a2e;
+}
+.stat.tired .fill {
+  background: #8a74e8;
+}
+.stat.mood .fill {
+  background: #f2d23a;
+}
+.stat.alert .fill {
+  animation: stat-blink 0.8s steps(2) infinite;
+}
+@keyframes stat-blink {
+  50% {
+    background: #e2384d;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stat.alert .fill {
+    animation: none;
+    background: #e2384d;
+  }
+}
+.badges {
+  display: flex;
+  gap: 6px;
+}
+.badge {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff8ea;
+  border: 2px solid var(--btn-border);
+}
+.badge.sick {
+  border-color: #6aa84a;
+}
+.badge.call {
+  border-color: #e2384d;
+  animation: pulse 0.8s infinite alternate;
+}
+
+/* Tier-Leiste: ziehen zum Umsortieren */
+.pet-tab[data-pet-id] {
+  touch-action: none;
+  cursor: grab;
+}
+.pet-tab.dragging {
+  z-index: 2;
+  cursor: grabbing;
+  opacity: 0.9;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  transition: none;
+}

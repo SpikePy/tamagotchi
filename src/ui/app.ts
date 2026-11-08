@@ -15,12 +15,13 @@ import {
   startEgg,
   stroke,
   collectEggs,
+  movePet,
   switchPet,
   wakeUp,
 } from '../engine/actions';
 import { DAY, MIN, RULES } from '../engine/config';
 import { advance, ageDays, isOverweight, SimEvent, sleptLast24h } from '../engine/sim';
-import { CallType, GameState, MAX_PETS, Pet, activePet } from '../engine/state';
+import { CallType, GameState, MAX_PETS, Pet, activePet, hearts } from '../engine/state';
 import { notify, requestNotifications } from '../notify';
 import { drawMap, eggColors, eggMap, hiResCanvas, petSprite } from '../render/pixels';
 import { Scene } from '../render/scene';
@@ -82,6 +83,12 @@ export class App {
   private onSheetClose: (() => void) | null = null;
   private hud: HTMLElement;
   private tabs: HTMLElement;
+  private stats: HTMLElement;
+  private statEls: Record<'food' | 'tired' | 'mood', { root: HTMLElement; fill: HTMLElement; ico: HTMLElement }>;
+  private badges: HTMLElement;
+  private sleepPokes: number[] = [];
+  private tabDrag: { id: string; startX: number; dragging: boolean; el: HTMLElement } | null = null;
+  private suppressTabClick = false;
   private tabsKey = '';
 
   /** das gerade angezeigte Tier */
@@ -109,6 +116,17 @@ export class App {
     });
     this.hud = h('div', { class: 'hud' });
     this.tabs = h('div', { class: 'pet-tabs', role: 'tablist', 'aria-label': 'Deine Tiere' });
+    // Status-Leisten über dem Spielbild
+    this.stats = h('div', { class: 'stats' });
+    const mk = (cls: string, ico: string, label: string) => {
+      const fill = h('div', { class: 'fill' });
+      const icoEl = h('span', { class: 'stat-ico', 'aria-hidden': 'true' }, ico);
+      const root = h('div', { class: `stat ${cls}`, title: label, role: 'meter', 'aria-label': label }, icoEl, h('div', { class: 'bar' }, fill));
+      this.stats.append(root);
+      return { root, fill, ico: icoEl };
+    };
+    this.statEls = { food: mk('food', '🍗', 'Sättigung'), tired: mk('tired', '💤', 'Müdigkeit'), mood: mk('mood', '🙂', 'Laune') };
+    this.badges = h('div', { class: 'badges' });
     this.msgEl = h('div', { class: 'msg', role: 'status' });
 
     const nav = h('nav', { class: 'actions' });
@@ -150,7 +168,7 @@ export class App {
     });
 
     root.append(
-      h('main', { class: 'device' }, this.tabs, this.hud, h('div', { class: 'screen-wrap' }, canvas), this.msgEl, nav),
+      h('main', { class: 'device' }, this.tabs, this.hud, this.stats, h('div', { class: 'screen-wrap' }, canvas), this.msgEl, nav),
       this.dialog,
     );
 
@@ -233,7 +251,7 @@ export class App {
       s.activeId,
       s.pets.map((p) => [p.id, p.name, p.stage, p.variant, p.asleep, Object.keys(p.calls).length > 0, !!p.sick]),
     ]);
-    if (key === this.tabsKey) return;
+    if (key === this.tabsKey || this.tabDrag?.dragging) return;
     this.tabsKey = key;
     this.tabs.replaceChildren();
     for (const p of s.pets) {
@@ -255,7 +273,18 @@ export class App {
         Object.keys(p.calls).length ? h('span', { class: 'tab-dot', 'aria-label': 'ruft' }) : null,
         p.asleep ? h('span', { class: 'tab-z' }, 'z') : null,
       );
+      b.dataset.petId = p.id;
+      b.onpointerdown = (e) => {
+        this.tabDrag = { id: p.id, startX: e.clientX, dragging: false, el: b };
+        b.setPointerCapture(e.pointerId);
+      };
+      b.onpointermove = (e) => this.moveTabDrag(e);
+      b.onpointerup = b.onpointercancel = (e) => this.endTabDrag(e);
       b.onclick = () => {
+        if (this.suppressTabClick) {
+          this.suppressTabClick = false;
+          return;
+        }
         if (active) return;
         beep.click();
         switchPet(s, p.id);
@@ -276,6 +305,39 @@ export class App {
     }
   }
 
+  /** Drag & Drop: Tab folgt dem Finger, die anderen bleiben stehen */
+  private moveTabDrag(e: PointerEvent) {
+    const d = this.tabDrag;
+    if (!d) return;
+    const dx = e.clientX - d.startX;
+    if (!d.dragging && Math.abs(dx) < 6) return;
+    d.dragging = true;
+    d.el.classList.add('dragging');
+    d.el.style.transform = `translateX(${dx}px)`;
+  }
+
+  private endTabDrag(e: PointerEvent) {
+    const d = this.tabDrag;
+    this.tabDrag = null;
+    if (!d || !d.dragging) return;
+    this.suppressTabClick = true;
+    d.el.classList.remove('dragging');
+    d.el.style.transform = '';
+    // neue Position: vor dem ersten Tab, dessen Mitte rechts vom Finger liegt
+    const others = [...this.tabs.querySelectorAll<HTMLElement>('.pet-tab[data-pet-id]')].filter((x) => x !== d.el);
+    let to = others.findIndex((x) => {
+      const r = x.getBoundingClientRect();
+      return e.clientX < r.left + r.width / 2;
+    });
+    if (to < 0) to = others.length;
+    const from = this.s.pets.findIndex((p) => p.id === d.id);
+    movePet(this.s, from, to);
+    save(this.s);
+    this.tabsKey = '';
+    this.refresh();
+    beep.click();
+  }
+
   private refresh() {
     const s = this.s;
     const p = activePet(s);
@@ -288,14 +350,35 @@ export class App {
     const lightB = this.buttons.light;
     lightB.querySelector('span:last-child')!.textContent = p?.asleep && !p.lightOn ? 'Wecken' : 'Licht';
 
-    // Kopfzeile: Name (Sättigung/Laune stehen als HUD im Spielbild)
+    // Kopfzeile: Hinweise (krank/ruft) links, Name rechts
     this.hud.replaceChildren();
+    this.badges.replaceChildren();
+    if (p?.sick) this.badges.append(h('span', { class: 'badge sick', title: 'krank' }, '🤒 krank'));
+    if (p && Object.keys(p.calls).length) this.badges.append(h('span', { class: 'badge call', title: 'ruft' }, '❗ ruft'));
+    this.hud.append(this.badges);
     if (p && p.stage !== 'egg') {
       this.hud.append(
         h('span', { class: 'hud-name' }, petName(p), p.name ? h('small', {}, stageName(p)) : null),
       );
     } else if (p) {
       this.hud.append(h('span', { class: 'hud-name' }, 'Ein Ei … es wackelt bald!'));
+    }
+    // Status-Leisten
+    const showStats = !!p && p.stage !== 'egg';
+    this.stats.classList.toggle('hidden', !showStats);
+    if (p && showStats) {
+      const set = (k: 'food' | 'tired' | 'mood', frac: number, alert: boolean) => {
+        const el = this.statEls[k];
+        const f = Math.max(0, Math.min(1, frac));
+        el.fill.style.width = `${Math.round(f * 100)}%`;
+        el.root.setAttribute('aria-valuenow', String(Math.round(f * 100)));
+        el.root.classList.toggle('alert', alert);
+      };
+      set('food', p.hunger / 4, p.hunger / 4 <= 0.25);
+      set('tired', p.tiredness / 100, p.tiredness >= 80);
+      set('mood', p.happy / 4, p.happy / 4 <= 0.25);
+      const m = hearts(p.happy);
+      this.statEls.mood.ico.textContent = m >= 3 ? '😄' : m === 2 ? '🙂' : '😟';
     }
 
     if (performance.now() > this.msgUntil) {
@@ -337,12 +420,28 @@ export class App {
   private strokePet() {
     const p = this.pet;
     if (!p || p.stage === 'egg') return;
-    const r = stroke(this.s);
-    if (!r.ok) {
-      this.say(`${petName(p)} schläft – psst!`);
-      this.scene.stroke(true);
+    if (p.asleep) {
+      // im Schlaf: kein Streicheln; wer zu oft stupst, weckt es auf (mit den üblichen Folgen)
+      const now = performance.now();
+      this.sleepPokes = [...this.sleepPokes.filter((t) => now - t < 15000), now];
+      const n = this.sleepPokes.length;
+      const name = petName(p);
+      if (n >= 5) {
+        this.sleepPokes = [];
+        const res = wakeUp(this.s);
+        this.say(`Zu oft gestupst – ${name} ist aufgewacht und richtig schlecht gelaunt!`);
+        beep.no();
+        if (res.ok) this.scene.effect('angry');
+        this.refresh();
+        save(this.s);
+        return;
+      }
+      const texts = [`Psst … ${name} schläft.`, `${name} grummelt im Schlaf …`, `${name} dreht sich unruhig um …`, `Noch einmal und ${name} wacht auf!`];
+      this.say(texts[Math.min(n - 1, texts.length - 1)]);
       return;
     }
+    const r = stroke(this.s);
+    if (!r.ok) return;
     this.scene.stroke();
     beep.click();
     this.say(`${petName(p)} ${STROKE_TEXT[p.species] ?? 'genießt das Streicheln'}. ❤`);

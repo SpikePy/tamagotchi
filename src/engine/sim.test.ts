@@ -287,3 +287,17 @@ describe('Eier', () => {
     expect(roo.eggsInNest).toBe(0);
   });
 });
+
+describe('Umsortieren', () => {
+  it('verschiebt Tiere in der Liste', async () => {
+    const { movePet } = await import('./actions');
+    const s = game();
+    startEgg(s, 'cat');
+    startEgg(s, 'dog');
+    const ids = s.pets.map((p) => p.species);
+    movePet(s, 0, 2);
+    expect(s.pets.map((p) => p.species)).toEqual([ids[1], ids[2], ids[0]]);
+    movePet(s, 2, 0);
+    expect(s.pets.map((p) => p.species)).toEqual(ids);
+  });
+});

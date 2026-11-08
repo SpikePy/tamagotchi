@@ -11,7 +11,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 - **Echtzeit:** Die Zeit im Spiel läuft genauso schnell wie die echte Zeit. Ein Tag im Spiel ist ein echter Tag.
 - **Läuft weiter, wenn die App zu ist** (ergänzt): Ist die App geschlossen, läuft die Zeit trotzdem weiter. Beim nächsten Öffnen wird alles nachberechnet, was in der Zwischenzeit passiert ist (Hunger, Kacke, Krankheit usw.).
 - **Alles über die UI:** Jede Pflegeaktion löst der Spieler selbst über die Oberfläche aus. Nichts passiert automatisch zugunsten des Tiers.
-- **Mehrere Tiere:** Man kann bis zu **5 Tiere** gleichzeitig haben. Alle leben parallel in Echtzeit, auch wenn sie gerade nicht angezeigt werden. Über eine **Leiste oben** schaltet man zwischen ihnen um. Jedes Tier hat dort ein Mini-Bild und seinen Namen; ein roter Punkt zeigt, dass es ruft, ein „z“, dass es schläft. Mit „+“ legt man ein neues Ei an. Ruft ein Tier, das gerade nicht angezeigt wird, piept es, und unten erscheint eine Meldung mit seinem Namen. Stirbt ein Tier oder zieht in den Wald, geht es mit den übrigen weiter.
+- **Mehrere Tiere:** Man kann bis zu **5 Tiere** gleichzeitig haben. Alle leben parallel in Echtzeit, auch wenn sie gerade nicht angezeigt werden. Über eine **Leiste oben** schaltet man zwischen ihnen um. Jedes Tier hat dort ein Mini-Bild und seinen Namen; ein roter Punkt zeigt, dass es ruft, ein „z“, dass es schläft. Mit „+“ legt man ein neues Ei an. Die Tiere lassen sich in der Leiste per **Drag & Drop umsortieren** (mit Maus oder Finger ziehen). Ein normaler Tipp schaltet weiter um. Ruft ein Tier, das gerade nicht angezeigt wird, piept es, und unten erscheint eine Meldung mit seinem Namen. Stirbt ein Tier oder zieht in den Wald, geht es mit den übrigen weiter.
 
 ## 2a. Plattform
 
@@ -37,12 +37,11 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
-**HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild**. Alles ist im feinen Pixelraster gezeichnet und sitzt in dunklen Pixel-Rahmen mit abgeschrägten Ecken und heller Oberkante.
-- **Alle drei Anzeigen in einer Zeile** in einem gemeinsamen Rahmen oben: **Sättigung** (Keule, orange) · **Müdigkeit** (Mond, lila; füllt sich, je müder das Tier ist) · **Laune** (gelb) mit einem kleinen **Smiley, das zur Stimmung passt** (lachend, neutral, traurig).
-- Die Leisten sind **durchgehend und schmal** (5 Bildpixel hoch) mit Glanz oben und Schatten unten. Sättigung und Laune werden bei **höchstens 25 %** **rot und blinken**, die Müdigkeit ab **80 %**.
-- Im Statusbildschirm stehen Sättigung und Laune als Balken mit Prozentangabe.
-- **Direkt darunter in der Mitte** stehen die Warnsymbole in einem eigenen kleinen Rahmen: ein Totenkopf bei Krankheit und ein blinkendes Ausrufezeichen beim Rufen.
-- Das HUD bleibt auch nachts und bei Licht aus hell.
+**Status-Leisten:** Sättigung, Müdigkeit und Laune stehen **über dem Spielbild** (nicht mehr im Bild) in einer Zeile:
+- 🍗 **Sättigung** (orange), 💤 **Müdigkeit** (lila; füllt sich, je müder das Tier ist), **Laune** (gelb) mit einem Gesicht passend zur Stimmung: 😄 / 🙂 / 😟.
+- Die Leisten sind durchgehend und füllen sich sanft. Sättigung und Laune **blinken rot** bei höchstens 25 %, die Müdigkeit ab 80 %.
+- In der Zeile darüber stehen links **Hinweis-Abzeichen**: „🤒 krank“ und ein pulsierendes „❗ ruft“. Rechts stehen Name und Entwicklungsstufe.
+- Im Statusbildschirm stehen Sättigung und Laune zusätzlich als Balken mit Prozentangabe.
 
 ## 4. Lebenszyklus
 
@@ -163,7 +162,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 - Es **bleibt stehen**, schließt genießerisch die Augen, **wiegt sich** leicht hin und her, und **Herzchen** steigen auf und driften dabei zufällig nach links oder rechts.
 - Unten erscheint eine passende Meldung: Die Katze „schnurrt“, der Hund „wedelt mit dem Schwanz“, der Fuchs „kuschelt sich an deine Hand“, der Igel „legt die Stacheln an“, das Huhn „gluckst zufrieden“.
 - Streicheln gibt **+25 % Laune**, aber höchstens **einmal pro Minute**. Öfter streicheln geht, bringt aber keine zusätzliche Laune.
-- Schlafende Tiere werden nicht geweckt. Es gibt nur ein einzelnes Herzchen und den Hinweis „psst“.
+- **Schlafende Tiere** lassen sich nicht streicheln (keine Herzen). Tippt man trotzdem, kommen Hinweise, die sich steigern („Psst …“, „grummelt im Schlaf“, „dreht sich unruhig um“, „Noch einmal und … wacht auf!“). Beim **5. Antippen innerhalb von 15 Sekunden wacht das Tier auf**, mit den üblichen Folgen des zu frühen Weckens (−50 % Laune).
 
 ### 6.5 Medizin
 
