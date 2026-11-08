@@ -6,7 +6,7 @@ import { ColorMap, ICONS, RES, drawMap, drawPixels, eggColors, eggMap, hiResCanv
 import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
-import { Clouds, weatherAt } from './weather';
+import { Clouds, drawPrecip, drawPuddles, drawWindowDrops, weatherAt } from './weather';
 import { Ambient, drawLamp, drawLampLight, eveningLight } from './ambient';
 import { remapContext, seasonOf, seasonTransform, snowCaps, snowGround } from './season';
 import { NEST_BOX, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
@@ -403,20 +403,32 @@ export class Scene {
     this.critters.update(this.env, this.env === 'room' ? skyState(s.clock).day : this.bgDay, t, WIN, season);
     if (this.env === 'room') {
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H);
+      if (weatherAt(s.clock).precip !== 'none') {
+        ctx.fillStyle = 'rgba(120,130,145,0.45)';
+        ctx.fillRect(WIN.x, WIN.y, WIN.w, WIN.h);
+      }
       // im Fenster: Wolken, Vogel, dann Fensterkreuz und Spiegelung darüber
       this.clouds.draw(ctx, s.clock, t, WIN, !skyState(s.clock).day);
       this.critters.draw(ctx, 'window', t);
       if (season !== 'winter') this.ambient.draw(ctx, 'room', skyState(s.clock), t, WIN);
+      const wxr = weatherAt(s.clock);
+      drawPrecip(ctx, wxr.precip, wxr.wind, t, WIN);
+      if (wxr.precip === 'rain') drawWindowDrops(ctx, WIN, t);
       this.drawWindowFront();
       drawSillDecor(ctx, sp.id, { x: WIN.x - 3, y: WIN.y + WIN.h + 1, w: WIN.w + 6 });
     } else {
       ctx.drawImage(this.bgSky, 0, 0, SCREEN_W, SCREEN_H); // Himmel
+      if (weatherAt(s.clock).precip !== 'none') {
+        ctx.fillStyle = 'rgba(120,130,145,0.45)'; // grauer Himmel bei Regen/Schnee
+        ctx.fillRect(0, 0, SCREEN_W, GROUND_Y);
+      }
       this.clouds.draw(ctx, s.clock, t, { x: 0, y: 0, w: SCREEN_W, h: GROUND_Y }, !this.bgDay); // Wolken
       this.critters.draw(ctx, 'sky', t); // Vögel
       ctx.drawImage(this.bgFar, 0, 0, SCREEN_W, SCREEN_H); // Berge, Hügel / Hecke, Zaun
       if (sp.id === 'fox') drawDecorAnim(ctx, 'fox', t); // Glitzern auf dem Bach
       this.critters.draw(ctx, 'background', t); // Reh
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H); // Wiese, Bäume, Busch, Schlafplatz
+      if (weatherAt(s.clock).precip === 'rain') drawPuddles(ctx, t);
       this.critters.draw(ctx, 'air', t); // wehende Blätter
       if (!this.bgDay) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
       if (season !== 'winter') this.ambient.draw(ctx, this.env, skyState(s.clock), t, WIN); // Schmetterlinge / Glühwürmchen
@@ -456,6 +468,11 @@ export class Scene {
     this.drawBowl(t);
 
     const skyNow = skyState(s.clock);
+    if (this.env !== 'room') {
+      const wx = weatherAt(s.clock);
+      if (wx.precip === 'rain') this.overlay(0.12); // trüber bei Regen
+      drawPrecip(ctx, wx.precip, wx.wind, t);
+    }
     eveningLight(ctx, skyNow);
     // Stehlampe brennt abends und nachts, solange das Licht an ist
     const hour = new Date(s.clock).getHours();

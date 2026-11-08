@@ -30,3 +30,20 @@ describe('Jahreszeiten', () => {
     expect(seasonOf(at(11))).toBe('winter');
   });
 });
+
+describe('Niederschlag', () => {
+  it('Schnee nur im Winter, Regen nur außerhalb, beides kommt vor', () => {
+    const seen = { rain: 0, snow: 0 };
+    for (let i = 0; i < 400; i++) {
+      const summer = weatherAt(new Date(2026, 6, 1).getTime() + i * 45 * 60_000);
+      const winter = weatherAt(new Date(2026, 0, 1).getTime() + i * 45 * 60_000);
+      expect(summer.precip).not.toBe('snow');
+      expect(winter.precip).not.toBe('rain');
+      if (summer.precip === 'rain') seen.rain++;
+      if (winter.precip === 'snow') seen.snow++;
+      if (summer.precip !== 'none') expect(summer.clouds).toBeGreaterThanOrEqual(4);
+    }
+    expect(seen.rain).toBeGreaterThan(20);
+    expect(seen.snow).toBeGreaterThan(40);
+  });
+});

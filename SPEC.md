@@ -277,6 +277,13 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - **Nistkasten** rechts am Stall
   - **Wetterhahn** auf dem Dach, der in die aktuelle **Windrichtung** zeigt
 
+**Niederschlag:** Zum Wetter gehört auch Regen oder Schnee.
+- **Regen:** außerhalb des Winters etwa jedes 5. Wetter.
+- **Schnee:** im Winter etwa jedes 3. Wetter.
+- Bei Niederschlag gibt es mindestens 4 graue Wolken, und der Himmel wird grau verschleiert.
+- **Draußen:** Regentropfen fallen schräg je nach Wind, die Szene wird etwas trüber, und auf dem Boden bilden sich **Pfützen** mit kleinen Ringen. Schneeflocken fallen langsam und tanzen leicht.
+- **Drinnen:** Regen bzw. Schnee sieht man im Fenster, bei Regen laufen **Tropfen an der Scheibe** herunter.
+
 **Ebenen (Tiefe):** Die Szenen bestehen aus Ebenen, damit sich bewegte Dinge **richtig dahinter oder davor** befinden:
 - **Draußen**, von hinten nach vorn:
   1. Himmel mit Sonne/Mond

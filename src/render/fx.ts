@@ -39,14 +39,14 @@ export function pixelCircle(ctx: CanvasRenderingContext2D, cx: number, cy: numbe
 }
 
 /** Wolke aus Pixelkreisen */
-export function cloud(ctx: CanvasRenderingContext2D, x: number, y: number, size = 1) {
+export function cloud(ctx: CanvasRenderingContext2D, x: number, y: number, size = 1, color = '#ffffff') {
   for (const [dx, dy, r] of [
     [0, 0.4, 1.6],
     [2.4, -0.6, 2.1],
     [4.8, 0.3, 1.7],
     [2.4, 0.9, 1.7],
   ])
-    pixelCircle(ctx, x + dx * size, y + dy * size, r * size, '#ffffff');
+    pixelCircle(ctx, x + dx * size, y + dy * size, r * size, color);
   // Schattenkante unten
   ctx.fillStyle = 'rgba(160,180,210,0.5)';
   ctx.fillRect(snap(x - 0.5 * size), snap(y + 2 * size), snap(5.5 * size), PX);
