@@ -9,7 +9,7 @@ import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNe
 import { Clouds, drawPrecip, drawPuddles, drawWindowDrops, weatherAt } from './weather';
 import { Ambient, LAMP, drawLamp, drawLampLight, eveningLight, nightTint, nightness, roomNight } from './ambient';
 import { remapContext, seasonOf, seasonTransform, snowCaps, snowGround } from './season';
-import { NEST_BOX, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
+import { NEST_BOX, STRAW_HEAP, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
 
 export const SCREEN_W = 64;
 export const SCREEN_H = 48;
@@ -145,6 +145,9 @@ const LEAVES_BACK: [number, number, number, number][] = Array.from({ length: 26 
   return [((n * 7) % 126) / 2, 33.5 + ((n >> 2) % 14) / 2, n % 5, (n >> 1) % 3];
 });
 
+// kleines Schlaf-Z in voller Rasterauflösung
+const Z_SMALL = ['www', '..w', '.w.', 'www'];
+
 // HUD-Symbole in voller Rasterauflösung (1 Zeichen = 1 Bildpixel)
 const HUD_COLORS: ColorMap = {
   o: '#2a1a10',
@@ -158,9 +161,10 @@ const HUD_COLORS: ColorMap = {
   r: '#e2384d',
   z: '#c8d0ff',
 };
-const HUD_HAPPY_S = ['.ooooo.', 'oyyyyyo', 'oyoyoyo', 'oyyyyyo', 'okyyyko', 'oykkkyo', '.ooooo.'];
-const HUD_OK_S = ['.ooooo.', 'oyyyyyo', 'oyoyoyo', 'oyyyyyo', 'oyyyyyo', 'oykkkyo', '.ooooo.'];
-const HUD_SAD_S = ['.ooooo.', 'oyyyyyo', 'oyoyoyo', 'oyyyyyo', 'oykkkyo', 'okyyyko', '.ooooo.'];
+const HUD_HAPPY_S = ['.ooooo.', 'oyyyyyo', 'oykykyo', 'oyyyyyo', 'okyyyko', 'oykkkyo', '.ooooo.'];
+const HUD_OK_S = ['.ooooo.', 'oyyyyyo', 'oykykyo', 'oyyyyyo', 'oyyyyyo', 'oykkkyo', '.ooooo.'];
+const HUD_SAD_S = ['.ooooo.', 'oyyyyyo', 'oykykyo', 'oyyyyyo', 'oykkkyo', 'okyyyko', '.ooooo.'];
+const SMILEY_COLORS: ColorMap = { o: '#a8780e', y: '#f6d23c', k: '#4a3a10' };
 const HUD_MEAT_S = ['.....ow', '..ooowo', '.obhbo.', 'obbbbo.', '.oooo..'];
 const HUD_MOON_S = ['.oo..zz', 'oyo...z', 'oy...z.', 'oyo.zz.', '.oo....'];
 const HUD_SKULL = [
@@ -206,7 +210,7 @@ export class Scene {
   private walkX = 30;
   private walkDir = 1;
   private depth = 1; // 0 = hinten, 3.5 = vorne im Raum
-  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase'; visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill'; arrived?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase'; visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop'; arrived?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
     kind: 'idle',
     start: 0,
     until: 0,
@@ -224,9 +228,9 @@ export class Scene {
   }
 
   /** nur zum Testen: bestimmte Aktion sofort auslösen */
-  debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle', visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill', target?: number) {
+  debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle', visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop', target?: number) {
     const t = performance.now();
-    this.act = { kind, visit, start: t, until: t + 30000, target, targetDepth: visit === 'drink' || visit === 'dustbath' ? 2.5 : 1, speed: 12 };
+    this.act = { kind, visit, start: t, until: t + 30000, target, targetDepth: visit === 'drink' || visit === 'dustbath' ? 2.5 : visit === 'hop' ? 0 : 1, speed: 12 };
     if (kind !== 'visit') this.act.until = t + 2600;
   }
 
@@ -464,7 +468,7 @@ export class Scene {
       const sl = petSprite(sp, p, { sleeping: true, sleepSmall: this.env === 'forest' });
       const zx = this.env === 'forest' ? DEN.cx + DEN.half - 1 : Math.min(BASKET_CX + sl.w / 2 - 4, SCREEN_W - 12);
       const k = Math.floor(t / 600) % 3;
-      for (let i = 0; i <= k; i++) drawMap(ctx, ICONS.z.map, ICONS.z.colors, zx + i * 4, FLOOR_Y - sl.h - 6 - i * 5);
+      for (let i = 0; i <= k; i++) drawPixels(ctx, Z_SMALL, ICONS.z.colors, zx + i * 2, FLOOR_Y - sl.h - 3 - i * 2.5);
     }
 
     // Entwicklung: weißes Aufblitzen
@@ -494,7 +498,7 @@ export class Scene {
       drawPixels(ctx, HUD_MOON_S, HUD_COLORS, x0 + 41 * PX, y);
       this.drawBar(x0 + 49 * PX, y, p.tiredness / 100, ['#c8b8ff', '#8a74e8', '#5a46b0'], t, true);
       this.drawBar(x0 + 81 * PX, y, p.happy / RULES.hearts, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
-      drawPixels(ctx, mood >= 3 ? HUD_HAPPY_S : mood === 2 ? HUD_OK_S : HUD_SAD_S, HUD_COLORS, x0 + 112 * PX, top + 1 * PX);
+      drawPixels(ctx, mood >= 3 ? HUD_HAPPY_S : mood === 2 ? HUD_OK_S : HUD_SAD_S, SMILEY_COLORS, x0 + 112 * PX, top + 1 * PX);
     }
     // darunter mittig: krank / ruft
     const calling = Object.keys(p.calls).length > 0;
@@ -864,7 +868,7 @@ export class Scene {
     const targets = decorTargets(p.species);
     if (targets.length && !p.sick && Math.random() < 0.14) {
       const tg = targets[Math.floor(Math.random() * targets.length)];
-      return { kind: 'visit' as const, visit: tg.kind, start: t, until: t + 30000, target: tg.x - 8, targetDepth: tg.kind === 'drink' || tg.kind === 'dustbath' ? 2.5 : 1, speed: 7 };
+      return { kind: 'visit' as const, visit: tg.kind, start: t, until: t + 30000, target: tg.x - 8, targetDepth: tg.kind === 'drink' || tg.kind === 'dustbath' ? 2.5 : tg.kind === 'hop' ? 0 : 1, speed: 7 };
     }
     if (r < 0.42) {
       let target = from + Math.random() * (to - from);
@@ -936,7 +940,7 @@ export class Scene {
         const dd = (a.targetDepth ?? this.depth) - this.depth;
         if (Math.abs(diff) < 0.3 && Math.abs(dd) < 0.1) {
           a.arrived = t;
-          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000 } as const)[a.visit ?? 'sniff'];
+          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000, hop: 5000 } as const)[a.visit ?? 'sniff'];
         } else {
           const dist = Math.hypot(diff, dd * 2);
           const step = Math.min(dist, (a.speed ?? 6) * dt);
@@ -977,8 +981,9 @@ export class Scene {
         this.walkDir = dir;
         face = dir;
         gaze = dir;
-      } else if (a.kind === 'look') {
+      } else if (a.kind === 'look' || (a.kind === 'visit' && a.visit === 'hop' && a.arrived !== undefined)) {
         gaze = Math.sin((t - a.start) / 450) > 0 ? 1 : -1;
+        if (a.kind === 'visit') face = gaze; // auf dem Strohhaufen hin und her schauen
       }
     }
     // Seitenansicht-Sprites (Dackel) schauen von Haus aus nach links
@@ -1005,7 +1010,14 @@ export class Scene {
     if (s >= 0 && s < 600) x += Math.round(Math.sin(s / 25) * 1.5);
     if (petted) x += Math.floor((t - a.start) / 300) % 2 ? 0.5 : 0; // genießerisch wiegen
 
-    const ground = FLOOR_Y + Math.round(this.depth * 2) / 2;
+    let ground = FLOOR_Y + Math.round(this.depth * 2) / 2;
+    if (visiting === 'hop') {
+      // hochhüpfen, oben stehen, runterhüpfen
+      const kk = (t - (a.arrived ?? t)) / Math.max(1, a.until - (a.arrived ?? t));
+      const up = kk < 0.1 ? kk / 0.1 : kk > 0.9 ? (1 - kk) / 0.1 : 1;
+      const arc = up < 1 ? Math.sin(Math.PI * up) * 2.5 : 0;
+      ground = Math.round((ground - (STRAW_HEAP.h - 0.5) * up - arc) * 2) / 2;
+    }
     const y = ground - h + 1 - bob;
     // kleiner Schatten unter dem Tier
     ctx.fillStyle = 'rgba(0,0,0,0.16)';

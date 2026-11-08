@@ -133,7 +133,7 @@ const TROUGH_C: ColorMap = { o: '#4a5058', W: '#c8d0d8', l: '#7ac0f0', m: '#8a94
 // ---------- Platzierungen ----------
 export interface DecorTarget {
   x: number; // wo das Tier hinläuft (Mitte)
-  kind: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill';
+  kind: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop';
 }
 
 /** Interaktionspunkte je Tierart */
@@ -148,7 +148,7 @@ export function decorTargets(species: string): DecorTarget[] {
     case 'dog':
       return [{ x: 27, kind: 'drink' }];
     case 'chicken':
-      return [{ x: 8, kind: 'dustbath' }];
+      return [{ x: 8, kind: 'dustbath' }, { x: STRAW_HEAP.cx, kind: 'hop' }];
   }
   return [];
 }
@@ -167,6 +167,27 @@ export function drawDecorFar(ctx: CanvasRenderingContext2D, scene: SceneKind) {
 }
 
 let sunflowersOff = false;
+
+/** Strohhaufen auf dem Hühnerhof (das Huhn hüpft manchmal hinauf) */
+export const STRAW_HEAP = { cx: 30.5, base: 41, rx: 5.5, h: 4.5 };
+function strawHeap(ctx: CanvasRenderingContext2D) {
+  const { cx, base, rx, h } = STRAW_HEAP;
+  for (let y = base - h; y < base; y += P)
+    for (let x = cx - rx; x <= cx + rx; x += P) {
+      const u = (x + P / 2 - cx) / rx;
+      const v = (base - (y + P / 2)) / h;
+      if (u * u + v * v > 1) continue;
+      const n = (((Math.round(x * 2) * 73856093) ^ (Math.round(y * 2) * 19349663)) >>> 0) % 997;
+      const edge = u * u + (v + 0.12) * (v + 0.12) > 0.82;
+      let c = n % 4 === 0 ? '#f4dc8a' : n % 3 === 0 ? '#c09a3a' : '#e0b850';
+      if (u + (1 - v) * 0.3 > 0.65) c = n % 2 ? '#b88a30' : '#a07a28'; // Schatten rechts
+      if (edge && n % 2) c = '#8a6a20';
+      rect(ctx, c, x, y, P, P);
+    }
+  // einzelne abstehende Halme
+  for (const [hx, hy, dx] of [[cx - 3, base - h + 0.5, -1], [cx + 1, base - h - 0.5, 1], [cx + 4, base - 2, 1], [cx - 4.5, base - 1.5, -1]] as [number, number, number][])
+    for (let k = 0; k < 3; k++) rect(ctx, '#f0d070', hx + dx * k * P, hy - k * P * 0.5, P, P);
+}
 
 /** Wandregal mit Büchern */
 function shelf(ctx: CanvasRenderingContext2D, x: number, y: number, books: string[]) {
@@ -262,6 +283,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
           const d = ((x - 8.5) / 5.5) ** 2 + ((y - 45) / 2) ** 2;
           if (d < 1) rect(ctx, d < 0.5 ? '#b8923a' : '#c8a24a', x, y, P, P);
         }
+      strawHeap(ctx);
       put(ctx, TROUGH_WATER, TROUGH_C, 26, 41.5);
       // Leiter an der linken Stallwand
       for (const lx of [35.5, 37.5]) rect(ctx, '#7a5a34', lx, 30, P, 11);
