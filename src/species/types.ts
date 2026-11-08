@@ -38,6 +38,8 @@ export interface SpeciesDef {
   variantPalettes: Partial<Record<Variant, Partial<Palette>>>;
   sprites: Record<Exclude<Stage, 'egg'>, Sprite>;
   egg: { shell: string; spots: string };
+  /** Deko im Raum passend zur Art */
+  room?: { floor?: 'grass' | 'leaves'; scratchingPost?: boolean };
   /** optional: zufällige Fellfarbe + Muster pro Tier */
   coats?: Coat[];
   patterns?: Pattern[];

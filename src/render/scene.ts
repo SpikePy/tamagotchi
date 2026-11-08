@@ -70,26 +70,59 @@ const SUNSET = 20;
 const STARS: [number, number][] = [[2, 2], [8, 1], [15, 3], [19, 7], [4, 9], [12, 6], [17, 12], [6, 13]];
 const PLANT_COLORS: ColorMap = { g: '#4d9a3a', l: '#7cc45a', d: '#2f6b2a', o: '#3a2a1a', t: '#c0623a', s: '#e07a4a' };
 // große Zimmerpflanze links auf dem Boden
-const PLANT_X = 1;
+const PLANT_X = 0;
 const PLANT_LEAVES = [
-  '.....l....',
-  '..l.lgl...',
-  '.lgl.g..l.',
-  '.lgl.g.lgl',
-  'lggl.g.lgl',
-  '.lggdgdgl.',
-  '..lgdgdl..',
-  '...dgggd..',
-  '....dgd...',
-  '.....d....',
+  '.....l......',
+  '....lgl...l.',
+  '.l..lgl..lgl',
+  'lgl.lgl..lgl',
+  'lgl..g..lggl',
+  'lggl.g.lggl.',
+  '.lggdgdggl..',
+  '..lgdgdgl...',
+  '.l.dgggd.l..',
+  'lgl.dgd.lgl.',
+  'lggl.d.lggl.',
+  '.lggdgdggl..',
+  '...dgggd....',
+  '....dgd.....',
+  '.....d......',
 ];
 const PLANT_POT = [
-  '.oooooooo.',
-  '.osssssso.',
-  '..otttto..',
-  '..otttto..',
-  '..otttto..',
-  '...oooo...',
+  '.oooooooooo.',
+  '.osssssssso.',
+  '..otttttto..',
+  '..otttttto..',
+  '..otttttto..',
+  '...otttto...',
+  '...oooooo...',
+];
+
+// Kratzbaum (Katze)
+const POST_X = 24;
+const POST = [
+  '..ooooooo..',
+  '.ommmmmmmo.',
+  'ommmmmmmmmo',
+  'ooooooooooo',
+  ...Array.from({ length: 13 }, (_, i) => (i % 2 ? '...oRRRo...' : '...orrro...')),
+  '..ooooooo..',
+  '.ommmmmmmo.',
+  'ommmmmmmmmo',
+  'ooooooooooo',
+];
+const POST_COLORS: ColorMap = { o: '#4a3a30', m: '#b9a58a', r: '#d8c08e', R: '#b89a62', l: '#5a4a40', y: '#e2384d' };
+
+// Grasbüschel (Fuchs) und Herbstlaub (Igel)
+const TUFT = ['l.l.l', '.lgl.', 'ggggg'];
+const TUFT_COLORS: ColorMap = { l: '#8cc85a', g: '#4d9a3a' };
+const TUFTS_X = [12, 21, 29, 35, 60];
+const GRASS_DOTS: [number, number][] = [[3, 43], [9, 46], [15, 44], [24, 46], [31, 43], [40, 46], [47, 44], [55, 46], [61, 43], [19, 41], [51, 42]];
+const LEAF_SHAPES = [['.x.', 'xxx'], ['xx', '.x'], ['x.', 'xx']];
+const LEAF_COLORS = ['#d9772b', '#b8432a', '#e0b13a', '#8a5a2b', '#c95a2a'];
+const LEAVES: [number, number, number, number][] = [
+  [13, 42, 0, 0], [20, 45, 1, 1], [27, 41, 2, 2], [33, 44, 3, 0], [9, 45, 4, 1], [3, 42, 2, 2],
+  [42, 45, 0, 1], [49, 43, 1, 0], [56, 46, 2, 1], [61, 42, 3, 2], [24, 43, 4, 0], [37, 46, 1, 2], [16, 46, 3, 2],
 ];
 
 type FxKind = 'food' | 'candy' | 'pill' | 'heart' | 'angry' | 'sparkle';
@@ -218,7 +251,8 @@ export class Scene {
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     ctx.fillRect(0, FLOOR_Y, SCREEN_W, 1);
     this.drawWindow(clock);
-    this.drawPlant(t);
+    this.drawDecor(sp, t);
+    this.drawPlant();
   }
 
   /** Fenster: Sonne (7–20 Uhr) bzw. Mond wandern im Bogen über den Himmel */
@@ -258,14 +292,38 @@ export class Scene {
     ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 2);
   }
 
-  /** Zimmerpflanze links auf dem Boden, die oberen Blätter wiegen sich leicht */
-  private drawPlant(t: number) {
-    const sway = Math.round(Math.sin(t / 900)); // -1..1
+  /** Große Zimmerpflanze links auf dem Boden */
+  private drawPlant() {
     const potY = FLOOR_Y + 1 - PLANT_POT.length;
-    const top = potY - PLANT_LEAVES.length;
-    drawMap(this.ctx, PLANT_LEAVES.slice(0, 5), PLANT_COLORS, PLANT_X + sway, top);
-    drawMap(this.ctx, PLANT_LEAVES.slice(5), PLANT_COLORS, PLANT_X, top + 5);
+    drawMap(this.ctx, PLANT_LEAVES, PLANT_COLORS, PLANT_X, potY - PLANT_LEAVES.length);
     drawMap(this.ctx, PLANT_POT, PLANT_COLORS, PLANT_X, potY);
+  }
+
+  /** Deko passend zur Tierart: Gras, Laub, Kratzbaum */
+  private drawDecor(sp: SpeciesDef, t: number) {
+    const ctx = this.ctx;
+    const room = sp.room ?? {};
+    if (room.floor === 'grass') {
+      ctx.fillStyle = '#6aa84a';
+      for (const [x, y] of GRASS_DOTS) ctx.fillRect(x, y, 1, 1);
+      for (const x of TUFTS_X) drawMap(ctx, TUFT, TUFT_COLORS, x, FLOOR_Y - 2);
+    }
+    if (room.floor === 'leaves') {
+      for (const [x, y, c, shape] of LEAVES) drawMap(ctx, LEAF_SHAPES[shape], { x: LEAF_COLORS[c] }, x, y);
+    }
+    if (room.scratchingPost) {
+      const top = FLOOR_Y + 1 - POST.length;
+      drawMap(ctx, POST, POST_COLORS, POST_X, top);
+      // Spielball pendelt an einer Schnur
+      const swing = Math.sin(t / 700);
+      const len = 6;
+      const ax = POST_X + 9;
+      const ay = top + 3;
+      ctx.fillStyle = POST_COLORS.l;
+      for (let i = 1; i <= len; i++) ctx.fillRect(Math.round(ax + swing * i * 0.35), ay + i, 1, 1);
+      ctx.fillStyle = POST_COLORS.y;
+      ctx.fillRect(Math.round(ax + swing * len * 0.35) - 1, ay + len + 1, 2, 2);
+    }
   }
 
   private drawPoops(p: Pet, t: number) {

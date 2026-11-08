@@ -174,7 +174,12 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - Morgens und abends ist der Himmel **orange**, in der Dämmerung blassblau.
 - Nachts zieht der **Mond** seinen Bogen, dazu leuchten Sterne.
 
-**Pflanze:** Links auf dem Boden steht eine große **Zimmerpflanze** im Topf, deren obere Blätter sich leicht wiegen.
+**Pflanze:** Links auf dem Boden steht eine große **Zimmerpflanze** im Topf. Sie bewegt sich nicht.
+
+**Deko je Tierart:** Sie ist als Daten in der Tierart angelegt (`room`).
+- **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
+- **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
+- **Katze:** ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt.
 
 **Animationen:**
 - **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.

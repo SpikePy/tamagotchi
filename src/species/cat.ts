@@ -33,6 +33,7 @@ export const cat: SpeciesDef = {
     { name: 'Weiß', colors: { a: '#f6f2ea', d: '#e3913f', b: '#ffffff', e: '#4f8fc0' } },
   ],
   patterns: ['solid', 'tabby', 'patches', 'socks'],
+  room: { scratchingPost: true },
   egg: { shell: '#fbf6ee', spots: '#e8964a' },
   sprites: {
     baby: [

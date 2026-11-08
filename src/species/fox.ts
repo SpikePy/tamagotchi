@@ -23,6 +23,7 @@ export const fox: SpeciesDef = {
     cheeky: { a: '#d4562a', c: '#4a1c0a' },
     great: { a: '#f5862f', b: '#ffffff', c: '#7a3a14' },
   },
+  room: { floor: 'grass' },
   egg: { shell: '#fff4e2', spots: '#e8772e' },
   sprites: {
     baby: [
