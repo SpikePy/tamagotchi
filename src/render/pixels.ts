@@ -120,6 +120,18 @@ export function drawMap(
   ctx.drawImage(bmp, snap(x), snap(y), map[0].length, map.length);
 }
 
+/** Zeichnet eine Pixel-Grafik in voller Rasterauflösung (1 Zeichen = 1 Bildpixel) */
+export function drawPixels(ctx: CanvasRenderingContext2D, map: string[], colors: ColorMap, x: number, y: number) {
+  const p = 1 / RES;
+  for (let r = 0; r < map.length; r++)
+    for (let c = 0; c < map[r].length; c++) {
+      const col = colors[map[r][c]];
+      if (!col) continue;
+      ctx.fillStyle = col;
+      ctx.fillRect(x + c * p, y + r * p, p, p);
+    }
+}
+
 /** Canvas in hoher Auflösung, Koordinaten in Spiel-Pixeln */
 export function hiResCanvas(w: number, h: number, cls = ''): HTMLCanvasElement {
   const c = document.createElement('canvas');

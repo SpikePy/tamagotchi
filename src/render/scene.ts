@@ -2,7 +2,7 @@ import { MIN, RULES } from '../engine/config';
 import { activePet, hearts, type GameState, type Pet } from '../engine/state';
 import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
-import { ColorMap, ICONS, RES, drawMap, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
+import { ColorMap, ICONS, RES, drawMap, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
 import { Critters } from './critters';
 import { bands, cloud, glow, shadeHex } from './fx';
 import { PLATE_COLORS, SceneKind, drawNestBack, drawNestFront, drawOutdoor, skyState } from './outdoor';
@@ -105,10 +105,86 @@ const LEAVES: [number, number, number, number][] = [
   [42, 45, 0, 1], [49, 43, 1, 0], [56, 46, 2, 1], [61, 42, 3, 2], [24, 43, 4, 0], [37, 46, 1, 2], [16, 46, 3, 2],
 ];
 
-// HUD-Symbole
-const HUD_ICON_COLORS: ColorMap = { b: '#c0763a', w: '#f4f0e8', y: '#f2d64b', o: '#3a2a1a' };
-const HUD_FOOD = ['..bb.', '.bbbb', '.bbb.', 'w.b..', 'ww...'];
-const HUD_SMILE = ['.yyy.', 'yoyoy', 'yyyyy', 'yoooy', '.yyy.'];
+// HUD-Symbole in voller Rasterauflösung (1 Zeichen = 1 Bildpixel)
+const HUD_COLORS: ColorMap = {
+  o: '#2a1a10',
+  b: '#c0622e',
+  h: '#ee9a5c',
+  w: '#f4ecd8',
+  y: '#f6d23c',
+  l: '#fff2a0',
+  k: '#2a1a10',
+  s: '#f0f0f0',
+  r: '#e2384d',
+};
+const HUD_MEAT = [
+  '......ow.',
+  '.....owwo',
+  '..oooowo.',
+  '.obhhbo..',
+  'obhbbbbo.',
+  'obbbbbbo.',
+  'obbbbbbo.',
+  '.obbbbo..',
+  '..oooo...',
+];
+const HUD_HAPPY = [
+  '..ooooo..',
+  '.oylyyyo.',
+  'oylyyyyyo',
+  'oyyoyoyyo',
+  'oyyyyyyyo',
+  'oykyyykyo',
+  'oyykkkyyo',
+  '.oyyyyyo.',
+  '..ooooo..',
+];
+const HUD_OK = [
+  '..ooooo..',
+  '.oylyyyo.',
+  'oylyyyyyo',
+  'oyyoyoyyo',
+  'oyyyyyyyo',
+  'oyyyyyyyo',
+  'oyykkkyyo',
+  '.oyyyyyo.',
+  '..ooooo..',
+];
+const HUD_SAD = [
+  '..ooooo..',
+  '.oylyyyo.',
+  'oylyyyyyo',
+  'oyyoyoyyo',
+  'oyyyyyyyo',
+  'oyykkkyyo',
+  'oykyyykyo',
+  '.oyyyyyo.',
+  '..ooooo..',
+];
+const HUD_SKULL = [
+  '..ooooo..',
+  '.ossssso.',
+  'ossssssso',
+  'osoosooso',
+  'osoosooso',
+  'osssossso',
+  '.ossssso.',
+  '..ososo..',
+  '..ooooo..',
+]
+const HUD_BANG = ['ooo', 'oro', 'oro', 'oro', 'oro', 'ooo', '...', 'ooo', 'oro', 'ooo'];
+
+/** HUD-Rahmen: dunkel, helle Kante, abgeschrägte Ecken (Maße in Bildpixeln) */
+function hudPanel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  const PX = 1 / RES;
+  ctx.fillStyle = 'rgba(30,20,12,0.72)';
+  ctx.fillRect(x + PX, y, (w - 2) * PX, h * PX);
+  ctx.fillRect(x, y + PX, w * PX, (h - 2) * PX);
+  ctx.fillStyle = 'rgba(255,236,200,0.35)';
+  ctx.fillRect(x + PX, y, (w - 2) * PX, PX);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(x + PX, y + (h - 1) * PX, (w - 2) * PX, PX);
+}
 
 type FxKind = 'food' | 'candy' | 'pill' | 'heart' | 'angry' | 'sparkle';
 
@@ -261,45 +337,60 @@ export class Scene {
   /** HUD oben im Bild wie in einem Videospiel: Sättigung links, Laune rechts, Warnsymbole in der Mitte */
   private drawHud(p: Pet, t: number) {
     const ctx = this.ctx;
-    const BAR_W = 13;
+    const PX = 1 / RES;
     if (p.stage !== 'egg') {
-      ctx.fillStyle = 'rgba(20,16,12,0.4)';
-      ctx.fillRect(0, 0, 20, 7);
-      ctx.fillRect(SCREEN_W - 20, 0, 20, 7);
-      drawMap(ctx, HUD_FOOD, HUD_ICON_COLORS, 1, 1);
-      this.drawBar(6, 1, hearts(p.hunger), '#f2a23a', t);
-      this.drawBar(SCREEN_W - 1 - BAR_W, 1, hearts(p.happy), '#f2d64b', t);
-      drawMap(ctx, HUD_SMILE, HUD_ICON_COLORS, SCREEN_W - 2 - BAR_W - 5, 1);
+      const food = hearts(p.hunger);
+      const mood = hearts(p.happy);
+      // links: Sättigung
+      hudPanel(ctx, 0.5, 0.5, 40, 11);
+      drawPixels(ctx, HUD_MEAT, HUD_COLORS, 0.5 + 2 * PX, 0.5 + PX);
+      this.drawBar(0.5 + 13 * PX, 0.5 + 2 * PX, food, ['#ffd08a', '#f29a2e', '#b8601a'], t);
+      // rechts: Laune (Gesicht passend zur Stimmung)
+      const rx = SCREEN_W - 0.5 - 40 * PX;
+      hudPanel(ctx, rx, 0.5, 40, 11);
+      this.drawBar(rx + 2 * PX, 0.5 + 2 * PX, mood, ['#fff2a0', '#f2d23a', '#c09a1a'], t);
+      drawPixels(ctx, mood >= 3 ? HUD_HAPPY : mood === 2 ? HUD_OK : HUD_SAD, HUD_COLORS, rx + 29 * PX, 0.5 + PX);
     }
     // Mitte: krank / ruft
     const calling = Object.keys(p.calls).length > 0;
-    const icons: { map: string[]; colors: ColorMap }[] = [];
-    if (p.sick) icons.push(ICONS.skull);
-    if (calling && Math.floor(t / 500) % 2 === 0) icons.push(ICONS.bang);
-    const width = (p.sick ? 5 : 0) + (calling ? 2 : 0) + (p.sick && calling ? 2 : 0);
-    let x = Math.round(SCREEN_W / 2 - width / 2);
-    if (width) {
-      ctx.fillStyle = 'rgba(20,16,12,0.4)';
-      ctx.fillRect(x - 2, 0, width + 4, 7);
-    }
-    for (const icon of icons) {
-      drawMap(ctx, icon.map, icon.colors, x, 1);
-      x += icon.map[0].length + 2;
+    const blinkOn = Math.floor(t / 500) % 2 === 0;
+    if (p.sick || calling) {
+      const w = (p.sick ? 9 : 0) + (calling ? 3 : 0) + (p.sick && calling ? 2 : 0) + 4;
+      const x = Math.round((SCREEN_W / 2 - (w * PX) / 2) * RES) / RES;
+      hudPanel(ctx, x, 0.5, w, 12);
+      let ix = x + 2 * PX;
+      if (p.sick) {
+        drawPixels(ctx, HUD_SKULL, HUD_COLORS, ix, 0.5 + 1.5 * PX + PX / 2);
+        ix += 11 * PX;
+      }
+      if (calling && blinkOn) drawPixels(ctx, HUD_BANG, HUD_COLORS, ix, 0.5 + PX);
     }
   }
 
-  /** schmale Leiste mit 4 Segmenten; bei 0–1 Segment rot blinkend */
-  private drawBar(x: number, y: number, filled: number, color: string, t: number) {
+  /** Leiste mit 4 Segmenten (je 5×5 Bildpixel), Glanz oben, Schatten unten; rot blinkend bei 0–1 */
+  private drawBar(x: number, y: number, filled: number, shades: [string, string, string], t: number) {
     const ctx = this.ctx;
+    const PX = 1 / RES;
     const low = filled <= 1 && Math.floor(t / 400) % 2 === 0;
-    ctx.fillStyle = '#1a140e';
-    ctx.fillRect(x, y, 13, 5);
+    const [hi, mid, lo] = low ? ['#ff9aa6', '#e2384d', '#9a1c2c'] : shades;
+    ctx.fillStyle = '#1a120c';
+    ctx.fillRect(x, y, 25 * PX, 7 * PX);
     for (let i = 0; i < 4; i++) {
-      ctx.fillStyle = i < filled ? (low ? '#e2384d' : color) : '#4a4038';
-      ctx.fillRect(x + 1 + i * 3, y + 1, 2, 3);
+      const sx = x + PX + i * 6 * PX;
+      const sy = y + PX;
       if (i < filled) {
-        ctx.fillStyle = 'rgba(255,255,255,0.45)';
-        ctx.fillRect(x + 1 + i * 3, y + 1, 2, 1);
+        ctx.fillStyle = mid;
+        ctx.fillRect(sx, sy, 5 * PX, 5 * PX);
+        ctx.fillStyle = hi;
+        ctx.fillRect(sx, sy, 5 * PX, PX);
+        ctx.fillRect(sx, sy, PX, 3 * PX);
+        ctx.fillStyle = lo;
+        ctx.fillRect(sx, sy + 4 * PX, 5 * PX, PX);
+      } else {
+        ctx.fillStyle = '#3e3229';
+        ctx.fillRect(sx, sy, 5 * PX, 5 * PX);
+        ctx.fillStyle = '#2c231c';
+        ctx.fillRect(sx, sy, 5 * PX, PX);
       }
     }
   }

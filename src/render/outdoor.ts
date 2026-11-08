@@ -168,8 +168,8 @@ function inEllipse(x: number, y: number, rx: number, ry: number, cy = NEST_BASE)
 const trunkHalf = (y: number) => (y < 37 ? 7 : 7 + Math.round((y - 36) * 1.5));
 const TRUNK_TOP = 0; // Stamm reicht über den oberen Bildrand hinaus, Krone nicht sichtbar
 // Höhle: Torbogen mit rundem Dach
-const HOLE_HALF = 5;
-const HOLE_TOP = 29;
+const HOLE_HALF = 4;
+const HOLE_TOP = 31;
 const inHole = (x: number, y: number, grow = 0) => {
   const r = HOLE_HALF + grow;
   const archY = HOLE_TOP - grow + r; // Mittelpunkt des runden Dachs

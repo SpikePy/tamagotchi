@@ -37,7 +37,12 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
-**HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild** als schmale Leisten mit je **4 Segmenten**: **Sättigung links oben** (Keulen-Symbol), **Laune rechts oben** (Smiley). Ist nur noch ein Segment voll, wird die Leiste rot und blinkt. Die Warnsymbole (Totenkopf bei Krankheit, Ausrufezeichen beim Rufen) stehen oben in der Mitte. Alle HUD-Elemente haben einen kleinen dunklen Hintergrund. Das HUD bleibt auch nachts und bei Licht aus hell.
+**HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild**. Alles ist im feinen Pixelraster gezeichnet und sitzt in dunklen Pixel-Rahmen mit abgeschrägten Ecken und heller Oberkante.
+- **Links oben: Sättigung.** Ein Fleisch-Knochen-Symbol und eine Leiste mit **4 Segmenten** (orange).
+- **Rechts oben: Laune.** Eine Leiste mit 4 Segmenten (gelb) und ein **Smiley, das zur Stimmung passt**: lachend ab 3 Segmenten, neutral bei 2, traurig bei 0–1.
+- Die Segmente haben Glanz oben und Schatten unten. Ist nur noch ein Segment voll, wird die Leiste **rot und blinkt**.
+- **Oben in der Mitte** stehen die Warnsymbole: ein Totenkopf bei Krankheit und ein blinkendes Ausrufezeichen beim Rufen.
+- Das HUD bleibt auch nachts und bei Licht aus hell.
 
 ## 4. Lebenszyklus
 
@@ -218,7 +223,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
 **Umgebung je Tierart:**
 - **Katze:** wohnt drinnen im Zimmer (siehe unten).
-- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist eine kleine bogenförmige Höhle mit Laubpolster. Gefüttert wird auf einem flachen Stein.
+- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist ein kleiner bogenförmiger Eingang zum Fuchsbau mit Laubpolster. Gefüttert wird auf einem flachen Stein.
 - **Igel:** lebt draußen **im Garten**: Hecke, Holzzaun, Busch mit Beeren, Blumen, Rasen mit Herbstlaub. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 
