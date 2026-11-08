@@ -298,7 +298,7 @@ export function drawOutdoorNear(ctx: CanvasRenderingContext2D, kind: SceneKind) 
   else drawGardenNear(ctx);
 }
 
-/** Hühnerhof: Boden komplett mit Stroh ausgelegt, Strohballen, Stein */
+/** Hühnerhof: Boden komplett mit Stroh ausgelegt, Stein */
 function drawFarmNear(ctx: CanvasRenderingContext2D) {
   bands(ctx, 0, GROUND_Y, W, 48 - GROUND_Y, '#e4c470', '#b8923a', 4);
   // viele Strohhalme kreuz und quer
@@ -314,18 +314,6 @@ function drawFarmNear(ctx: CanvasRenderingContext2D) {
   }
   // Kante zur Hecke
   px(ctx, '#a07a28', 0, GROUND_Y, W, P);
-  // Strohballen links
-  const bx = 1;
-  const by = 31;
-  px(ctx, '#7a5a1a', bx, by, 11, 9);
-  px(ctx, '#e0b850', bx + P, by + P, 10, 8);
-  for (let y = by + 1; y < by + 8.5; y += 1.5) px(ctx, '#c89a38', bx + P, y, 10, P);
-  for (let i = 0; i < 18; i++) {
-    const n = hash(i * 7, 99);
-    px(ctx, '#f4d878', bx + 0.5 + (n % 20) / 2, by + 0.5 + ((n >> 2) % 16) / 2, P, P);
-  }
-  px(ctx, '#8a3a2a', bx + 3, by, P, 9);
-  px(ctx, '#8a3a2a', bx + 8, by, P, 9);
   stone(ctx, 26, 44.5);
 }
 
