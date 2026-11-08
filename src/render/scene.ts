@@ -13,7 +13,7 @@ const FLOOR_Y = 40;
 
 // Körbchen unter dem Fenster (geflochten, mit Kissen)
 const BASKET_X = 37;
-const BASKET_Y = FLOOR_Y - 6;
+const BASKET_Y = FLOOR_Y - 4; // flaches Körbchen
 const BASKET_CX = BASKET_X + 12;
 const BASKET_COLORS: ColorMap = {
   o: '#4a2f17', // Umriss
@@ -25,19 +25,16 @@ const BASKET_COLORS: ColorMap = {
   p: '#6c8fd1', // Kissen
 };
 const BASKET_BACK = [
-  '....oooooooooooooooo....',
   '..oobbbbbbbbbbbbbbbboo..',
   '.oiippppppppppppppppiio.',
 ];
 const BASKET_FRONT = [
   'oobcbcbcbcbcbcbcbcbcbcoo',
-  'ocbcbcbcbcbcbcbcbcbcbcbo',
   'oxaaxaaxaaxaaxaaxaaxaaxo',
   '.oaxaaxaaxaaxaaxaaxaaxo.',
-  '.oxaaxaaxaaxaaxaaxaaxao.',
-  '..oaxaaxaaxaaxaaxaaxao..',
-  '...oooooooooooooooooo...',
+  '..oooooooooooooooooooo..',
 ];
+const BASKET_FRONT_DY = 2; // Vorderseite beginnt unter der Rückseite
 
 // Futternapf neben der Pflanze
 const BOWL_X = 15;
@@ -403,7 +400,7 @@ export class Scene {
 
   /** Vorderseite des Schlafplatzes, verdeckt den unteren Teil des Tiers */
   private nestFront() {
-    if (this.env === 'room') drawMap(this.ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + 3);
+    if (this.env === 'room') drawMap(this.ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + BASKET_FRONT_DY);
     else drawNestFront(this.ctx, this.env);
   }
 
@@ -432,7 +429,60 @@ export class Scene {
     ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, 1.5);
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, 0.5);
+    this.drawPicture(21, 8);
+    this.drawRug(30, 44.5, 12, 2.5);
     this.drawWindow(clock);
+  }
+
+  /** Bild an der Wand: kleine Landschaft im Holzrahmen */
+  private drawPicture(x: number, y: number) {
+    const ctx = this.ctx;
+    const P = 0.5;
+    const w = 11;
+    const h = 8;
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(x + P, y + P, w, h);
+    ctx.fillStyle = '#6a4a28';
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#a07a4a';
+    ctx.fillRect(x, y, w, P);
+    ctx.fillRect(x, y, P, h);
+    // Landschaft
+    const ix = x + 1;
+    const iy = y + 1;
+    const iw = w - 2;
+    const ih = h - 2;
+    bands(ctx, ix, iy, iw, ih, '#8ccaf0', '#d8eef8', 3);
+    ctx.fillStyle = '#f6d23c';
+    ctx.fillRect(ix + 6.5, iy + 1, 1, 1);
+    for (let k = 0; k < iw / P; k++) {
+      const hx = ix + k * P;
+      const hy = iy + ih - 2 - Math.round(Math.sin(k / 3) * 2) / 2;
+      ctx.fillStyle = '#6aa850';
+      ctx.fillRect(hx, hy, P, iy + ih - hy);
+      ctx.fillStyle = '#86c262';
+      ctx.fillRect(hx, hy, P, P);
+    }
+    ctx.fillStyle = '#2f5a26';
+    ctx.fillRect(ix + 1.5, iy + 2.5, 1, 2);
+    ctx.fillRect(ix + 1, iy + 3, 2, 1);
+  }
+
+  /** ovaler Teppich mit Randmuster */
+  private drawRug(cx: number, cy: number, rx: number, ry: number) {
+    const ctx = this.ctx;
+    const P = 0.5;
+    for (let y = cy - ry; y < cy + ry; y += P)
+      for (let x = cx - rx; x < cx + rx; x += P) {
+        const d = ((x + P / 2 - cx) / rx) ** 2 + ((y + P / 2 - cy) / ry) ** 2;
+        if (d > 1) continue;
+        let c = '#b8483a';
+        if (d > 0.78) c = '#7a2a22';
+        else if (d > 0.55) c = (Math.round(x * 2) % 4 < 2) ? '#e8c46a' : '#b8483a';
+        else if (d < 0.18) c = '#d8705a';
+        ctx.fillStyle = c;
+        ctx.fillRect(x, y, P, P);
+      }
   }
 
   /** Fenster: Sonne (7–20 Uhr) bzw. Mond wandern im Bogen über den Himmel */
@@ -590,9 +640,9 @@ export class Scene {
     const k = hatching ? (t - this.hatchStart) / HATCH_MS : 1;
     // beim Schlüpfen taucht es langsam aus der Schale auf
     const rise = hatching ? Math.round(Math.min(1, k * 2) * 3) - 3 : 0;
-    const bottom = sleeping ? (this.env === 'room' ? BASKET_Y + 3 : FLOOR_Y - 1) : FLOOR_Y;
+    const bottom = sleeping ? (this.env === 'room' ? BASKET_Y + BASKET_FRONT_DY : FLOOR_Y - 1) : FLOOR_Y;
     // sanftes Atmen im Schlaf
-    const breathe = sleeping && Math.floor(t / 1200) % 2 === 0 ? 1 : 0;
+    const breathe = sleeping && Math.floor(t / 1800) % 2 === 0 ? 0.5 : 0;
     const y = bottom - h + 1 - rise + breathe;
     drawMap(ctx, map, pal, x, y);
 
