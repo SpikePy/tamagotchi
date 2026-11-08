@@ -60,6 +60,9 @@ export interface Pet {
   careMistakesTotal: number;
   adultLifespanDays: number | null;
   lastStrokedAt?: number; // Streicheln gibt höchstens einmal pro Minute Laune
+  eggsInNest?: number; // Huhn: gelegte Eier im Nistkasten
+  eggsCollected?: number;
+  lastEggDay?: string;
 
   log: LogEntry[];
 }

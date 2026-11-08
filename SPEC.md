@@ -246,6 +246,36 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - Grashalme, Zaunmaserung
 - Die Tiere bewegen sich in halben Schritten.
 
+**Deko je Gehege (zusätzlich):**
+- **Fuchs (Wald):**
+  - ein kleiner **Bach** im Hintergrund mit glitzernden Lichtreflexen
+  - ein umgestürzter, moosiger **Baumstamm** als Brücke darüber
+  - **Pilzgruppe** und **Farn** an der Tanne
+  - eine **Feder** vor dem Bau
+- **Igel (Garten):**
+  - ein **Igelhaus** mit Moosdach
+  - zwei **Sonnenblumen**, deren Köpfe sich zur Sonne drehen
+  - ein **Gartenzwerg** und eine **Gießkanne**
+  - ein **Apfel** im Gras
+  - eine **Schnecke**, die ganz langsam hin und her kriecht
+- **Katze (Zimmer):**
+  - **Wandregal** mit Büchern und Katzenfigur
+  - ein **Bild von einer Maus** statt der Landschaft
+  - **Kissen** auf der Fensterbank, **Katzengras** auf dem Fenstersims
+  - **Wollknäuel** mit Faden und **Spielmaus** auf dem Boden
+- **Hund (Zimmer):**
+  - **Pfoten-Poster** statt Landschaftsbild
+  - **Leine** am Haken neben dem Fenster
+  - **Wassernapf** neben dem Futternapf
+  - **Quietsche-Ente** und **Seilknoten**
+  - **Fußmatte** vorne
+- **Huhn (Hof):**
+  - zwei **Sonnenblumen** am Zaun
+  - **Sandbad-Kuhle**, **Wassertränke** aus Blech
+  - **Leiter** am Stall
+  - **Nistkasten** rechts am Stall
+  - **Wetterhahn** auf dem Dach, der in die aktuelle **Windrichtung** zeigt
+
 **Ebenen (Tiefe):** Die Szenen bestehen aus Ebenen, damit sich bewegte Dinge **richtig dahinter oder davor** befinden:
 - **Draußen**, von hinten nach vorn:
   1. Himmel mit Sonne/Mond
