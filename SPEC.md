@@ -13,6 +13,14 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 - **Alles über die UI:** Jede Pflegeaktion löst der Spieler selbst über die Oberfläche aus. Nichts passiert automatisch zugunsten des Tiers.
 - **Ein Tier gleichzeitig** (ergänzt): Es gibt immer nur ein aktives Tier.
 
+## 2a. Plattform
+
+- Die App ist eine **Web-App**.
+- Der Spielstand wird **lokal im Browser** gespeichert (localStorage). Es gibt keinen Server und kein Konto.
+- Die App ist eine **PWA**: Unter Android lässt sie sich als eigenständige App installieren, mit eigenem Icon und im Vollbild ohne Browserleiste. Sie funktioniert auch offline.
+- Benachrichtigungen kommen, solange die App im Hintergrund noch läuft. Ist sie komplett beendet, gibt es keine Benachrichtigungen, weil dafür ein Push-Server nötig wäre.
+- **Zeitraffer zum Testen:** In den Einstellungen kann man die Spielzeit beschleunigen (zum Beispiel 1 Tag = 10 Minuten).
+
 ## 3. Statuswerte
 
 | Wert | Bereich | Beschreibung |
@@ -39,13 +47,13 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 | Erwachsen | bis zum Lebensende | |
 
 - **Entwicklung hängt von der Pflege ab** (ergänzt): Bei jedem Phasenwechsel entscheiden Pflegefehler und Disziplin, welche Variante das Tier wird. Gute Pflege ergibt eine schöne, zufriedene Form. Schlechte Pflege ergibt eine verwahrloste oder freche Form. Vorschlag: zwei Varianten für das Kind, zwei für den Teenager und drei für den Erwachsenen.
-- **Lebensende** (ergänzt): Ein erwachsenes Tier lebt nicht ewig. Wie lange es lebt, hängt von der Pflege ab (Vorschlag: 10–25 Tage als Erwachsener). Danach stirbt es friedlich, oder es „zieht in den Wald zurück“ (siehe offene Fragen).
+- **Lebensende** (ergänzt): Ein erwachsenes Tier lebt nicht ewig. Wie lange es lebt, hängt von der Pflege ab (Vorschlag: 10–25 Tage als Erwachsener). Danach "zieht in den Wald zurück".
 - Nach dem Lebensende oder dem Tod kann man ein neues Ei starten.
 
 ## 5. Tierarten
 
 - Die App soll mehrere Tierarten unterstützen. Jede Art hat eigene Grafiken, eigene Entwicklungsformen und eventuell eigene Minispiele.
-- **Als erste Art wird ein Fuchs umgesetzt.**
+- **Als erste Art wird ein Fuchs umgesetzt und ein Igel**
 - Die Architektur muss es erlauben, neue Tierarten hinzuzufügen, ohne die Spiellogik zu ändern. Eine Tierart besteht also aus Daten und Grafiken, nicht aus eigenem Code.
 
 ## 6. Bedürfnisse und Aktionen
@@ -66,7 +74,9 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - Es braucht **8 Stunden Schlaf pro Tag**. Die müssen nicht am Stück sein, mehrere Nickerchen zählen zusammen.
 - Bleibt das Licht an, während es schläft, zählt das als Pflegefehler (ergänzt), weil es nicht gut schlafen kann.
 - Während es schläft, kann man nicht füttern und nicht spielen (ergänzt).
-- Ist es ausgeschlafen, wacht es von allein auf. Man kann es auch vorher wecken, dann ist es aber schlecht gelaunt (ergänzt).
+- Ist die Müdigkeit bei 100 %, schläft es von selbst ein. Das Licht bleibt dabei an, bis man es ausmacht.
+- **Sobald es insgesamt 8 Stunden geschlafen hat, wacht es automatisch auf.** Nickerchen zählen mit. Dieses Aufwachen gilt als „morgens“, danach beginnt der Zähler wieder bei 0.
+- Man kann es auch vorher wecken, dann ist es aber schlecht gelaunt (ergänzt). Was es bis dahin geschlafen hat, zählt für die 8 Stunden mit.
 - **Hat es nach dem Aufwachen Hunger**, siehe 6.1.
 - Bekommt es zu wenig Schlaf (Vorschlag: weniger als 6 h in 24 h), sinkt die Laune stärker. Dauert das länger an, wird es krank (ergänzt).
 
@@ -76,7 +86,8 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - Die Haufen sieht man im Zuhause des Tiers, mehrere können sich ansammeln.
 - Man muss das **Zuhause über die UI sauber machen**. Das entfernt alle Haufen auf einmal.
 - **Liegt ein Haufen länger als 4 Stunden, wird das Tier krank.**
-- Im Schlaf kackt es nicht (Vorschlag).
+- Im Schlaf kackt es nicht.
+- Nach dem Aufwachen am Morgen kackt es auf jeden Fall innerhalb der ersten Stunde. Erst danach gilt wieder der normale Abstand von 1–3 Stunden.
 
 ### 6.4 Spielen
 
@@ -147,7 +158,6 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
 1. **Tod oder sanfter Abschied?** Soll das Tier wirklich sterben, oder lieber kinderfreundlich „in den Wald zurückziehen“?
 2. **Pause-Funktion?** Das Original hatte keine. Soll man das Tier zum Beispiel in den Urlaub oder zu den Großeltern schicken können, damit die Zeit stillsteht?
-3. **Feste Schlafenszeit?** Soll das Tier bevorzugt nachts schlafen (zum Beispiel 22–6 Uhr), oder nur nach Müdigkeit?
-4. **Plattform:** Web, Mobile (native oder PWA) oder Desktop? Davon hängen Push-Benachrichtigungen und das Nachrechnen der Zeit im Hintergrund ab.
-5. **Debug-Modus:** Einen Zeitraffer zum Testen einbauen, zum Beispiel 1 Tag = 10 Minuten?
-6. **Sound:** Piep-Töne im Retro-Stil, ja oder nein?
+3. **Sound:** Piep-Töne im Retro-Stil, ja oder nein? Vorläufig sind sie eingebaut und lassen sich in den Einstellungen abschalten.
+
+Entschieden: Das Tier schläft nach Müdigkeit statt zu einer festen Uhrzeit (siehe 6.2). Die Plattform ist eine Web-App bzw. PWA (siehe 2a). Ein Zeitraffer ist eingebaut.
