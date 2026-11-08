@@ -1,5 +1,5 @@
 import { MIN, RULES } from '../engine/config';
-import { activePet, type GameState, type Pet } from '../engine/state';
+import { activePet, hearts, type GameState, type Pet } from '../engine/state';
 import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, drawMap, eggColors, eggMap, petSprite } from './pixels';
@@ -69,7 +69,7 @@ const SUNRISE = 7;
 const SUNSET = 20;
 const STARS: [number, number][] = [[2, 2], [8, 1], [15, 3], [19, 7], [4, 9], [12, 6], [17, 12], [6, 13]];
 // Kratzbaum (Katze)
-const POST_X = 1; // ganz links im Zimmer
+const POST_X = 6; // links im Zimmer
 const POST = [
   '..ooooooo..',
   '.ommmmmmmo.',
@@ -94,6 +94,11 @@ const LEAVES: [number, number, number, number][] = [
   [13, 42, 0, 0], [20, 45, 1, 1], [27, 41, 2, 2], [33, 44, 3, 0], [9, 45, 4, 1], [3, 42, 2, 2],
   [42, 45, 0, 1], [49, 43, 1, 0], [56, 46, 2, 1], [61, 42, 3, 2], [24, 43, 4, 0], [37, 46, 1, 2], [16, 46, 3, 2],
 ];
+
+// HUD-Symbole
+const HUD_ICON_COLORS: ColorMap = { b: '#c0763a', w: '#f4f0e8', y: '#f2d64b', o: '#3a2a1a' };
+const HUD_FOOD = ['..bb.', '.bbbb', '.bbb.', 'w.b..', 'ww...'];
+const HUD_SMILE = ['.yyy.', 'yoyoy', 'yyyyy', 'yoooy', '.yyy.'];
 
 type FxKind = 'food' | 'candy' | 'pill' | 'heart' | 'angry' | 'sparkle';
 
@@ -206,10 +211,10 @@ export class Scene {
 
     // Zzz (über dem Dunkel, damit man es sieht)
     if (p.stage !== 'egg' && p.asleep) {
-      const spr = sp.sprites[p.stage];
-      const zx = Math.min(BASKET_CX + spr[0].length / 2, SCREEN_W - 12);
+      const sl = petSprite(sp, p, { sleeping: true });
+      const zx = Math.min(BASKET_CX + sl.w / 2 - 4, SCREEN_W - 12);
       const k = Math.floor(t / 600) % 3;
-      for (let i = 0; i <= k; i++) drawMap(ctx, ICONS.z.map, ICONS.z.colors, zx + i * 4, FLOOR_Y - spr.length - i * 5);
+      for (let i = 0; i <= k; i++) drawMap(ctx, ICONS.z.map, ICONS.z.colors, zx + i * 4, FLOOR_Y - sl.h - 6 - i * 5);
     }
 
     // Entwicklung: weißes Aufblitzen
@@ -219,15 +224,42 @@ export class Scene {
       ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
     }
 
-    // Statussymbole oben links
-    let ix = 2;
-    if (p.sick) {
-      const icon = p.lightOn ? ICONS.skullDark : ICONS.skull;
-      drawMap(ctx, icon.map, icon.colors, ix, 2);
-      ix += 7;
+    this.drawHud(p, t);
+  }
+
+  /** HUD oben im Bild wie in einem Videospiel: Sättigung, Laune, Warnsymbole */
+  private drawHud(p: Pet, t: number) {
+    const ctx = this.ctx;
+    ctx.fillStyle = 'rgba(20,16,12,0.45)';
+    ctx.fillRect(0, 0, SCREEN_W, 9);
+    if (p.stage !== 'egg') {
+      drawMap(ctx, HUD_FOOD, HUD_ICON_COLORS, 1, 2);
+      this.drawBar(7, 2, hearts(p.hunger), '#f2a23a', t);
+      drawMap(ctx, HUD_SMILE, HUD_ICON_COLORS, 26, 2);
+      this.drawBar(32, 2, hearts(p.happy), '#f2d64b', t);
     }
+    // rechts: krank / ruft
+    let ix = SCREEN_W - 3;
     if (Object.keys(p.calls).length > 0 && Math.floor(t / 500) % 2 === 0) {
+      ix -= 2;
       drawMap(ctx, ICONS.bang.map, ICONS.bang.colors, ix, 2);
+    } else if (Object.keys(p.calls).length > 0) ix -= 2;
+    if (p.sick) drawMap(ctx, ICONS.skull.map, ICONS.skull.colors, ix - 7, 2);
+  }
+
+  /** Leiste mit 4 Segmenten; bei 0–1 Segment rot blinkend */
+  private drawBar(x: number, y: number, filled: number, color: string, t: number) {
+    const ctx = this.ctx;
+    const low = filled <= 1 && Math.floor(t / 400) % 2 === 0;
+    ctx.fillStyle = '#1a140e';
+    ctx.fillRect(x, y, 4 * 4 + 1, 5);
+    for (let i = 0; i < 4; i++) {
+      ctx.fillStyle = i < filled ? (low ? '#e2384d' : color) : '#4a4038';
+      ctx.fillRect(x + 1 + i * 4, y + 1, 3, 3);
+      if (i < filled) {
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.fillRect(x + 1 + i * 4, y + 1, 3, 1);
+      }
     }
   }
 
@@ -370,12 +402,17 @@ export class Scene {
 
   private drawPetInBasket(p: Pet, sp: SpeciesDef, t: number, hatching: boolean) {
     const ctx = this.ctx;
-    const { map, colors: pal, w, h } = petSprite(sp, p, { eyesClosed: p.asleep });
+    // schlafend: eingerollte Schlafpose, liegt im Körbchen bzw. in der Höhle
+    const sleeping = p.asleep && !hatching;
+    const { map, colors: pal, w, h } = petSprite(sp, p, { sleeping });
     const x = Math.round(BASKET_CX - w / 2);
     const k = hatching ? (t - this.hatchStart) / HATCH_MS : 1;
     // beim Schlüpfen taucht es langsam aus der Schale auf
     const rise = hatching ? Math.round(Math.min(1, k * 2) * 3) - 3 : 0;
-    const y = FLOOR_Y - h + 1 - rise;
+    const bottom = sleeping ? (this.env === 'room' ? BASKET_Y + 3 : FLOOR_Y - 1) : FLOOR_Y;
+    // sanftes Atmen im Schlaf
+    const breathe = sleeping && Math.floor(t / 1200) % 2 === 0 ? 1 : 0;
+    const y = bottom - h + 1 - rise + breathe;
     drawMap(ctx, map, pal, x, y);
 
     if (hatching) {

@@ -25,6 +25,7 @@ export const fox: SpeciesDef = {
   },
   // Rotfuchs: Welpe ~100 g, nach 2 Monaten ~1 kg, Jungfuchs ~3 kg, erwachsen ~6 kg
   weightGrams: { baby: 100, child: 1000, teen: 3000, adult: 6000 },
+  sleep: { kind: 'curl', ears: 'pointy', tail: 'fluffy', tailTip: true },
   room: { scene: 'forest', floor: 'grass' },
   egg: { shell: '#fff4e2', spots: '#e8772e' },
   sprites: {

@@ -215,7 +215,7 @@ export class App {
       const ctx = c.getContext('2d')!;
       if (p.stage === 'egg') drawMap(ctx, eggMap(), eggColors(sp, p.look), 4, 4);
       else {
-        const img = petSprite(sp, p, { eyesClosed: p.asleep });
+        const img = petSprite(sp, p, { sleeping: p.asleep });
         drawMap(ctx, img.map, img.colors, Math.floor((20 - img.w) / 2), Math.floor((20 - img.h) / 2));
       }
       const active = p.id === s.activeId;
@@ -261,12 +261,10 @@ export class App {
     const lightB = this.buttons.light;
     lightB.querySelector('span:last-child')!.textContent = p?.asleep && !p.lightOn ? 'Wecken' : 'Licht';
 
-    // HUD: Herzen und Kurzinfo
+    // Kopfzeile: Name (Sättigung/Laune stehen als HUD im Spielbild)
     this.hud.replaceChildren();
     if (p && p.stage !== 'egg') {
       this.hud.append(
-        heartRow('🍖', hearts(p.hunger)),
-        heartRow('😊', hearts(p.happy)),
         h('span', { class: 'hud-name' }, petName(p), p.name ? h('small', {}, stageName(p)) : null),
       );
     } else if (p) {
@@ -320,8 +318,8 @@ export class App {
 
   private feedMenu() {
     const body = h('div', { class: 'choice-grid' });
-    const meal = h('button', { class: 'choice' }, h('span', { class: 'ico' }, '🍖'), h('b', {}, 'Mahlzeit'), h('small', {}, '+1 Hunger-Herz'));
-    const snack = h('button', { class: 'choice' }, h('span', { class: 'ico' }, '🍬'), h('b', {}, 'Snack'), h('small', {}, '+1 Laune-Herz, macht dick'));
+    const meal = h('button', { class: 'choice' }, h('span', { class: 'ico' }, '🍖'), h('b', {}, 'Mahlzeit'), h('small', {}, '+1 Sättigung'));
+    const snack = h('button', { class: 'choice' }, h('span', { class: 'ico' }, '🍬'), h('b', {}, 'Snack'), h('small', {}, '+1 Laune, macht dick'));
     meal.onclick = () => (this.closeSheet(), this.act(feedMeal(this.s), 'food'));
     snack.onclick = () => (this.closeSheet(), this.act(feedSnack(this.s), 'candy'));
     body.append(meal, snack);
@@ -515,8 +513,8 @@ export class App {
         rows.push(['Nächste Phase in', duration(left)]);
       }
       rows.push(
-        ['Hunger', '❤️'.repeat(hearts(p.hunger)) + '🤍'.repeat(4 - hearts(p.hunger))],
-        ['Laune', '❤️'.repeat(hearts(p.happy)) + '🤍'.repeat(4 - hearts(p.happy))],
+        ['Sättigung', segments(hearts(p.hunger))],
+        ['Laune', segments(hearts(p.happy))],
         ['Müdigkeit', `${Math.round(p.tiredness)} %`],
         ['Schlaf (24 h)', duration(sleptLast24h(p, this.s.clock) * MIN)],
         ['Schlaf bis ausgeschlafen', duration((RULES.sleepNeedMin - p.sleptInCycleMin) * MIN)],
@@ -601,8 +599,8 @@ export class App {
   }
 }
 
-function heartRow(icon: string, n: number) {
-  return h('span', { class: 'hud-hearts' }, `${icon} ${'♥'.repeat(n)}${'♡'.repeat(4 - n)}`);
+function segments(n: number) {
+  return '▰'.repeat(n) + '▱'.repeat(4 - n) + ` (${n}/4)`;
 }
 
 function btn(label: string, fn: () => void, cls = '') {

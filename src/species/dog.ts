@@ -1,14 +1,24 @@
-import { buildDogSprites } from './dogParts';
+import { buildDogSprites, type DogShape } from './dogParts';
+import type { SleepShape } from '../render/sleepers';
 import type { Breed, SpeciesDef } from './types';
 
 // 10 typische Rassen. Jeder Hund bekommt beim Ei zufällig Rasse, Fellfarbe und Muster.
 // dunkles Fell: hellere Augen, damit man sie sieht
 const BLACK = { o: '#111014', e: '#b08850' };
 const DARK_EYES = { e: '#b08850' };
+/** Schlafpose aus der Rassen-Form ableiten */
+function sleepOf(d: DogShape): SleepShape {
+  const ears = d.ears === 'small' ? 'small' : ['pointy', 'big', 'half'].includes(d.ears) ? 'pointy' : 'floppy';
+  return { kind: 'curl', ears, tail: d.tail === 'none' ? 'none' : 'thin', tailTip: d.tail === 'tipped' };
+}
+function shape(d: DogShape) {
+  return { sprites: buildDogSprites(d), sleep: sleepOf(d) };
+}
+
 export const DOG_BREEDS: Breed[] = [
   {
     name: 'Labrador',
-    sprites: buildDogSprites({ ears: 'floppy', tail: 'straight' }),
+    ...shape({ ears: 'floppy', tail: 'straight' }),
     coats: [
       { name: 'Schwarz', colors: { a: '#2b2a2c', c: '#1e1d1f', b: '#3a383a', ...BLACK } },
       { name: 'Blond', colors: { a: '#e4c07a', c: '#d0a65e', b: '#f1d9a8' } },
@@ -18,7 +28,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Schäferhund',
-    sprites: buildDogSprites({ ears: 'pointy', tail: 'straight' }),
+    ...shape({ ears: 'pointy', tail: 'straight' }),
     coats: [
       { name: 'Schwarz-Braun', colors: { a: '#c08040', c: '#2a2420', b: '#e0b070', d: '#2a2420' } },
       { name: 'Grau', colors: { a: '#a49a90', c: '#3a3532', b: '#cfc6bc', d: '#3a3532' } },
@@ -28,7 +38,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Dackel',
-    sprites: buildDogSprites({ ears: 'floppyLong', tail: 'straight', short: true }),
+    ...shape({ ears: 'floppyLong', tail: 'straight', short: true }),
     coats: [
       { name: 'Rot', colors: { a: '#b0582a', c: '#8a4220', b: '#c06a38' } },
       { name: 'Schwarz-Braun', colors: { a: '#2a2420', c: '#1e1a18', b: '#b5793e', d: '#b5793e', ...DARK_EYES }, patterns: ['points'] },
@@ -37,7 +47,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Mops',
-    sprites: buildDogSprites({ ears: 'small', tail: 'curly', face: 'flat' }),
+    ...shape({ ears: 'small', tail: 'curly', face: 'flat' }),
     coats: [
       { name: 'Beige', colors: { a: '#dcbf8e', c: '#3a3230', b: '#e8d0a8' } },
       { name: 'Schwarz', colors: { a: '#2e2c2c', c: '#1a1818', b: '#3a3838', ...BLACK } },
@@ -46,7 +56,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Husky',
-    sprites: buildDogSprites({ ears: 'pointy', tail: 'curly' }),
+    ...shape({ ears: 'pointy', tail: 'curly' }),
     coats: [
       { name: 'Grau-Weiß', colors: { a: '#7d838a', c: '#5e636a', b: '#f4f4f4', e: '#5f9ed6' } },
       { name: 'Schwarz-Weiß', colors: { a: '#2e3034', c: '#1e2024', b: '#f4f4f4', e: '#7fb4e6' } },
@@ -57,7 +67,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Beagle',
-    sprites: buildDogSprites({ ears: 'floppyLong', tail: 'tipped' }),
+    ...shape({ ears: 'floppyLong', tail: 'tipped' }),
     coats: [
       { name: 'Dreifarbig', colors: { a: '#c0803e', c: '#8a5a2b', b: '#f6f2ea', d: '#2e2a26' } },
       { name: 'Zweifarbig', colors: { a: '#c0803e', c: '#9a6a3a', b: '#f6f2ea', d: '#f6f2ea' } },
@@ -67,7 +77,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Dalmatiner',
-    sprites: buildDogSprites({ ears: 'floppy', tail: 'straight' }),
+    ...shape({ ears: 'floppy', tail: 'straight' }),
     coats: [
       { name: 'Schwarz getupft', colors: { a: '#f6f4f0', c: '#1e1e1e', b: '#ffffff', d: '#1e1e1e' } },
       { name: 'Leberbraun getupft', colors: { a: '#f6f4f0', c: '#6b3a22', b: '#ffffff', d: '#6b3a22' } },
@@ -77,7 +87,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Pudel',
-    sprites: buildDogSprites({ ears: 'fluffy', tail: 'curly', tuft: true }),
+    ...shape({ ears: 'fluffy', tail: 'curly', tuft: true }),
     coats: [
       { name: 'Weiß', colors: { a: '#f4f0ea', c: '#e2dcd2', b: '#ffffff' } },
       { name: 'Schwarz', colors: { a: '#2b2a2c', c: '#1e1d1f', b: '#3a383a', ...BLACK } },
@@ -88,7 +98,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Border Collie',
-    sprites: buildDogSprites({ ears: 'half', tail: 'straight' }),
+    ...shape({ ears: 'half', tail: 'straight' }),
     coats: [
       { name: 'Schwarz-Weiß', colors: { a: '#24222a', c: '#18161c', b: '#f4f4f4', d: '#f4f4f4', ...DARK_EYES } },
       { name: 'Braun-Weiß', colors: { a: '#6b4428', c: '#4e3020', b: '#f4f4f4', d: '#f4f4f4' } },
@@ -98,7 +108,7 @@ export const DOG_BREEDS: Breed[] = [
   },
   {
     name: 'Corgi',
-    sprites: buildDogSprites({ ears: 'big', tail: 'none', short: true }),
+    ...shape({ ears: 'big', tail: 'none', short: true }),
     coats: [
       { name: 'Rot-Weiß', colors: { a: '#d0843e', c: '#b06a2e', b: '#f6f2ea' } },
       { name: 'Dreifarbig', colors: { a: '#2e2a26', c: '#1e1a18', b: '#f6f2ea', d: '#c0803e', ...DARK_EYES }, patterns: ['points'] },
@@ -136,6 +146,7 @@ export const dog: SpeciesDef = {
   breeds: DOG_BREEDS,
   egg: { shell: '#f6efe4', spots: '#c8925a' },
   sprites: DOG_BREEDS[0].sprites,
+  sleep: DOG_BREEDS[0].sleep,
   stageNames: {
     egg: { normal: 'Ei' },
     baby: { normal: 'Hundewelpe' },

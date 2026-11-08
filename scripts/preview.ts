@@ -8,7 +8,7 @@ import { petSprite } from '../src/render/pixels';
 import type { Look, Stage } from '../src/engine/state';
 
 const S = 6, CELL = 22;
-type Cell = { sp: string; stage: Stage; look?: Look | null };
+type Cell = { sp: string; stage: Stage; look?: Look | null; sleeping?: boolean };
 const rows: Cell[][] = Object.keys(SPECIES).map((id) =>
   (['baby', 'child', 'teen', 'adult'] as Stage[]).map((stage) => ({ sp: id, stage })),
 );
@@ -26,14 +26,18 @@ dog.breeds!.forEach((b, breed) => {
     row.push({ sp: 'dog', stage: 'adult', look: { breed, coat, pattern, seed: 9 + coat } })));
   rows.push(row);
 });
+// Schlafposen: jede Art klein + groß, Hunde je Rasse groß
+rows.push(Object.keys(SPECIES).flatMap((id) => (['child', 'adult'] as Stage[]).map((stage) => ({ sp: id, stage, sleeping: true, look: id === 'cat' ? { coat: 1, pattern: 'tabby', seed: 3 } : null }))));
+rows.push(SPECIES.dog.breeds!.map((b, breed) => ({ sp: 'dog', stage: 'adult' as Stage, sleeping: true, look: { breed, coat: 0, pattern: (b.coats[0].patterns ?? b.patterns ?? ['solid'])[0], seed: 5 } })));
 const only = process.argv[3];
-if (only) rows.splice(0, rows.length, ...rows.filter((r) => r[0].sp === only));
+if (only === 'sleep') rows.splice(0, rows.length, ...rows.filter((r) => r[0].sleeping));
+else if (only) rows.splice(0, rows.length, ...rows.filter((r) => r[0].sp === only));
 const cols = Math.max(...rows.map((r) => r.length));
 const W = cols * CELL * S, H = rows.length * CELL * S;
 const buf = Buffer.alloc(W * H * 4, 255);
 rows.forEach((row, r) =>
   row.forEach((c, ci) => {
-    const { map, colors } = petSprite(SPECIES[c.sp], { stage: c.stage, variant: c.stage === 'adult' ? 'normal' : 'good', look: c.look });
+    const { map, colors } = petSprite(SPECIES[c.sp], { stage: c.stage, variant: c.stage === 'adult' ? 'normal' : 'good', look: c.look }, { sleeping: c.sleeping });
     map.forEach((line, y) => {
       if (line.length !== map[0].length) console.log('LÄNGE', c.sp, c.stage, y, line.length);
       [...line].forEach((ch, x) => {

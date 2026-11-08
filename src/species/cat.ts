@@ -35,6 +35,7 @@ export const cat: SpeciesDef = {
   patterns: ['solid', 'tabby', 'patches', 'socks'],
   // Hauskatze: Neugeboren ~100 g, 2 Monate ~1 kg, 6 Monate ~2,5 kg, erwachsen ~4,5 kg
   weightGrams: { baby: 100, child: 1000, teen: 2500, adult: 4500 },
+  sleep: { kind: 'curl', ears: 'pointy', tail: 'thin' },
   room: { scratchingPost: true },
   egg: { shell: '#fbf6ee', spots: '#e8964a' },
   sprites: {

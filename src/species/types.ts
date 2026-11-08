@@ -1,4 +1,5 @@
 import type { Stage, Variant } from '../engine/state';
+import type { SleepShape } from '../render/sleepers';
 
 /**
  * Pixel-Sprite als Zeilen. Zeichen:
@@ -30,6 +31,7 @@ export interface Breed {
   coats: Coat[];
   patterns?: Pattern[];
   adultGrams: number;
+  sleep: SleepShape;
 }
 
 export interface GameTheme {
@@ -50,6 +52,8 @@ export interface SpeciesDef {
   egg: { shell: string; spots: string };
   /** realistisches Gewicht in Gramm bei Normalgewicht je Stufe (Anzeige) */
   weightGrams: Record<Exclude<Stage, 'egg'>, number>;
+  /** Schlafpose (eingerollt) */
+  sleep: SleepShape;
   /** Deko im Raum passend zur Art */
   room?: { scene?: 'room' | 'forest' | 'garden'; floor?: 'grass' | 'leaves'; scratchingPost?: boolean };
   /** optional: zufällige Fellfarbe + Muster pro Tier */

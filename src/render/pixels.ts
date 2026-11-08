@@ -1,5 +1,6 @@
 import type { Look, Stage, Variant } from '../engine/state';
 import type { Breed, Palette, Pattern, SpeciesDef, Sprite } from '../species/types';
+import { sleepSprite } from './sleepers';
 
 export type ColorMap = Record<string, string>;
 
@@ -103,11 +104,13 @@ export function petMap(sprite: Sprite, look: PetLook): string[] {
 export function petSprite(
   sp: SpeciesDef,
   pet: { stage: Stage; variant: Variant; look?: Look | null },
-  opts: { eyesClosed?: boolean } = {},
+  opts: { eyesClosed?: boolean; sleeping?: boolean } = {},
 ) {
   const look = pet.look ?? null;
   const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
-  const sprite = (breed?.sprites ?? sp.sprites)[pet.stage === 'egg' ? 'baby' : pet.stage];
+  const sprite = opts.sleeping
+    ? sleepSprite(breed?.sleep ?? sp.sleep, pet.stage === 'teen' || pet.stage === 'adult')
+    : (breed?.sprites ?? sp.sprites)[pet.stage === 'egg' ? 'baby' : pet.stage];
   return {
     map: petMap(sprite, {
       eyesClosed: opts.eyesClosed,

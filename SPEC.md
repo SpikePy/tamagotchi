@@ -26,8 +26,8 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 
 | Wert | Bereich | Beschreibung |
 |---|---|---|
-| Hunger | 0–4 Herzen | Sinkt mit der Zeit. Mahlzeiten füllen ihn wieder auf. |
-| Laune | 0–4 Herzen | Sinkt mit der Zeit. Spielen und Snacks heben sie. (ergänzt) |
+| Sättigung (Hunger) | Leiste mit 4 Segmenten | Sinkt mit der Zeit. Mahlzeiten füllen sie wieder auf. |
+| Laune | Leiste mit 4 Segmenten | Sinkt mit der Zeit. Spielen und Snacks heben sie. (ergänzt) |
 | Müdigkeit | 0–100 % | Steigt, solange es wach ist, und sinkt im Schlaf. |
 | Gewicht | in g/kg | Steigt durch Essen und sinkt durch Spielen. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
 | Alter | in Tagen | Zählt ab dem Schlüpfen. |
@@ -36,6 +36,8 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 | Pflegefehler | Zähler | Zählt verpasste Bedürfnisse. Beeinflusst Entwicklung und Lebensdauer. (ergänzt) |
 
 Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
+
+**HUD:** Sättigung und Laune stehen wie in einem Videospiel **oben im Spielbild** als Leisten mit je **4 Segmenten** (links ein Keulen-Symbol für Sättigung, daneben ein Smiley für Laune). Ist nur noch ein Segment voll, wird die Leiste rot und blinkt. Rechts im HUD stehen die Warnsymbole (Totenkopf bei Krankheit, Ausrufezeichen beim Rufen). Das HUD bleibt auch nachts und bei Licht aus hell.
 
 ## 4. Lebenszyklus
 
@@ -84,12 +86,12 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.1 Füttern
 
-- **Mahlzeit:** +1 Hungerherz, +1 g Gewicht.
-- **Snack** (ergänzt): +1 Launeherz, +2 g Gewicht. Zu viele Snacks (Vorschlag: mehr als 3 pro Tag) machen das Tier übergewichtig, und es wird eher krank.
+- **Mahlzeit:** +1 Segment Sättigung, +1 g Gewicht.
+- **Snack** (ergänzt): +1 Segment Laune, +2 g Gewicht. Zu viele Snacks (Vorschlag: mehr als 3 pro Tag) machen das Tier übergewichtig, und es wird eher krank.
 - Das Tier braucht **3 Mahlzeiten pro Tag**. Der Hunger sinkt gleichmäßig über den Tag.
-- Ist der Hunger bei 4 Herzen, lehnt das Tier weiteres Essen ab.
+- Ist die Sättigung voll (4 Segmente), lehnt das Tier weiteres Essen ab.
 - **Steht der Hunger zu lange auf 0** (Vorschlag: 2 h), **wird das Tier krank.**
-- Nach dem **Ausschlafen** ist das Tier hungrig (Hunger auf maximal 1 Herz). Wird es zu früh geweckt, bleibt der Hunger unverändert.
+- Nach dem **Ausschlafen** ist das Tier hungrig (Hunger auf maximal 1 Segment). Wird es zu früh geweckt, bleibt der Hunger unverändert.
 
 ### 6.2 Schlafen
 
@@ -101,7 +103,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - **Müdigkeit beim Schlüpfen:** Sie richtet sich nach der Uhrzeit, so als wäre das Tier um 7 Uhr ausgeschlafen aufgewacht. Die Müdigkeit steigt im Wachzustand in 16 Stunden von 0 auf 100 %. Schlüpft es zum Beispiel um 18 Uhr, startet es mit etwa 69 % und schläft gegen 23 Uhr ein. Schlüpft es nachts zwischen 23 und 7 Uhr, ist es sofort müde.
 - Ist die Müdigkeit bei 100 %, schläft es von selbst ein. Das Licht bleibt dabei an, bis man es ausmacht.
 - **Sobald es insgesamt 8 Stunden geschlafen hat, wacht es automatisch auf.** Nickerchen zählen mit. Dieses Aufwachen gilt als „morgens“, danach beginnt der Zähler wieder bei 0.
-- Man kann es auch vorher wecken. Dann hat es **richtig schlechte Laune (−2 Herzen)**, aber nicht mehr Hunger als vorher. Was es bis dahin geschlafen hat, zählt für die 8 Stunden mit.
+- Man kann es auch vorher wecken. Dann hat es **richtig schlechte Laune (−2 Segmente)**, aber nicht mehr Hunger als vorher. Was es bis dahin geschlafen hat, zählt für die 8 Stunden mit.
 - **Nach dem Ausschlafen hat es Hunger**, siehe 6.1.
 - Bekommt es zu wenig Schlaf (Vorschlag: weniger als 6 h in 24 h), sinkt die Laune stärker. Dauert das länger an, wird es krank (ergänzt).
 
@@ -134,7 +136,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 - Ist das Tier krank, sieht man das an einem Symbol (zum Beispiel einem Totenkopf oder einem Thermometer), und es bewegt sich träge.
 - Um es wieder gesund zu machen, **muss man ihm Medizin geben**. Vorschlag: Je nach Schwere sind 1–2 Dosen nötig (ergänzt).
-- **Unnötige Medizin:** Gibt man einem gesunden Tier Medizin, zählt das als **Pflegefehler**, und die Laune sinkt um 1 Herz.
+- **Unnötige Medizin:** Gibt man einem gesunden Tier Medizin, zählt das als **Pflegefehler**, und die Laune sinkt um 1 Segment.
 - Ein krankes Tier hat keine Lust zu spielen und isst weniger (ergänzt).
 
 ### 6.6 Disziplin (ergänzt)
@@ -173,8 +175,8 @@ Stirbt das Tier, sieht man einen Abschiedsbildschirm mit Alter und Lebenslauf. D
 
 | Parameter | Werte | Wirkung |
 |---|---|---|
-| `happy` | 0–4 | Laune (Herzen) |
-| `hunger` | 0–4 | Hunger (Herzen) |
+| `happy` | 0–4 | Laune (Segmente) |
+| `hunger` | 0–4 | Hunger (Segmente) |
 | `sick` | 1 / 0 | krank machen bzw. heilen |
 | `tired` | 0–100 | Müdigkeit in % |
 | `sleep` | 1 / 0 | schlafen schicken (Licht aus) bzw. aufwecken (ohne Laune-Abzug, gilt als ausgeschlafen) |
@@ -199,7 +201,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
 **Umgebung je Tierart:**
 - **Katze:** wohnt drinnen im Zimmer (siehe unten).
-- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist eine bogenförmige Höhle mit Laubpolster. Gefüttert wird auf einem flachen Stein.
+- **Fuchs:** lebt draußen **am Waldrand**: Himmel mit Sonne bzw. Mond und Sternen, Hügel, Tannen, Wiese mit Gras. Er schläft in einer **Baumhöhle**: Der Baum ist so hoch, dass man **nur den Stamm** sieht und keine Blätter. Der Stamm ist schlank, mit Rindenstruktur, Licht und Schatten, einem Aststummel, einem Astloch und Wurzeln. Unten im Stamm ist eine kleine bogenförmige Höhle mit Laubpolster. Gefüttert wird auf einem flachen Stein.
 - **Igel:** lebt draußen **im Garten**: Hecke, Holzzaun, Busch mit Beeren, Blumen, Rasen mit Herbstlaub. Er schläft in einem **Laubhaufen**. Gefüttert wird aus einem Tonschälchen.
 - Schlafplätze sind innen hell genug und verdecken nur den unteren Rand, damit man das schlafende Tier **gut erkennt**. Licht aus dunkelt das Bild nur so weit ab, dass das Tier sichtbar bleibt. Nachts ist draußen der Hintergrund zusätzlich dunkler.
 
@@ -213,7 +215,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 **Deko je Tierart:** Sie ist als Daten in der Tierart angelegt (`room`).
 - **Fuchs:** Grasbüschel und Grashalme auf dem Boden.
 - **Igel:** buntes Herbstlaub auf dem Boden (orange, rot, gelb, braun).
-- **Katze:** ganz links im Zimmer steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt. Eine Zimmerpflanze gibt es nicht mehr.
+- **Katze:** links im Zimmer (etwas vom Rand entfernt) steht ein Kratzbaum mit Sisalstamm und zwei Liegeflächen; oben hängt ein Spielball an einer Schnur und pendelt. Eine Zimmerpflanze gibt es nicht mehr.
 
 **Animationen:**
 - **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.
@@ -223,7 +225,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Schimpfen:** Das Tier schüttelt sich.
 - **Entwicklung:** Der Bildschirm blitzt weiß auf, danach hüpft das Tier.
 - **Haufen:** Über den Haufen steigen Stinkewölkchen auf.
-- **Schlaf:** Über dem Körbchen schweben „Zzz“.
+- **Schlaf:** Schlafende Tiere liegen in einer eigenen **eingerollten Schlafpose** im Körbchen bzw. in der Höhle. Fuchs, Katze und Hund liegen mit dem Kopf auf den Pfoten und dem Schwanz vorne herum, der Fuchs mit weißer Schwanzspitze. Der Igel rollt sich zur Stachelkugel ein. Hunde haben die Ohren ihrer Rasse (Steh-, Schlapp- oder kleine Ohren), Fellfarbe und Muster bleiben erhalten. Die Tiere atmen sanft, darüber schweben „Zzz“. In der Tier-Leiste oben erscheint ebenfalls die Schlafpose.
 
 ## 9. Offene Fragen
 
