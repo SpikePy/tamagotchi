@@ -291,6 +291,12 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   10. Napf
 - **Drinnen:** Im Fenster liegen Himmel, Wolken und Vogel **hinter** Fensterkreuz und Spiegelung.
 
+**Atmosphäre:**
+- **Schmetterlinge** flattern tagsüber draußen umher (gelb, weiß, rosa oder blau).
+- **Glühwürmchen** leuchten nachts draußen, drinnen sieht man sie durchs Fenster.
+- **Abendlicht:** Bei Sonnenauf- und -untergang liegt ein warmer Orange-Ton über der ganzen Szene.
+- **Stehlampe** im Zimmer (Katze, Hund): Sie brennt **abends und nachts** (18–7 Uhr) mit warmem Lichtschein, solange das Licht an ist. Bei „Licht aus“ ist sie aus.
+
 **Wolken und Wetter:** Am Himmel draußen und im Fenster drinnen **ziehen Wolken vorbei**.
 - Das Wetter wechselt etwa **alle 45 Minuten** zufällig, aber in einem moderaten Rahmen: **1 bis 5 Wolken** und **Wind** von schwach bis mäßig, meist von West nach Ost, manchmal andersherum.
 - Wolken kommen am Rand herein und ziehen hinaus. Größere Wolken sind etwas schneller, Wind und Wolkenzahl ändern sich sanft.

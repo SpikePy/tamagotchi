@@ -7,6 +7,7 @@ import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds, weatherAt } from './weather';
+import { Ambient, drawLamp, drawLampLight, eveningLight } from './ambient';
 import { NEST_BOX, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
 
 export const SCREEN_W = 64;
@@ -293,6 +294,7 @@ export class Scene {
   private bgSky = hiResCanvas(SCREEN_W, SCREEN_H);
   private bgFar = hiResCanvas(SCREEN_W, SCREEN_H);
   private clouds = new Clouds();
+  private ambient = new Ambient();
   private bgKey = '';
   private bgDay = true;
   private critters = new Critters();
@@ -368,6 +370,7 @@ export class Scene {
         this.drawRoom(sp, s.clock);
         this.drawDecor(sp, t, 'static');
         drawDecorNear(this.ctx, sp.id, sunX);
+        drawLamp(this.ctx);
         this.bgDay = true;
       } else {
         // Himmel und Landschaft getrennt, damit die Wolken dazwischen ziehen können
@@ -394,6 +397,7 @@ export class Scene {
       // im Fenster: Wolken, Vogel, dann Fensterkreuz und Spiegelung darüber
       this.clouds.draw(ctx, s.clock, t, WIN, !skyState(s.clock).day);
       this.critters.draw(ctx, 'window', t);
+      this.ambient.draw(ctx, 'room', skyState(s.clock), t, WIN);
       this.drawWindowFront();
       drawSillDecor(ctx, sp.id, { x: WIN.x - 3, y: WIN.y + WIN.h + 1, w: WIN.w + 6 });
     } else {
@@ -406,6 +410,7 @@ export class Scene {
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H); // Wiese, Bäume, Busch, Schlafplatz
       this.critters.draw(ctx, 'air', t); // wehende Blätter
       if (!this.bgDay) this.overlay(0.3); // Nacht draußen: Hintergrund dunkler
+      this.ambient.draw(ctx, this.env, skyState(s.clock), t, WIN); // Schmetterlinge / Glühwürmchen (leuchten über dem Dunkel)
     }
     this.drawDecor(sp, t, 'anim');
     if (sp.id !== 'fox') drawDecorAnim(ctx, sp.id, t); // z. B. Schnecke
@@ -441,6 +446,11 @@ export class Scene {
     // Napf liegt vorne auf dem Boden, also nach dem Tier zeichnen
     this.drawBowl(t);
 
+    const skyNow = skyState(s.clock);
+    eveningLight(ctx, skyNow);
+    // Stehlampe brennt abends und nachts, solange das Licht an ist
+    const hour = new Date(s.clock).getHours();
+    if (this.env === 'room' && p.lightOn && (hour >= 18 || hour < 7)) drawLampLight(ctx);
     if (!p.lightOn) this.overlay(0.55); // dunkel, aber das Tier bleibt erkennbar
 
     // Zzz (über dem Dunkel, damit man es sieht)
