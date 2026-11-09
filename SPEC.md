@@ -56,7 +56,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 | Phase | Dauer | Hinweise |
 |---|---|---|
 | Ei | 1 Minute | Keine Pflege nötig. Danach schlüpft das Tier. |
-| Baby | 1 Tag | Braucht viel Pflege: wird schnell hungrig und kackt oft. |
+| Baby | 1 Tag | Braucht viel Pflege: wird schnell hungrig und macht oft ein Häufchen. |
 | Kind | 5 Tage | |
 | Teenager | 5 Tage | |
 | Erwachsen | bis zum Lebensende | |
@@ -143,12 +143,12 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.3 Hygiene
 
-- Das Tier **kackt alle 1–3 Stunden**. Der Abstand wird zufällig gewählt.
+- Das Tier **macht alle 1–3 Stunden ein Häufchen**. Der Abstand wird zufällig gewählt.
 - Die Haufen sieht man im Zuhause des Tiers, mehrere können sich ansammeln.
 - Man muss das **Zuhause über die UI sauber machen**. Das entfernt alle Haufen auf einmal.
 - **Liegt ein Haufen länger als 4 Stunden, wird das Tier krank.**
-- Im Schlaf kackt es nicht.
-- Nach dem Aufwachen am Morgen kackt es auf jeden Fall innerhalb der ersten Stunde. Erst danach gilt wieder der normale Abstand von 1–3 Stunden.
+- Im Schlaf macht es keins.
+- Nach dem Aufwachen am Morgen macht es auf jeden Fall innerhalb der ersten Stunde ein Häufchen. Erst danach gilt wieder der normale Abstand von 1–3 Stunden.
 
 ### 6.4 Spielen
 
