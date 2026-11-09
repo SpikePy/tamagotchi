@@ -61,5 +61,5 @@ describe('Tierarten', () => {
               for (const r of map) expect(r.length, `${b.name}/${stage}`).toBe(map[0].length);
               for (const ch of map.join('').replaceAll('.', '')) expect(colors[ch], `${sp.id}/${b.name}/${stage} '${ch}'`).toBeTruthy();
             }
-  });
+  }, 60_000); // zeichnet alle Rassen in voller Rasterdichte – auf langsamen CI-Rechnern dauert das
 });
