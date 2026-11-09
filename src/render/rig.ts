@@ -42,7 +42,7 @@ export interface RigOpts {
   eyesClosed?: boolean;
   brows?: boolean;
   gaze?: number;
-  pose?: 'stand' | 'sleep' | 'stretch0' | 'stretch1' | 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap';
+  pose?: 'stand' | 'sleep' | 'stretch0' | 'stretch1' | 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1';
   male?: boolean;
   pattern?: string;
   seed?: number;
@@ -424,8 +424,18 @@ function chicken(r: Raster, d: ChickenRig, stage: Exclude<Stage, 'egg'>, o: RigO
   const W = r.w;
   const H = r.h;
   const chick = stage === 'baby' || stage === 'child' || (d.bantam && stage === 'teen');
+  const kick = o.pose === 'scrape1';
+  const peck = o.pose === 'peck';
   const legs = (x0: number, x1: number, top: number, feather: boolean) => {
-    for (const x of [x0, x1]) {
+    for (const [i, x] of [x0, x1].entries()) {
+      if (kick && i === 1) {
+        // Scharren: hinteres Bein kratzt nach hinten
+        const fx = x + W * 0.16;
+        r.fill(line2(x, top, fx, H - 4, Math.max(1.3, H * 0.025)), 'w');
+        r.seg(fx - 1, H - 3.5, fx + 4, H - 2, 'w');
+        if (feather) r.fill(ell(x + 1, top + 3, 2.8, 4), 'a');
+        continue;
+      }
       r.fill(line2(x, top, x - 0.5, H - 3, Math.max(1.3, H * 0.025)), 'w');
       r.seg(x - 3.5, H - 1.5, x + 1.5, H - 1.5, 'w');
       r.dot(x + 2, H - 2, 'w');
@@ -482,9 +492,9 @@ function chicken(r: Raster, d: ChickenRig, stage: Exclude<Stage, 'egg'>, o: RigO
     const wx = bx + brx * (0.25 + i * 0.13);
     r.seg(wx, by + bry * 0.05, wx + 2, by + bry * 0.4, 'o');
   }
-  // Hals und Kopf
-  const hx = W * 0.24;
-  const hy = H * 0.26;
+  // Hals und Kopf (beim Picken bis zum Boden gesenkt)
+  const hx = peck ? W * 0.13 : W * 0.24;
+  const hy = peck ? H * 0.7 : H * 0.26;
   const hr = W * 0.12;
   r.fill(line2(hx + hr * 0.4, hy + hr * 0.6, bx - brx * 0.55, by - bry * 0.35, hr * 0.85), 'a');
   if (male) r.fill(inter(line2(hx + hr * 0.4, hy + hr * 0.7, bx - brx * 0.55, by - bry * 0.4, hr * 0.85), ell(hx + hr, hy + hr * 1.6, hr * 1.6, hr * 1.4)), 'b', { line: false });
@@ -685,11 +695,6 @@ function catBat(r: Raster, d: QuadRig, frame: 0 | 1, o: RigOpts) {
   }
   r.fill(body, 'a');
   r.fill(inter(ell(W * 0.52, bottom - H * 0.18, W * 0.22, H * 0.12), body), 'b', { line: false });
-  // Schlag-Pfote: vorgestreckt bzw. gehoben
-  const px = frame === 0 ? W * 0.08 : W * 0.16;
-  const py = frame === 0 ? bottom - 3 : bottom - H * 0.42;
-  r.fill(line2(W * 0.36, bottom - H * 0.32, px + 2, py, Math.max(2.5, H * 0.08)), 'a');
-  r.fill(ell(px, py, H * 0.1, H * 0.09), d.feet ?? 'a');
   const hx = W * 0.27;
   const hy = bottom - H * 0.52;
   const hr = H * 0.25;
@@ -701,6 +706,12 @@ function catBat(r: Raster, d: QuadRig, frame: 0 | 1, o: RigOpts) {
   r.fill(ell(hx - hr * 0.85, hy + hr * 0.15, 1.3, 1), 'n', { line: false, flat: true });
   eye(r, hx - hr * 0.35, hy - hr * 0.05, hr * 0.3, o, d.iris);
   eye(r, hx + hr * 0.2, hy - hr * 0.05, hr * 0.28, o, d.iris, true);
+  // Schlag-Pfote vor dem Kopf: vorgestreckt bzw. hoch erhoben
+  const px = frame === 0 ? W * 0.1 : W * 0.05;
+  const py = frame === 0 ? bottom - H * 0.28 : bottom - H * 0.7;
+  r.fill(line2(W * 0.4, bottom - H * 0.3, px + 2, py, Math.max(2.5, H * 0.08)), 'a');
+  r.fill(ell(px, py, H * 0.1, H * 0.09), d.feet ?? 'a');
+  if (frame === 1) for (let c = 0; c < 3; c++) r.dot(px - H * 0.1 - 1, py - 1.5 + c * 1.5, 'w'); // ausgefahrene Krallen
 }
 
 /** Katze im Sprung: langgestreckt, Vorderpfoten vorn, Hinterbeine nach hinten (Seitenansicht, schaut nach links) */

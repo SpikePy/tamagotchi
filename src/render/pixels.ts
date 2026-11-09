@@ -372,7 +372,7 @@ export function petMap(sprite: Sprite, look: PetLook): string[] {
 export function petSprite(
   sp: SpeciesDef,
   pet: { stage: Stage; variant: Variant; look?: Look | null },
-  opts: { eyesClosed?: boolean; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1; pose?: 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' } = {},
+  opts: { eyesClosed?: boolean; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1; pose?: 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1' } = {},
 ) {
   const look = pet.look ?? null;
   const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
@@ -503,7 +503,7 @@ function rigSprite(
   let pose: RigOpts['pose'] = 'stand';
   let w: number;
   let h: number;
-  if (opts.pose) {
+  if (opts.pose && POSE_SIZE[opts.pose]) {
     const [pw, ph] = POSE_SIZE[opts.pose];
     w = Math.round(pw * STAGE_SCALE[stage]);
     h = Math.round(ph * STAGE_SCALE[stage]);
@@ -515,7 +515,10 @@ function rigSprite(
     } else if (opts.sleeping) {
       size = sleepSprite(breed?.sleep ?? sp.sleep, !opts.sleepSmall && grown);
       pose = 'sleep';
-    } else size = male && breed?.maleSprites ? breed.maleSprites[stage as 'teen' | 'adult'] : (breed?.sprites ?? sp.sprites)[stage];
+    } else {
+      size = male && breed?.maleSprites ? breed.maleSprites[stage as 'teen' | 'adult'] : (breed?.sprites ?? sp.sprites)[stage];
+      if (opts.pose) pose = opts.pose; // z. B. Huhn pickt oder scharrt (gleiche Größe)
+    }
     w = size[0].length;
     h = size.length;
   }
@@ -537,6 +540,6 @@ function rigSprite(
     colors: full,
     w,
     h,
-    facesLeft: opts.stretch !== undefined || !!opts.pose || (!opts.sleeping && !!breed?.facesLeft),
+    facesLeft: opts.stretch !== undefined || (!!opts.pose && !!POSE_SIZE[opts.pose]) || (!opts.sleeping && !!breed?.facesLeft),
   };
 }

@@ -263,7 +263,7 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - eine **Feder** vor dem Bau
 - **Igel (Garten):**
   - ein **Igelhaus** mit Moosdach
-  - zwei **Sonnenblumen**, deren Köpfe sich zur Sonne drehen
+  - zwei **Sonnenblumen**, deren Köpfe sich zur Sonne drehen und die sich leicht im Wind wiegen
   - ein **Gartenzwerg** und eine **Gießkanne**
   - ein **Apfel** im Gras
   - eine **Schnecke**, die ganz langsam hin und her kriecht
@@ -278,11 +278,11 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - darunter eine **Hakenleiste** mit roter **Leine**, blauem **Geschirr** und grünem **Halsband mit goldener Marke**
   - **Fußmatte** vorne
 - **Huhn (Hof):**
-  - zwei **Sonnenblumen** am Zaun
+  - zwei **Sonnenblumen** am Zaun, die sich **leicht im Wind wiegen** (der Stiel biegt sich oben stärker, die Blätter flattern; stärker bei mehr Wind)
   - **Sandbad-Kuhle**, **Wassertränke** aus Blech
   - **Leiter** am Stall
   - **Nistkasten** rechts am Stall
-  - **Wetterhahn** auf dem Dach, der in die aktuelle **Windrichtung** zeigt
+  - **Wetterhahn** auf dem Dach, der in die aktuelle **Windrichtung** zeigt und dabei **leicht hin und her pendelt** (dreht sich etwas um die Stange)
 
 **Niederschlag:** Zum Wetter gehört auch Regen oder Schnee.
 - **Regen:** außerhalb des Winters etwa jedes 5. Wetter.
@@ -385,9 +385,12 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - **Deko besuchen:** Ab und zu geht das Tier zu einem Deko-Objekt und tut dort etwas:
   - Fuchs: schnüffelt an der Feder
   - Igel: schnuppert am Apfel
-  - Katze: stupst die Spielmaus an oder **springt aufs Fensterkissen** und döst dort eine Weile eingerollt, dann springt sie wieder herunter
+  - Katze: stupst die Spielmaus an oder **springt aufs Fensterkissen** und döst dort eine Weile eingerollt, dann springt sie wieder herunter. Der Sprung hat eine **eigene Sprung-Pose** (langgestreckter Körper, Vorderpfoten vorn, Hinterbeine nach hinten, Schwanz als Steuer), in einem Bogen hoch aufs Brett und wieder herunter.
+  - Katze: **wetzt die Krallen am Kratzbaum**: Sie stellt sich auf die Hinterbeine, die Vorderpfoten mit ausgefahrenen Krallen kratzen abwechselnd am Sisal, Fasern rieseln herunter.
+  - Katze: **spielt mit der Kugel** am Kratzbaum: Sie duckt sich und schlägt abwechselnd mit vorgestreckter und hoch erhobener Pfote nach der Kugel, die danach kräftig hin und her pendelt.
   - Huhn: hüpft auf den **Strohhaufen**, schaut sich oben nach links und rechts um und hüpft wieder herunter
   - Huhn: nimmt ein **Sandbad**, plustert sich in der Kuhle auf und lässt Staubwölkchen aufsteigen
+- **Huhn scharrt und pickt:** Ab und zu bleibt das Huhn stehen und **scharrt** im Boden (ein Bein kratzt nach hinten, Stroh und Erde fliegen auf) und **pickt** danach mit dem Kopf bis zum Boden. Auch beim Putzen und Fressen pickt es so (Küken nicken nur).
 - Kommt ein **wildes Tier vorbei** (Maus, Igel, Reh, Vogel, auch der Vogel am Fenster oder die Fliege bei der Katze), reagiert das Haustier **zufällig**: Meist bleibt es stehen und **beobachtet** es. Bei Tieren am Boden in seiner Nähe (Maus, Igel, Fliege bei der Katze) **läuft es ihm manchmal hinterher**, Katze, Fuchs und Hund springen dabei auch mal danach. Manchmal ignoriert es das Tier und macht einfach weiter.
 
 **Animationen:**

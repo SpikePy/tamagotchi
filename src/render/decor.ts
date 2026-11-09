@@ -129,9 +129,10 @@ const TROUGH_WATER = ['...oo...', '..oWWo..', '.oooooo.', 'ollllllo', 'ommmmmmo'
 const TROUGH_C: ColorMap = { o: '#4a5058', W: '#c8d0d8', l: '#7ac0f0', m: '#8a949e' };
 
 // ---------- Platzierungen ----------
+export type VisitKind = 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop' | 'scratch' | 'play' | 'scrape';
 export interface DecorTarget {
   x: number; // wo das Tier hinläuft (Mitte)
-  kind: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop';
+  kind: VisitKind;
 }
 
 /** Interaktionspunkte je Tierart */
@@ -142,7 +143,7 @@ export function decorTargets(species: string): DecorTarget[] {
     case 'hedgehog':
       return [{ x: 14, kind: 'sniff' }];
     case 'cat':
-      return [{ x: 49.5, kind: 'nudge' }, { x: 43, kind: 'sill' }];
+      return [{ x: 49.5, kind: 'nudge' }, { x: 43, kind: 'sill' }, { x: 19, kind: 'scratch' }, { x: 22, kind: 'play' }];
     case 'dog':
       return [];
     case 'chicken':
@@ -202,18 +203,22 @@ function shelf(ctx: CanvasRenderingContext2D, x: number, y: number, books: strin
 }
 
 /** Sonnenblume; Kopf neigt sich zur Sonne (sunX = Sonnenposition 0..64) */
-function sunflower(ctx: CanvasRenderingContext2D, x: number, top: number, sunX: number) {
+function sunflower(ctx: CanvasRenderingContext2D, x0: number, top: number, sunX: number, sway = 0) {
   if (sunflowersOff) return; // im Winter keine Sonnenblumen
-  rect(ctx, '#3f7a30', x, top + 2, P, GROUND_Y - top - 2);
+  // Stiel biegt sich im Wind: oben stärker als unten
+  const bend = (y: number) => sway * ((GROUND_Y - y) / (GROUND_Y - top)) ** 1.6;
+  for (let y = top + 2; y < GROUND_Y; y += P) rect(ctx, '#3f7a30', x0 + bend(y), y, P, P);
   for (const [ly, dir] of [[top + 6, -1], [top + 9, 1], [top + 12, -1]] as [number, number][]) {
-    // Blatt: schmal am Stiel, breiter zur Spitze, mit hellerer Oberseite
+    // Blatt: schmal am Stiel, breiter zur Spitze, mit hellerer Oberseite (flattert leicht mit)
+    const x = x0 + bend(ly);
+    const flut = Math.round(sway * 2) * P * 0.5;
     rect(ctx, '#3f7a30', x + (dir > 0 ? P : -P), ly, P, P);
-    rect(ctx, '#4f9a3a', x + (dir > 0 ? 2 * P : -3 * P), ly - P, 2 * P, 2 * P);
-    rect(ctx, '#6ab84a', x + (dir > 0 ? 3 * P : -3 * P), ly - P, P, P);
-    rect(ctx, '#4f9a3a', x + (dir > 0 ? 4 * P : -5 * P), ly - 2 * P, 2 * P, P);
+    rect(ctx, '#4f9a3a', x + (dir > 0 ? 2 * P : -3 * P), ly - P + flut, 2 * P, 2 * P);
+    rect(ctx, '#6ab84a', x + (dir > 0 ? 3 * P : -3 * P), ly - P + flut, P, P);
+    rect(ctx, '#4f9a3a', x + (dir > 0 ? 4 * P : -5 * P), ly - 2 * P + flut, 2 * P, P);
   }
-  const lean = sunX < x - 8 ? -1 : sunX > x + 8 ? 1 : 0;
-  const hx = x + 0.25 + lean * 0.5;
+  const lean = sunX < x0 - 8 ? -1 : sunX > x0 + 8 ? 1 : 0;
+  const hx = snapPx(x0 + 0.25 + lean * 0.5 + bend(top + 1.5));
   pixelCircle(ctx, hx, top + 1.5, 2.2, '#f2c63b');
   pixelCircle(ctx, hx, top + 1.5, 1.6, '#e8a020');
   pixelCircle(ctx, hx, top + 1.5, 1.1, '#6a3a1a');
@@ -221,7 +226,7 @@ function sunflower(ctx: CanvasRenderingContext2D, x: number, top: number, sunX: 
 }
 
 /** Nahe Ebene + Zimmer: statische Deko (liegt im Hintergrund-Cache) */
-export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, sunX: number, winter = false) {
+export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, _sunX: number, winter = false) {
   sunflowersOff = winter;
   switch (species) {
     case 'fox':
@@ -233,8 +238,6 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       break;
     case 'hedgehog':
       put(ctx, HEDGEHOG_HOUSE, HOUSE_C, 55, 22.5);
-      sunflower(ctx, 18, 16, sunX);
-      sunflower(ctx, 22, 18, sunX);
       put(ctx, GNOME, GNOME_C, 26, 27);
       put(ctx, CAN, CAN_C, 29.5, 30.5);
       put(ctx, APPLE, APPLE_C, 13, 38.5);
@@ -278,8 +281,6 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       break;
     case 'chicken': {
       // Sonnenblumen am Zaun, Sandbad-Kuhle, Tränke, Leiter, Nistkasten
-      sunflower(ctx, 3, 16, sunX);
-      sunflower(ctx, 7.5, 18.5, sunX);
       for (let y = 43; y < 47; y += P)
         for (let x = 3; x < 14; x += P) {
           const d = ((x - 8.5) / 5.5) ** 2 + ((y - 45) / 2) ** 2;
@@ -301,16 +302,33 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
   }
 }
 
-/** Wetterhahn auf dem Stalldach; zeigt in Windrichtung */
-export function drawWeathervane(ctx: CanvasRenderingContext2D, wind: number) {
+/** Sonnenblumen (Garten, Hühnerhof), die sich pro Bild leicht im Wind wiegen */
+export function drawSunflowers(ctx: CanvasRenderingContext2D, species: string, sunX: number, t: number, wind: number, winter: boolean) {
+  sunflowersOff = winter;
+  const gust = 0.35 + Math.min(1, Math.abs(wind)) * 0.4;
+  const sway = (ph: number) => (Math.sin(t / 1400 + ph) * 0.7 + Math.sin(t / 530 + ph * 2) * 0.3) * gust + Math.sign(wind) * 0.15;
+  if (species === 'hedgehog') {
+    sunflower(ctx, 18, 16, sunX, sway(0));
+    sunflower(ctx, 22, 18, sunX, sway(1.7));
+  } else if (species === 'chicken') {
+    sunflower(ctx, 3, 16, sunX, sway(0.4));
+    sunflower(ctx, 7.5, 18.5, sunX, sway(2.1));
+  }
+}
+
+/** Wetterhahn auf dem Stalldach; zeigt in Windrichtung und pendelt leicht hin und her */
+export function drawWeathervane(ctx: CanvasRenderingContext2D, wind: number, t = 0) {
   const x = 49;
   rect(ctx, '#3a3a3a', x, 9.5, P, 6);
-  rect(ctx, '#3a3a3a', x - 2, 11, 4.5, P);
+  // Drehen um die Stange: Querbalken und Hahn werden etwas schmaler/breiter, Hahn wackelt seitlich
+  const turn = Math.sin(t / 900) * 0.6 + Math.sin(t / 370) * 0.25;
+  const arm = 4.5 - Math.abs(turn) * 1.2;
+  rect(ctx, '#3a3a3a', snapPx(x - arm / 2 + 0.25), 11, snapPx(arm), P);
   const ROOSTER = ['.cc...dd', 'oooo.ddd', '.ooooood', '..oooo..', '...o....'];
   const rows = wind < 0 ? ROOSTER : ROOSTER.map((r) => [...r].reverse().join(''));
-  put(ctx, rows, { o: '#2a2a2a', c: '#d8343a', d: '#2a2a2a' }, x - 1.75, 6.5);
+  put(ctx, rows, { o: '#2a2a2a', c: '#d8343a', d: '#2a2a2a' }, x - 1.75 + turn * 0.5, 6.5);
   // Pfeil zeigt dorthin, wohin der Wind weht
-  rect(ctx, '#2a2a2a', wind > 0 ? x + 2 : x - 2.5, 10.5, 1, 1.5);
+  rect(ctx, '#2a2a2a', wind > 0 ? x + 2 - Math.abs(turn) * 0.5 : x - 2.5 + Math.abs(turn) * 0.5, 10.5, 1, 1.5);
 }
 
 /** Bewegte Deko pro Bild */

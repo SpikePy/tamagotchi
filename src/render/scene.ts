@@ -9,7 +9,7 @@ import { Clouds, drawPrecip, drawPuddles, drawWindowDrops, weatherAt } from './w
 import { Ambient, eveningLight, nightTint, nightness, roomNight } from './ambient';
 import { remapContext, seasonOf, seasonTransform, snowCaps, type Season } from './season';
 import { drawRoomBack, drawRoomWindowFront } from './roomart';
-import { NEST_BOX, STRAW_HEAP, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
+import { NEST_BOX, STRAW_HEAP, type VisitKind, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawSunflowers, drawWeathervane } from './decor';
 
 export const SCREEN_W = 64;
 export const SCREEN_H = 48;
@@ -144,8 +144,9 @@ export class Scene {
   private meal: { kind: 'food' | 'candy'; eatStart: number | null } | null = null;
   private walkX = 30;
   private walkDir = 1;
+  private ballKick = -1e9;
   private depth = 1; // 0 = hinten, 3.5 = vorne im Raum
-  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase'; visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop'; arrived?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase' | 'scrape'; visit?: VisitKind; arrived?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
     kind: 'idle',
     start: 0,
     until: 0,
@@ -167,9 +168,9 @@ export class Scene {
     this.critters.debugSpawn(kind as never, lane, dir);
   }
 
-  debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle', visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop', target?: number) {
+  debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle', visit?: VisitKind, target?: number) {
     const t = performance.now();
-    this.act = { kind, visit, start: t, until: t + 30000, target, targetDepth: visit === 'drink' || visit === 'dustbath' ? 2.5 : visit === 'hop' ? 0 : 1, speed: 12 };
+    this.act = { kind, visit, start: t, until: t + 30000, target, targetDepth: visitDepth(visit), speed: 12 };
     if (kind !== 'visit') this.act.until = t + 2600;
   }
 
@@ -306,7 +307,6 @@ export class Scene {
         snowCaps(this.bgFar);
         snowCaps(this.bg);
       }
-      if (this.env === 'farm') drawWeathervane(this.ctx, weatherAt(s.clock).wind);
       this.ctx = main;
       this.bgKey = bgKey;
     }
@@ -341,6 +341,11 @@ export class Scene {
       this.critters.draw(ctx, 'background', t); // Reh
       nightTint(ctx, night * 0.38); // Ferne nachts am dunkelsten
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H); // Wiese, Bäume, Busch, Schlafplatz
+      // Sonnenblumen und Wetterhahn bewegen sich im Wind (pro Bild gezeichnet)
+      const wind = weatherAt(s.clock).wind;
+      const skyW = skyState(s.clock);
+      drawSunflowers(ctx, sp.id, skyW.day ? -5 + skyW.f * 69 + 2.5 : 32, t, wind, season === 'winter');
+      if (this.env === 'farm') drawWeathervane(ctx, wind, t);
       if (weatherAt(s.clock).precip === 'rain') drawPuddles(ctx, t);
       this.critters.draw(ctx, 'air', t); // wehende Blätter
       this.critters.draw(ctx, 'near', t); // Vogel auf dem Aststummel (vor dem Baumstamm)
@@ -487,7 +492,8 @@ export class Scene {
   private drawPostToy(t: number) {
     const ctx = this.ctx;
     const top = FLOOR_Y + 1 - POST.length;
-    const swing = Math.sin(t / 1100) * 0.08; // nur leichtes Wackeln
+    const kick = t - this.ballKick;
+    const swing = Math.sin(t / 1100) * 0.08 + (kick >= 0 && kick < 1600 ? Math.sin(kick / 110) * 0.45 * (1 - kick / 1600) : 0); // leichtes Wackeln, beim Anstupsen stärker
     const len = 6;
     const ax = POST_X + 9.5;
     const ay = top + 3;
@@ -625,7 +631,7 @@ export class Scene {
     const targets = decorTargets(p.species);
     if (targets.length && !p.sick && Math.random() < 0.14) {
       const tg = targets[Math.floor(Math.random() * targets.length)];
-      return { kind: 'visit' as const, visit: tg.kind, start: t, until: t + 30000, target: tg.x - 8, targetDepth: tg.kind === 'drink' || tg.kind === 'dustbath' ? 2.5 : tg.kind === 'hop' ? 0 : 1, speed: 7 };
+      return { kind: 'visit' as const, visit: tg.kind, start: t, until: t + 30000, target: tg.x - 8, targetDepth: visitDepth(tg.kind), speed: 7 };
     }
     if (r < 0.42) {
       let target = from + Math.random() * (to - from);
@@ -635,6 +641,8 @@ export class Scene {
       return { kind: 'walk' as const, start: t, until: t + 20000, target, targetDepth, speed };
     }
     if (r < 0.66) return { kind: 'idle' as const, start: t, until: t + 1000 + Math.random() * 3000 };
+    // Huhn: ab und zu auf dem Boden scharren (danach picken)
+    if (p.species === 'chicken' && !p.sick && r < 0.76) return { kind: 'scrape' as const, start: t, until: t + 2600 + Math.random() * 1400 };
     if (r < 0.8 || !groomer || p.sick) return { kind: 'look' as const, start: t, until: t + 2000 + Math.random() * 2000 };
     const grown = (p.stage === 'teen' || p.stage === 'adult') && p.species !== 'chicken'; // Hühner picken statt sich zu strecken
     if (r < 0.92 || !grown) return { kind: 'groom' as const, start: t, until: t + 2400 };
@@ -700,7 +708,7 @@ export class Scene {
         const dd = (a.targetDepth ?? this.depth) - this.depth;
         if (Math.abs(diff) < 0.3 && Math.abs(dd) < 0.1) {
           a.arrived = t;
-          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000, hop: 5000 } as const)[a.visit ?? 'sniff'];
+          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000, hop: 5000, scratch: 3600, play: 3400, scrape: 3000 } as const)[a.visit ?? 'sniff'];
         } else {
           const dist = Math.hypot(diff, dd * 2);
           const step = Math.min(dist, (a.speed ?? 6) * dt);
@@ -757,12 +765,19 @@ export class Scene {
     const blink = t % 3500 < 150;
     // Blickrichtung ist im Bild gemeint; bei gespiegeltem Sprite umdrehen
     if (base.facesLeft) gaze = 0; // Seitenansicht: der Kopf zeigt schon die Richtung
-    const img = petSprite(sp, p, { eyesClosed: blink || grooming || stretching || petted, gaze: flip ? -gaze : gaze });
+    // Huhn: scharren (Bein kratzt nach hinten) und picken (Kopf zum Boden) als eigene Posen
+    const bigBird = p.species === 'chicken' && p.stage !== 'baby' && p.stage !== 'child';
+    const scraping = !m && a.kind === 'scrape';
+    let birdPose: 'peck' | 'scrape0' | 'scrape1' | undefined;
+    if (bigBird && scraping) birdPose = k < 0.7 ? (Math.floor(t / 170) % 2 ? 'scrape1' : 'scrape0') : Math.floor(t / 220) % 2 ? 'peck' : undefined;
+    else if (bigBird && (grooming || eating)) birdPose = Math.floor(t / 220) % 2 ? 'peck' : undefined;
+    const img = petSprite(sp, p, { eyesClosed: !birdPose && (blink || grooming || stretching || petted), gaze: flip ? -gaze : gaze, pose: birdPose });
 
     let x = this.walkX;
     let bob = 0;
     if (!m && a.kind === 'walk' && !p.sick) bob = (Math.floor(t / 220) % 2) * 0.5;
-    if (eating || grooming) bob = -(Math.floor(t / (p.species === 'chicken' ? 160 : 280)) % 2) * (p.species === 'chicken' ? 1 : 0.5); // Kopf runter (Napf / Putzen / Picken)
+    if ((eating || grooming) && !bigBird) bob = -(Math.floor(t / (p.species === 'chicken' ? 160 : 280)) % 2) * (p.species === 'chicken' ? 1 : 0.5); // Kopf runter (Napf / Putzen / Picken)
+    if (scraping && !bigBird) bob = -(Math.floor(t / 160) % 2); // Küken: nur nicken
     if (visiting === 'sniff' || visiting === 'nudge' || visiting === 'drink') bob = -(Math.floor(t / (visiting === 'nudge' ? 200 : 320)) % 2) * 0.5;
     const j = t - this.jumpStart;
     if (j >= 0 && j < 900) bob = Math.round(Math.abs(Math.sin((j / 900) * Math.PI * 2)) * 5);
@@ -789,19 +804,47 @@ export class Scene {
       const kk = (t - (a.arrived ?? t)) / Math.max(1, a.until - (a.arrived ?? t));
       let sx = x + w / 2 - sl.w / 2;
       let sy = ground - sl.h + 1;
+      let leap = false;
       if (visiting === 'sill') {
-        // hochspringen, liegen, runterspringen
+        // Anlauf, Sprung mit gestrecktem Körper, liegen, Sprung zurück
         const sillTop = WIN.y + WIN.h - 0.5;
-        const up = kk < 0.06 ? kk / 0.06 : kk > 0.94 ? (1 - kk) / 0.06 : 1;
+        const up = kk < 0.07 ? kk / 0.07 : kk > 0.93 ? (1 - kk) / 0.07 : 1;
         const lieX = WIN.x + 0.5;
+        if (up < 1) {
+          const lp = petSprite(sp, p, { pose: 'leap' });
+          const c0 = x + w / 2;
+          const c1 = lieX + sl.w / 2;
+          const cx = c0 + (c1 - c0) * up;
+          const by = ground + (sillTop - ground) * up - Math.sin(Math.PI * up) * 7;
+          const movingRight = kk < 0.5 ? c1 > c0 : c0 > c1;
+          drawMap(ctx, lp.map, lp.colors, cx - lp.w / 2, by - lp.h + 1, movingRight);
+          leap = true;
+        }
         sx = sx + (lieX - sx) * up;
-        sy = sy + (sillTop - sl.h + 1 - sy) * up - Math.sin(Math.PI * Math.min(1, up)) * (up < 1 ? 4 : 0);
+        sy = sy + (sillTop - sl.h + 1 - sy) * up;
       } else if (Math.floor(t / 180) % 2) {
         // Staubwölkchen im Sandbad
         ctx.fillStyle = 'rgba(200,170,110,0.8)';
         for (let i = 0; i < 4; i++) ctx.fillRect(snapPx((sx + 2 + ((t / 60 + i * 5) % (sl.w - 3)))), snapPx((ground - 1 - (i % 2))), 0.5, 0.5);
       }
-      drawMap(ctx, sl.map, sl.colors, sx, sy, false);
+      if (!leap) drawMap(ctx, sl.map, sl.colors, sx, sy, false);
+    } else if (visiting === 'scratch' || visiting === 'play') {
+      // Katze wetzt die Krallen am Kratzbaum bzw. schlägt nach der Kugel
+      const fr = Math.floor(t / (visiting === 'scratch' ? 240 : 360)) % 2;
+      const pose = visiting === 'scratch' ? (fr ? 'scratch1' : 'scratch0') : fr ? 'bat1' : 'bat0';
+      const st = petSprite(sp, p, { pose });
+      const sx = visiting === 'scratch' ? POST_X + 6.2 : POST_X + 9.5 - st.w * 0.03;
+      drawMap(ctx, st.map, st.colors, sx, ground - st.h + 1, false);
+      if (visiting === 'play' && fr && t - this.ballKick > 700) this.ballKick = t;
+      if (visiting === 'play') this.drawPostToy(t); // Kugel vor der Katze
+      if (visiting === 'scratch') {
+        // Sisalfasern rieseln herunter
+        ctx.fillStyle = POST_COLORS.r;
+        for (let i = 0; i < 3; i++) {
+          const ft = ((t / 900 + i / 3) % 1);
+          ctx.fillRect(snapPx(POST_X + 7 + i * 0.6), snapPx(ground - st.h * 0.6 + ft * st.h * 0.55), PX, PX * 2);
+        }
+      }
     } else if (stretching) {
       // Strecken: Vorbeugen -> volle Streckung mit Gähnen -> Vorbeugen
       const frame: 0 | 1 = k < 0.25 || k > 0.8 ? 0 : 1;
@@ -810,6 +853,12 @@ export class Scene {
       drawMap(ctx, st.map, st.colors, x + w / 2 - st.w / 2, ground - st.h + 1, sflip);
     } else drawMap(ctx, img.map, img.colors, x, y, flip);
     this.petBox = { x, y, w, h };
+    if (birdPose === 'scrape1') {
+      // aufgewirbeltes Stroh/Erde hinter dem Huhn
+      ctx.fillStyle = 'rgba(190,150,80,0.9)';
+      const bx = flip ? x - 1 : x + w + 0.5; // Seitenansicht: Kopf links, hinten = rechts
+      for (let i = 0; i < 4; i++) ctx.fillRect(snapPx(bx + (flip ? -1 : 1) * ((i * 0.7 + (t / 90) % 1.5))), snapPx(ground - 0.5 - (i % 3) * 0.75 - ((t / 70 + i) % 2) * 0.5), PX * 2, PX * 2);
+    }
 
     if (visiting === 'drink' && Math.floor(t / 320) % 2 === 0) {
       ctx.fillStyle = '#7ac0f0'; // Wassertropfen
@@ -817,12 +866,13 @@ export class Scene {
     }
     if (grooming) {
       // Zunge beim Putzen und am Ende ein Glitzern
+      const sc = img.map[0].length / w; // Zeichen je Spiel-Einheit
       const ny = p.species === 'chicken' ? -1 : img.map.findIndex((r) => r.includes('n'));
       if (ny >= 0 && Math.floor(t / 280) % 2 === 0) {
-        const nx = img.map[ny].indexOf('n');
-        const sx = flip ? w - 1 - nx : nx;
+        const nx = (img.map[ny].indexOf('n') + 1) / sc;
+        const sx = flip ? w - nx : nx;
         ctx.fillStyle = '#f07a8a';
-        ctx.fillRect(snapPx((x + sx)), snapPx((y + ny + 1)), 0.5, 0.5);
+        ctx.fillRect(snapPx(x + sx - 0.25), snapPx(y + (ny + 1) / sc + 1), 0.5, 0.5);
       }
       if (k > 0.75 && p.species !== 'chicken') drawMap(ctx, ICONS.sparkle.map, ICONS.sparkle.colors, x + w - 3, y - 2);
     }
@@ -842,4 +892,11 @@ export class Scene {
     this.ctx.fillStyle = `rgba(8,10,30,${alpha})`;
     this.ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
   }
+}
+
+/** wie weit vorne/hinten das Tier für einen Besuch steht */
+function visitDepth(v?: VisitKind): number {
+  if (v === 'drink' || v === 'dustbath') return 2.5;
+  if (v === 'hop' || v === 'scratch' || v === 'play') return 0;
+  return 1;
 }
