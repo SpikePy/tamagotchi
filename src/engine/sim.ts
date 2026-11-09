@@ -237,6 +237,9 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
 
   if (p.asleep) {
     p.tiredness = Math.max(0, p.tiredness - 100 / RULES.sleepNeedMin);
+    // im Schlaf: langsamer hungrig, Laune erholt sich langsam
+    p.hunger = Math.max(0, p.hunger - RULES.sleepHungerFactor / RULES.hungerMinPerHeart[rateKey]);
+    p.happy = Math.min(RULES.hearts, p.happy + RULES.sleepHappyGainPerNight / RULES.sleepNeedMin);
     p.sleptInCycleMin++;
     const hour = Math.floor(now / HOUR) * HOUR;
     const last = p.sleepBuckets[p.sleepBuckets.length - 1];
@@ -272,7 +275,9 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
     if (p.tiredness >= 100) fallAsleep(p, false, now, events);
   }
 
-  p.hungerZeroSince = p.hunger <= 0 ? (p.hungerZeroSince ?? now) : null;
+  // Hunger auf 0 zählt nur im Wachzustand (schlafend wird es davon nicht krank)
+  if (p.asleep && p.hungerZeroSince !== null) p.hungerZeroSince += MIN;
+  p.hungerZeroSince = p.hunger <= 0 ? (p.hungerZeroSince ?? (p.asleep ? null : now)) : null;
   p.happyZeroSince = p.happy <= 0 ? (p.happyZeroSince ?? now) : null;
 
   if (p.hatchedAt !== null && now - p.hatchedAt >= DAY) {

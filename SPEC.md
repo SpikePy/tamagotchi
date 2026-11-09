@@ -26,8 +26,8 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 
 | Wert | Bereich | Beschreibung |
 |---|---|---|
-| Sättigung (Hunger) | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit. Mahlzeiten füllen sie wieder auf. |
-| Laune | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit. Spielen und Snacks heben sie. (ergänzt) |
+| Sättigung (Hunger) | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit, **im Schlaf nur mit einem Viertel des Tempos**. Mahlzeiten füllen sie wieder auf. |
+| Laune | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit, solange es wach ist. **Im Schlaf erholt sie sich langsam** (+25 % über eine volle Nacht). Spielen und Snacks heben sie. (ergänzt) |
 | Müdigkeit | 0–100 % | Steigt, solange es wach ist, und sinkt im Schlaf. |
 | Gewicht | in g/kg | Steigt durch Essen und sinkt durch Spielen. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
 | Alter | in Tagen | Zählt ab dem Schlüpfen. |
@@ -116,7 +116,8 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - Das Tier braucht **3 Mahlzeiten pro Tag**. Der Hunger sinkt gleichmäßig über den Tag.
 - Ist die Sättigung voll (100 %, ab etwa 99 %), lehnt das Tier weiteres Essen ab. **Solange die Leiste sichtbar nicht voll ist, kann man füttern**: Eine Mahlzeit gibt genau +25 % obendrauf (bis 100 %), ohne Auf- oder Abrunden. Genauso geben Snack und Spielen genau +25 % Laune.
 - Füttern klappt außerdem nicht, wenn das Tier schläft, wenn es trotzig ruft (dann dreht es den Kopf weg) oder, mit 50 % Wahrscheinlichkeit, wenn es krank ist (kein Appetit); das sagt eine Meldung.
-- **Steht der Hunger zu lange auf 0** (Vorschlag: 2 h), **wird das Tier krank.**
+- **Steht der Hunger zu lange auf 0** (Vorschlag: 2 h), **wird das Tier krank.** Diese Zeit zählt nur, solange es wach ist; schlafend wird es davon nicht krank.
+- **Im Schlaf** sinkt die Sättigung nur mit **einem Viertel** des Wach-Tempos (erwachsen ca. −9 % pro Nacht, Baby ca. −25 %), und die **Laune erholt sich langsam** (+25 % über eine volle Nacht, höchstens 100 %).
 - Nach dem **Ausschlafen** ist das Tier hungrig (Hunger auf maximal 25 %). Wird es zu früh geweckt, bleibt der Hunger unverändert.
 
 ### 6.2 Schlafen

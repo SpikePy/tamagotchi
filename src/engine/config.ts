@@ -14,6 +14,8 @@ export const RULES = {
   hungerMinPerHeart: { baby: 120, other: 320 }, // 3 Mahlzeiten / 16 h wach
   happyMinPerHeart: { baby: 120, other: 240 },
   hungryAfterWake: 1, // max. Herzen nach dem Ausschlafen
+  sleepHungerFactor: 0.25, // im Schlaf sinkt die Sättigung mit 1/4 des Wach-Tempos
+  sleepHappyGainPerNight: 1, // im Schlaf erholt sich die Laune: +1 Herz (25 %) über eine volle Nacht
   wokenEarlyHappyLoss: 2, // zu früh geweckt: so viele Herzen Laune weniger
 
   snackLimitPerDay: 3,

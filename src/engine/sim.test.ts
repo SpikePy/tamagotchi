@@ -317,4 +317,30 @@ describe('Umsortieren', () => {
     feedMeal(s);
     expect(p.hunger).toBeCloseTo(3.5);
   });
+
+  it('im Schlaf: Sättigung sinkt langsam, Laune erholt sich, kein Hunger-Krankwerden', () => {
+    const s = game();
+    run(s, MIN); // schlüpfen
+    const p = activePet(s)!;
+    p.stage = 'adult';
+    p.sick = null;
+    p.calls = {};
+    p.poops = [];
+    p.poopInMin = 9999;
+    p.asleep = true;
+    p.sleptInCycleMin = 0;
+    p.hunger = 2;
+    p.happy = 2;
+    run(s, 2 * HOUR);
+    // wach wären es 120/320 Herzen weniger, im Schlaf nur ein Viertel davon
+    expect(p.hunger).toBeCloseTo(2 - (120 / 320) * 0.25, 2);
+    expect(p.happy).toBeCloseTo(2 + 120 / 480, 2);
+    // bei 0 Sättigung im Schlaf wird es nicht krank
+    p.hunger = 0;
+    p.hungerZeroSince = null;
+    run(s, 3 * HOUR);
+    expect(p.asleep).toBe(true);
+    expect(p.sick).toBeNull();
+    expect(p.hungerZeroSince).toBeNull();
+  });
 });
