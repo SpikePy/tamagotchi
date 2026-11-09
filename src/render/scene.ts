@@ -57,7 +57,7 @@ const HEAP_LEVELS = [
   ['....kgkgk.....', '..gkgkgkgkgk..', '.kgkgkgkgkgkg.'],
 ];
 const HEAP_COLORS: Record<'grain' | 'food' | 'candy', ColorMap> = {
-  grain: { g: '#f0d070', k: '#c89a38' },
+  grain: { g: '#e88a1c', k: '#6a3e1a' }, // Mais orange + dunkle Saat, hebt sich vom Heu ab
   food: { g: '#b07a42', k: '#7a4a24' },
   candy: { g: '#e46fb1', k: '#fff2f8' },
 };
@@ -668,6 +668,11 @@ export class Scene {
       drawPixels(this.ctx, FLAT_DISH, FLAT_DISH_COLORS[this.env], BOWL_X, BOWL_Y + 1);
       if (m && level > 0) {
         const colors = m.kind === 'candy' ? HEAP_COLORS.candy : this.env === 'farm' ? HEAP_COLORS.grain : HEAP_COLORS.food;
+        // Körner bekommen eine dunkle Kontur, damit sie vor dem Stroh gut sichtbar sind
+        if (this.env === 'farm') {
+          const dark = { g: '#3a2410', k: '#3a2410' };
+          for (const [dx, dy] of [[-0.5, 0], [0.5, 0], [0, -0.5]]) drawPixels(this.ctx, HEAP_LEVELS[level], dark, BOWL_X + 1.5 + dx, BOWL_Y - 0.5 + dy);
+        }
         drawPixels(this.ctx, HEAP_LEVELS[level], colors, BOWL_X + 1.5, BOWL_Y - 0.5);
       }
       return;
