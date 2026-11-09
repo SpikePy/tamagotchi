@@ -114,7 +114,8 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - **Mahlzeit:** +25 % Sättigung, +1 g Gewicht.
 - **Snack** (ergänzt): +25 % Laune, +2 g Gewicht. Zu viele Snacks (Vorschlag: mehr als 3 pro Tag) machen das Tier übergewichtig, und es wird eher krank.
 - Das Tier braucht **3 Mahlzeiten pro Tag**. Der Hunger sinkt gleichmäßig über den Tag.
-- Ist die Sättigung voll (100 %), lehnt das Tier weiteres Essen ab.
+- Ist die Sättigung voll (100 %, ab etwa 99 %), lehnt das Tier weiteres Essen ab. **Solange die Leiste sichtbar nicht voll ist, kann man füttern**: Eine Mahlzeit gibt genau +25 % obendrauf (bis 100 %), ohne Auf- oder Abrunden. Genauso geben Snack und Spielen genau +25 % Laune.
+- Füttern klappt außerdem nicht, wenn das Tier schläft, wenn es trotzig ruft (dann dreht es den Kopf weg) oder, mit 50 % Wahrscheinlichkeit, wenn es krank ist (kein Appetit); das sagt eine Meldung.
 - **Steht der Hunger zu lange auf 0** (Vorschlag: 2 h), **wird das Tier krank.**
 - Nach dem **Ausschlafen** ist das Tier hungrig (Hunger auf maximal 25 %). Wird es zu früh geweckt, bleibt der Hunger unverändert.
 

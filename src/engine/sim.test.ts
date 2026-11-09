@@ -300,4 +300,21 @@ describe('Umsortieren', () => {
     movePet(s, 2, 0);
     expect(s.pets.map((p) => p.species)).toEqual(ids);
   });
+
+  it('Füttern klappt, solange die Leiste nicht voll ist (stufenlos)', () => {
+    const s = newGame(0);
+    startEgg(s, 'fox');
+    const p = s.pets[0];
+    p.stage = 'adult';
+    p.asleep = false;
+    p.calls = {};
+    p.sick = null;
+    p.hunger = 3.2; // Leiste bei 80 %
+    expect(feedMeal(s).ok).toBe(true);
+    expect(p.hunger).toBe(4);
+    expect(feedMeal(s).ok).toBe(false); // jetzt satt
+    p.hunger = 2.5;
+    feedMeal(s);
+    expect(p.hunger).toBeCloseTo(3.5);
+  });
 });

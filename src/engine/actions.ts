@@ -1,5 +1,5 @@
 import { RULES } from './config';
-import { GameState, Look, MAX_PETS, Pet, activePet, hearts, newPet } from './state';
+import { GameState, Look, MAX_PETS, Pet, activePet, newPet } from './state';
 import { Rng, SimEvent, addLog, careMistake, fallAsleep, wake } from './sim';
 
 export interface ActionResult {
@@ -56,14 +56,18 @@ export function canAct(s: GameState) {
   };
 }
 
+/** so knapp unter „voll“ gilt eine Leiste als voll */
+const FULL_EPS = 0.05;
+
 export function feedMeal(s: GameState, rng: Rng = Math.random): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
   if (p.asleep) return no('Es schläft.');
   if (p.calls.fake) return no('Es dreht trotzig den Kopf weg.');
-  if (hearts(p.hunger) >= RULES.hearts) return no('Es ist satt.');
+  // satt erst, wenn die Leiste (fast) voll ist – die Leiste ist stufenlos
+  if (p.hunger >= RULES.hearts - FULL_EPS) return no('Es ist satt.');
   if (p.sick && rng() < 0.5) return no('Es hat keinen Appetit.');
-  p.hunger = Math.min(RULES.hearts, Math.floor(p.hunger + 1 + 1e-9));
+  p.hunger = Math.min(RULES.hearts, p.hunger + 1);
   p.weight += 1;
   return yes('Mampf! Lecker.');
 }
@@ -73,7 +77,7 @@ export function feedSnack(s: GameState): ActionResult {
   if (!p) return no('Da ist noch niemand.');
   if (p.asleep) return no('Es schläft.');
   if (p.calls.fake) return no('Es dreht trotzig den Kopf weg.');
-  p.happy = Math.min(RULES.hearts, Math.floor(p.happy + 1 + 1e-9));
+  p.happy = Math.min(RULES.hearts, p.happy + 1);
   p.weight += 2;
   p.snacksToday++;
   if (p.snacksToday > RULES.snackLimitPerDay) return yes('Mmh! Aber das sind zu viele Snacks heute …');
@@ -162,7 +166,7 @@ export function finishGame(s: GameState, won: boolean): ActionResult {
   p.weight = Math.max(Math.ceil(RULES.baseWeight[p.stage] * 0.5), p.weight - 1);
   p.tiredness = Math.min(100, p.tiredness + 3);
   // Spielen macht immer Spaß: +1 Laune, egal ob gewonnen oder verloren
-  p.happy = Math.min(RULES.hearts, Math.floor(p.happy + 1 + 1e-9));
+  p.happy = Math.min(RULES.hearts, p.happy + 1);
   return yes(won ? 'Gewonnen! Das hat Spaß gemacht.' : 'Verloren … aber es hatte trotzdem Spaß.');
 }
 
