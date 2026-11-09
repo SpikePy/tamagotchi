@@ -1,6 +1,6 @@
 // Außenszenen für Tiere, die nicht im Haus wohnen:
 //  forest = Waldrand mit Fuchsbau, garden = Garten mit Hecke und Laubnest.
-import { ICONS, drawMap, type ColorMap } from './pixels';
+import { ICONS, PX, drawMap, drawPixels, snapPx, type ColorMap } from './pixels';
 import { bands, glow } from './fx';
 
 export type SceneKind = 'room' | 'forest' | 'garden' | 'farm';
@@ -29,7 +29,7 @@ const hash = (x: number, y: number) => (((x * 73856093) ^ (y * 19349663)) >>> 0)
 
 function px(ctx: CanvasRenderingContext2D, color: string, x: number, y: number, w = 1, h = 1) {
   ctx.fillStyle = color;
-  ctx.fillRect(Math.round(x * 2) / 2, Math.round(y * 2) / 2, w, h); // auf das 0,5er-Pixelraster
+  ctx.fillRect(snapPx(x), snapPx(y), w, h); // auf das 0,5er-Pixelraster
 }
 
 function drawSky(ctx: CanvasRenderingContext2D, sky: Sky) {
@@ -44,7 +44,7 @@ function drawSky(ctx: CanvasRenderingContext2D, sky: Sky) {
   if (!sky.day) {
     const STARS = [[3, 3], [11, 7], [19, 2], [27, 9], [34, 4], [42, 11], [50, 3], [58, 8], [7, 14], [23, 16], [46, 17], [61, 15], [15, 11], [38, 7], [55, 13]];
     ctx.fillStyle = '#e8e6c8';
-    for (const [x, y] of STARS) ctx.fillRect(x, y, 0.5, 0.5);
+    for (const [x, y] of STARS) ctx.fillRect(x, y, PX, PX);
   }
   const icon = ICONS[sky.day ? 'sun' : 'moon'];
   const x = -5 + sky.f * (W + 5);
@@ -55,16 +55,19 @@ function drawSky(ctx: CanvasRenderingContext2D, sky: Sky) {
 
 /** feine Grashalme auf der Wiese */
 function grassBlades(ctx: CanvasRenderingContext2D, colors: string[]) {
-  for (let y = GROUND_Y + 1; y < 48; y += 1.5)
-    for (let x = 0; x < W; x += 1) {
+  for (let y = GROUND_Y + 1; y < 48; y += 0.75)
+    for (let x = 0; x < W; x += 0.5) {
       const n = hash(Math.round(x * 4), Math.round(y * 4));
       if (n % 3) continue;
       ctx.fillStyle = colors[n % colors.length];
-      ctx.fillRect(x + (n % 2) * 0.5, y, 0.5, 0.5 + (n % 3) * 0.5);
+      const bx = x + (n % 2) * P;
+      const bh = 0.5 + ((n >> 2) % 3) * P;
+      ctx.fillRect(bx, y, P, bh); // Halm
+      if (n % 4 === 0) ctx.fillRect(bx + ((n >> 3) % 2 ? P : -P), y - P, P, P); // geneigte Spitze
     }
 }
 
-const P = 0.5; // feines Pixelraster
+const P = PX; // feines Pixelraster (1 Bildpixel)
 
 /** Tanne im feinen Raster: gestufte Äste, Licht links, Schatten rechts, dunkle Unterkanten */
 function drawPine(ctx: CanvasRenderingContext2D, cx: number, base: number, h: number, far = false) {
@@ -83,7 +86,7 @@ function drawPine(ctx: CanvasRenderingContext2D, cx: number, base: number, h: nu
     const half = maxHalf * (0.18 + 0.82 * t) * (0.5 + 0.5 * tierPos) + 0.5;
     for (let x = cx - half; x <= cx + half; x += P) {
       const rel = (x - cx) / half;
-      const n = hash(Math.round(x * 2), Math.round(y * 2));
+      const n = hash(Math.round(x * 4), Math.round(y * 4));
       const edge = Math.abs(rel) > 0.86 || (n % 7 === 0 && Math.abs(rel) > 0.7);
       let c = pal.m;
       if (rel < -0.35) c = n % 3 ? pal.l : pal.m;
@@ -98,23 +101,23 @@ function drawPine(ctx: CanvasRenderingContext2D, cx: number, base: number, h: nu
 /** Hügelkette im feinen Raster mit heller Kante und Textur */
 function hills(ctx: CanvasRenderingContext2D, yOf: (x: number) => number, body: string, rim: string, dots: string) {
   for (let x = 0; x < W; x += P) {
-    const y0 = Math.round(yOf(x) * 2) / 2;
+    const y0 = snapPx(yOf(x));
     px(ctx, body, x, y0, P, GROUND_Y - y0);
     px(ctx, rim, x, y0, P, P);
-    for (let y = y0 + 1; y < GROUND_Y; y += 1.5) if (hash(Math.round(x * 2), Math.round(y * 2)) % 9 === 0) px(ctx, dots, x, y, P, P);
+    for (let y = y0 + 1; y < GROUND_Y; y += 1.5) if (hash(Math.round(x * 4), Math.round(y * 4)) % 9 === 0) px(ctx, dots, x, y, P, P);
   }
 }
 
 function stone(ctx: CanvasRenderingContext2D, x: number, y: number) {
   const rows = ['.oooo.', 'ollmmo', 'olmmmo', '.oooo.'];
   const c: Record<string, string> = { o: '#4a4a46', l: '#b8b8b0', m: '#8a8a84' };
-  rows.forEach((r, j) => [...r].forEach((ch, i) => ch !== '.' && px(ctx, c[ch], x + i * P, y + j * P, P, P)));
+  drawPixels(ctx, rows, c, x, y);
 }
 
 function mushroom(ctx: CanvasRenderingContext2D, x: number, y: number) {
   const rows = ['..oooo..', '.orrwro.', 'orwrrrro', 'oooooooo', '...ss...', '...ss...'];
   const c: Record<string, string> = { o: '#5a1a14', r: '#d8343a', w: '#ffffff', s: '#efe4cc' };
-  rows.forEach((r, j) => [...r].forEach((ch, i) => ch !== '.' && px(ctx, c[ch], x + i * P, y + j * P, P, P)));
+  drawPixels(ctx, rows, c, x, y);
 }
 
 /** ferne Bergkette mit Schneegipfeln, schattigen Hängen und Dunst */
@@ -129,7 +132,7 @@ function mountains(ctx: CanvasRenderingContext2D) {
   const ridge = (x: number) => Math.min(...peaks.map(([c, h, k]) => h + Math.abs(x - c) * k));
   const peakOf = (x: number) => peaks.reduce((best, p) => (Math.abs(x - p[0]) < Math.abs(x - best[0]) ? p : best));
   for (let x = 0; x < W; x += P) {
-    const top = Math.round(ridge(x + P / 2) * 2) / 2;
+    const top = snapPx(ridge(x + P / 2));
     const [c, h] = peakOf(x + P / 2);
     const shadow = x + P / 2 > c; // rechte Hänge im Schatten
     for (let y = top; y < 27; y += P) {
@@ -137,7 +140,7 @@ function mountains(ctx: CanvasRenderingContext2D) {
       let col = shadow ? '#8ea2bc' : '#a8bcd2';
       if (y > 21) col = shadow ? '#9cb0c4' : '#b2c4d6'; // Dunst unten
       if (depth < 1.5 && top < h + 3.5) col = shadow ? '#d4e0ec' : '#f4f8fc'; // Schnee
-      else if (depth < 2.5 && top < h + 2.5 && (Math.round(x * 2) + Math.round(y * 2)) % 3 === 0) col = shadow ? '#c0d0e0' : '#e4ecf4';
+      else if (depth < 2.5 && top < h + 2.5 && (Math.round(x * 4) + Math.round(y * 4)) % 3 === 0) col = shadow ? '#c0d0e0' : '#e4ecf4';
       px(ctx, col, x, y, P, P);
     }
   }
@@ -148,7 +151,7 @@ function hazyForest(ctx: CanvasRenderingContext2D) {
   for (let x = 0; x < W; x += P) {
     const k = Math.round(x * 2);
     const tip = 21.5 + ((k * 7) % 5) * 0.5 - (k % 4 === 0 ? 1 : 0) + Math.sin(x / 5) * 0.8;
-    const y0 = Math.round(tip * 2) / 2;
+    const y0 = snapPx(tip);
     px(ctx, '#7f9f9a', x, y0, P, 27 - y0);
     px(ctx, '#93b2aa', x, y0, P, P);
   }
@@ -184,7 +187,7 @@ function tulip(ctx: CanvasRenderingContext2D, x: number, color: string, light: s
   px(ctx, '#4f9a3a', x + 1.5, y + 3, P, P);
   // Blüte als kleiner Kelch
   const rows = ['c.c.c', 'clccc', 'ccccc', '.ccc.'];
-  rows.forEach((r, j) => [...r].forEach((ch, i) => ch !== '.' && px(ctx, ch === 'l' ? light : color, x + i * P, y + j * P, P, P)));
+  drawPixels(ctx, rows, { c: color, l: light }, x, y);
 }
 
 function drawGardenFar(ctx: CanvasRenderingContext2D) {
@@ -208,15 +211,16 @@ function drawGardenFar(ctx: CanvasRenderingContext2D) {
   // Holzzaun mit spitzen Latten
   for (let x = 1; x < W; x += 6) {
     const top = 20;
-    for (let j = 0; j < 4; j++) px(ctx, '#6a4a28', x + 2 - j * P, top + j * P, (j * 2 + 1) * P, P); // Spitze
-    for (let j = 1; j < 4; j++) px(ctx, '#c9a26a', x + 2 - (j - 1) * P, top + j * P, Math.max(P, (j * 2 - 1) * P), P);
+    for (let j = 0; j < 8; j++) px(ctx, '#6a4a28', x + 2 - j * P, top + j * P, (j * 2 + 1) * P + P, P); // Spitze
+    for (let j = 2; j < 8; j++) px(ctx, '#c9a26a', x + 2 - (j - 2) * P, top + j * P, (j * 2 - 3) * P + P, P);
+    for (let j = 2; j < 8; j++) px(ctx, '#e0bc84', x + 2 - (j - 2) * P, top + j * P, P, P);
     px(ctx, '#6a4a28', x, top + 2, 4.5, GROUND_Y - top - 1.5);
     px(ctx, '#c9a26a', x + P, top + 2, 3.5, GROUND_Y - top - 2);
     px(ctx, '#e0bc84', x + P, top + 2, P, GROUND_Y - top - 2);
     px(ctx, '#9a7444', x + 3.5, top + 2, P, GROUND_Y - top - 2);
     // Maserung mit Lücken
     for (let y = top + 3; y < GROUND_Y - 1; y += P) {
-      if (hash(x, Math.round(y * 2)) % 5 === 0) continue;
+      if (hash(x, Math.round(y * 4)) % 5 === 0) continue;
       if (Math.round(y * 2) % 7 < 5) px(ctx, '#ad8650', x + 1.5, y, P, P);
       if (Math.round(y * 2 + 3) % 9 < 5) px(ctx, '#ad8650', x + 2.5, y, P, P);
     }
@@ -264,7 +268,7 @@ function drawBush(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: num
       const py0 = y + P / 2;
       if (!inside(px0, py0)) continue;
       const edge = !inside(px0 - P, py0) || !inside(px0 + P, py0) || !inside(px0, py0 - P) || (py0 + P <= ground && !inside(px0, py0 + P));
-      const n = hash(Math.round(x * 2) + 500, Math.round(y * 2));
+      const n = hash(Math.round(x * 4) + 500, Math.round(y * 4));
       const light = (px0 - cx) / rx + (py0 - cy) / ry;
       let c = n % 5 === 0 ? '#4f8a3c' : n % 7 === 0 ? '#2f5a26' : '#3f7432';
       if (light < -0.7) c = n % 3 === 0 ? '#7cc45a' : '#5fa84a';
@@ -287,7 +291,7 @@ function shrub(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: number
       const u = (x + P / 2 - cx) / rx;
       const v = (y + P / 2 - cy) / ry;
       // unregelmäßiger Rand
-      const n = hash(Math.round(x * 2) + seed, Math.round(y * 2));
+      const n = hash(Math.round(x * 4) + seed, Math.round(y * 4));
       const d = u * u + v * v;
       if (d > 1 - (n % 4) * 0.05) continue;
       let c = mid;
@@ -333,7 +337,7 @@ function drawFarmNear(ctx: CanvasRenderingContext2D) {
     const c = straw[(n >> 2) % straw.length];
     const len = 1 + (n % 4) * 0.5;
     const dir = (n >> 6) % 3; // waagrecht, schräg runter, schräg hoch
-    for (let k = 0; k < len * 2; k++) px(ctx, c, x + k * P, y + (dir === 1 ? k * P * 0.5 : dir === 2 ? -k * P * 0.5 : 0), P, P);
+    for (let k = 0; k < len * 4; k++) px(ctx, c, x + k * P, y + (dir === 1 ? Math.floor(k / 2) * P : dir === 2 ? -Math.floor(k / 2) * P : 0), P, P);
   }
   // Kante zur Hecke
   px(ctx, '#a07a28', 0, GROUND_Y, W, P);
@@ -379,7 +383,7 @@ const AUTUMN = [
 function leaf(ctx: CanvasRenderingContext2D, x: number, y: number, n: number) {
   const c = AUTUMN[n % AUTUMN.length];
   const rows = n % 2 ? ['.llg..', 'lgdggd', '.gggd.'] : ['..lgg.', 'lggdgg', '.dggd.'];
-  rows.forEach((r, j) => [...r].forEach((ch, i) => ch !== '.' && px(ctx, (c as Record<string, string>)[ch], x + i * P, y + j * P, P, P)));
+  drawPixels(ctx, rows, c, x, y);
 }
 
 /** Hühnerstall: Holzhaus mit rotem Dach, Tür mit Stroh */
@@ -392,7 +396,7 @@ function drawCoop(ctx: CanvasRenderingContext2D) {
     const plank = Math.floor((x - x0) / 3);
     const edge = (x - x0) % 3 === 0;
     for (let y = top; y <= NEST_BASE; y += P) {
-      const n = hash(Math.round(x * 2), Math.round(y * 2));
+      const n = hash(Math.round(x * 4), Math.round(y * 4));
       let c = plank % 2 ? '#b07a44' : '#c08a50';
       if (edge) c = '#6a4424';
       else if (n % 11 === 0) c = '#9a6a3a';
@@ -426,7 +430,7 @@ function drawCoop(ctx: CanvasRenderingContext2D) {
       if (!inDoor(cx0, cy0, 0.5)) continue;
       let c = '#4a2e18';
       if (inDoor(cx0, cy0)) c = cy0 < COOP_DOOR_TOP + 4 ? '#2e1c0e' : '#3e2616';
-      if (inDoor(cx0, cy0) && cy0 > NEST_BASE - 2) c = hash(Math.round(x * 2), Math.round(y * 2)) % 2 ? '#e8c860' : '#c8a040';
+      if (inDoor(cx0, cy0) && cy0 > NEST_BASE - 2) c = hash(Math.round(x * 4), Math.round(y * 4)) % 2 ? '#e8c860' : '#c8a040';
       px(ctx, c, x, y, P, P);
     }
   // Sitzstange auf zwei Stützen
@@ -457,8 +461,8 @@ export function drawNestBack(ctx: CanvasRenderingContext2D, kind: SceneKind) {
       const left = NEST_CX - hw;
       for (let x = left; x <= NEST_CX + hw + 0.5; x += P) {
         const rel = (x - left) / (hw * 2 + 1);
-        const n = hash(Math.round(x * 2), Math.round(y * 2));
-        const furrow = (((x - left) * 2 + Math.round(Math.sin(y * 0.6 + x) * 1.2)) % 5 + 5) % 5;
+        const n = hash(Math.round(x * 4), Math.round(y * 4));
+        const furrow = ((Math.floor((x - left) * 2) + Math.round(Math.sin(y * 0.6 + x) * 1.2)) % 5 + 5) % 5;
         let c = '#7a5230';
         if (furrow === 0 && n % 6) c = '#5a3a20';
         else if (furrow === 1) c = '#8e6238';

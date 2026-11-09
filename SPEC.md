@@ -236,7 +236,10 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 
 **Größe:** Das Gerät nutzt den Bildschirm aus: Die Breite richtet sich nach der Bildschirmhöhe (bis 1000 px), und Schrift, Knöpfe und Tier-Leiste wachsen mit. Das Gerät ist nur **so hoch wie nötig** und wird nicht auf die Bildschirmhöhe gestreckt. Am Handy nutzt es die volle Breite.
 
-**Grafikstil:** Echter, scharfer **Pixel-Look**, aber mit **doppelt so vielen Pixeln** wie das ursprüngliche 64 × 48-Raster. Das Spielbild hat **128 × 96 Pixel** und wird ohne Weichzeichnen hochskaliert.
+**Grafikstil:** Echter, scharfer **Pixel-Look** in hoher Pixeldichte. Das Spielbild hat **256 × 192 Pixel** (4 Bildpixel je Einheit des 64 × 48-Spielrasters) und wird ohne Weichzeichnen hochskaliert.
+- **Tiere und Objekte** werden in vierfacher Dichte gezeichnet: Rundungen und Schrägen sind geglättet, der Umriss ist nur **1 Pixel** dünn und in einer abgedunkelten Tönung der angrenzenden Farbe (oben links etwas heller). Licht oben links und Schatten unten rechts sind zweistufig, Fell und Gefieder haben eine feine Strich-Struktur, die Augen einen Glanzpunkt.
+- **Hintergründe** nutzen das feine Raster voll: Gras mit einzelnen Halmen, Laub- und Nadeltexturen, Rindenfurchen, Strohhalme, Schnee, Holzmaserung und Astlöcher im Dielenboden, Tapete mit kleinen Blüten, Fensterrahmen mit Licht- und Schattenkanten, gewebter Teppich.
+- Kleine Pixel-Grafiken (Deko) werden beim Zeichnen auf die volle Dichte verfeinert; Regen, Schneeflocken, Sterne, Glühwürmchen und Fäden sind 1 Pixel fein.
 - Die Sprites werden einmal mit Scale2x verfeinert, dabei werden Treppen an Schrägen abgerundet. Die Umrisse bleiben **1 Pixel dünn**, dazu kommt eine 1-Pixel-Schattierung (Licht oben links, Schatten unten rechts).
 - Alle Hintergrund-Details liegen auf demselben Pixelraster:
   - Himmel und Wand mit **Farbstufen** statt weichem Verlauf

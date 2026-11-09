@@ -1,17 +1,17 @@
 // Deko-Objekte je Gehege, im feinen Pixelraster (1 Zeichen = 1 Bildpixel = 0,5 Spiel-Einheiten).
 // Statisches landet im Hintergrund-Cache, Bewegtes (Bach-Glitzern, Schnecke) wird pro Bild gezeichnet.
-import { drawPixels, type ColorMap } from './pixels';
+import { PX, drawPixels, snapPx, type ColorMap } from './pixels';
 import { pixelCircle } from './fx';
 import type { SceneKind } from './outdoor';
 
-const P = 0.5;
+const P = PX;
 const GROUND_Y = 33;
 
 const put = (ctx: CanvasRenderingContext2D, rows: string[], c: ColorMap, x: number, y: number) =>
-  drawPixels(ctx, rows, c, Math.round(x * 2) / 2, Math.round(y * 2) / 2);
+  drawPixels(ctx, rows, c, snapPx(x), snapPx(y));
 const rect = (ctx: CanvasRenderingContext2D, c: string, x: number, y: number, w: number, h: number) => {
   ctx.fillStyle = c;
-  ctx.fillRect(Math.round(x * 2) / 2, Math.round(y * 2) / 2, w, h);
+  ctx.fillRect(snapPx(x), snapPx(y), w, h);
 };
 
 // ---------- Pixel-Grafiken ----------
@@ -155,10 +155,11 @@ export function decorTargets(species: string): DecorTarget[] {
 export function drawDecorFar(ctx: CanvasRenderingContext2D, scene: SceneKind) {
   if (scene !== 'forest') return;
   for (let x = 14; x < 41; x += P) {
-    const y = 31 + Math.round(Math.sin(x / 5) * 1) / 2;
+    const y = 31 + snapPx(Math.sin(x / 5) * 0.5);
     rect(ctx, '#3a6a8a', x, y - P, P, P);
     rect(ctx, '#5aa6d6', x, y, P, 1);
     rect(ctx, '#8ccaf0', x, y, P, P);
+    if (Math.round(x * 4) % 7 === 0) rect(ctx, '#b8e2f8', x, y + 2 * P, P, P); // kleine Wellen
     rect(ctx, '#4a7a3a', x, y + 1, P, P);
   }
   put(ctx, LOG, LOG_C, 23, 29.5);
@@ -175,7 +176,7 @@ function strawHeap(ctx: CanvasRenderingContext2D) {
       const u = (x + P / 2 - cx) / rx;
       const v = (base - (y + P / 2)) / h;
       if (u * u + v * v > 1) continue;
-      const n = (((Math.round(x * 2) * 73856093) ^ (Math.round(y * 2) * 19349663)) >>> 0) % 997;
+      const n = (((Math.round(x * 4) * 73856093) ^ (Math.round(y * 4) * 19349663)) >>> 0) % 997;
       const edge = u * u + (v + 0.12) * (v + 0.12) > 0.82;
       let c = n % 4 === 0 ? '#f4dc8a' : n % 3 === 0 ? '#c09a3a' : '#e0b850';
       if (u + (1 - v) * 0.3 > 0.65) c = n % 2 ? '#b88a30' : '#a07a28'; // Schatten rechts
@@ -184,7 +185,7 @@ function strawHeap(ctx: CanvasRenderingContext2D) {
     }
   // einzelne abstehende Halme
   for (const [hx, hy, dx] of [[cx - 3, base - h + 0.5, -1], [cx + 1, base - h - 0.5, 1], [cx + 4, base - 2, 1], [cx - 4.5, base - 1.5, -1]] as [number, number, number][])
-    for (let k = 0; k < 3; k++) rect(ctx, '#f0d070', hx + dx * k * P, hy - k * P * 0.5, P, P);
+    for (let k = 0; k < 6; k++) rect(ctx, k % 3 ? '#f0d070' : '#c89a38', hx + dx * k * P, hy - Math.floor(k / 2) * P, P, P);
 }
 
 /** Wandregal mit Büchern */
@@ -205,8 +206,11 @@ function sunflower(ctx: CanvasRenderingContext2D, x: number, top: number, sunX: 
   if (sunflowersOff) return; // im Winter keine Sonnenblumen
   rect(ctx, '#3f7a30', x, top + 2, P, GROUND_Y - top - 2);
   for (const [ly, dir] of [[top + 6, -1], [top + 9, 1], [top + 12, -1]] as [number, number][]) {
-    rect(ctx, '#4f9a3a', x + dir * P, ly, P, P);
-    rect(ctx, '#4f9a3a', x + dir * 1, ly + P, P, P);
+    // Blatt: schmal am Stiel, breiter zur Spitze, mit hellerer Oberseite
+    rect(ctx, '#3f7a30', x + (dir > 0 ? P : -P), ly, P, P);
+    rect(ctx, '#4f9a3a', x + (dir > 0 ? 2 * P : -3 * P), ly - P, 2 * P, 2 * P);
+    rect(ctx, '#6ab84a', x + (dir > 0 ? 3 * P : -3 * P), ly - P, P, P);
+    rect(ctx, '#4f9a3a', x + (dir > 0 ? 4 * P : -5 * P), ly - 2 * P, 2 * P, P);
   }
   const lean = sunX < x - 8 ? -1 : sunX > x + 8 ? 1 : 0;
   const hx = x + 0.25 + lean * 0.5;
@@ -246,7 +250,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       put(ctx, MOUSE_PORTRAIT, MOUSE_PORTRAIT_C, 22.5, 9.5);
       // Spielzeug vor dem Körbchen, mit Abstand zum rechten Rand
       put(ctx, WOOL, WOOL_C, 43, 43.5);
-      for (let i = 0; i < 6; i++) rect(ctx, '#9a6ad8', 45.5 + i * 0.5, 45 + (i % 2) * 0.5, P, P);
+      for (let i = 0; i < 12; i++) rect(ctx, '#9a6ad8', 45.5 + i * P, 45 + Math.round(Math.sin(i / 1.6) * 1.5) * P + P, P, P);
       put(ctx, TOYMOUSE, TOYMOUSE_C, 48.5, 44.5);
       break;
     }
@@ -266,7 +270,8 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       rect(ctx, '#6a4424', 4, 12.5, 13, 1);
       rect(ctx, '#8e6238', 4, 12.5, 13, P);
       for (const hx of [5.5, 10, 14.5]) rect(ctx, '#7a7a7a', hx, 13.5, P, 1);
-      for (let i = 0; i < 12; i++) rect(ctx, '#d8343a', 5.5, 14.5 + i * 0.5, P, P);
+      rect(ctx, '#d8343a', 5.5, 14.5, P * 2, 6);
+      rect(ctx, '#f06a6a', 5.5, 14.5, P, 6);
       put(ctx, ['.ooo.', 'o...o', 'o...o', '.ooo.'], { o: '#d8343a' }, 4.5, 20.5);
       put(ctx, HARNESS, HARNESS_C, 8.25, 14.5);
       put(ctx, COLLAR, COLLAR_C, 13, 14.5);
@@ -315,8 +320,8 @@ export function drawDecorAnim(ctx: CanvasRenderingContext2D, species: string, t:
     for (let i = 0; i < 4; i++) {
       const x = 14 + ((t / 90 + i * 7) % 26);
       if (Math.floor(t / 300 + i) % 3) continue;
-      const y = 31 + Math.round(Math.sin(x / 5) * 1) / 2;
-      rect(ctx, '#ffffff', Math.round(x * 2) / 2, y, P, P);
+      const y = 31 + snapPx(Math.sin(x / 5) * 0.5);
+      rect(ctx, '#ffffff', snapPx(x), y + P, 2 * P, P);
     }
   }
   if (species === 'hedgehog') {

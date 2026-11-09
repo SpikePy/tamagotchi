@@ -1,5 +1,5 @@
 // Grafik-Helfer im Pixelraster (Koordinaten in Spiel-Einheiten, Raster = 0,5 Einheiten).
-const PX = 0.5;
+const PX = 0.25; // = 1 / RES
 const snap = (v: number) => Math.round(v / PX) * PX;
 
 export function shadeHex(c: string, f: number): string {

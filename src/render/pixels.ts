@@ -5,7 +5,11 @@ import { sleepSprite, stretchSprite } from './sleepers';
 export type ColorMap = Record<string, string>;
 
 /** Auflösung: 1 Spiel-Einheit = RES Bildpixel (echtes Pixelraster, scharf skaliert) */
-export const RES = 2;
+export const RES = 4;
+/** Größe eines Bildpixels in Spiel-Einheiten */
+export const PX = 1 / RES;
+/** auf das Bildpixel-Raster runden */
+export const snapPx = (v: number) => Math.round(v * RES) / RES;
 
 function hexToRgb(c: string): [number, number, number] {
   const n = parseInt(c.slice(1, 7), 16);
@@ -15,6 +19,13 @@ function shade(c: string, f: number): string {
   const [r, g, b] = hexToRgb(c);
   const m = (v: number) => Math.max(0, Math.min(255, Math.round(f > 0 ? v + (255 - v) * f : v * (1 + f))));
   return `#${((1 << 24) | (m(r) << 16) | (m(g) << 8) | m(b)).toString(16).slice(1)}`;
+}
+
+function mixHex(a: string, b: string, t: number): string {
+  const [r1, g1, b1] = hexToRgb(a);
+  const [r2, g2, b2] = hexToRgb(b);
+  const m = (u: number, v: number) => Math.round(u + (v - u) * t);
+  return `#${((1 << 24) | (m(r1, r2) << 16) | (m(g1, g2) << 8) | m(b1, b2)).toString(16).slice(1)}`;
 }
 
 /** Scale2x: verdoppelt die Pixel und rundet Treppen an Schrägen ab */
@@ -41,7 +52,41 @@ function scale2x(src: string[][]): string[][] {
 const spriteCache = new Map<string, HTMLCanvasElement>();
 const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]] as const;
 
-/** Sprite in doppelter Pixeldichte: Scale2x, 1-Pixel-Umrisse, feine Schattierung */
+/** Umriss ('o') auf 1 Pixel ausdünnen: Umriss-Pixel, die nicht an Transparenz grenzen, aber an einem Außenrand-Pixel liegen, bekommen die Innenfarbe */
+function thinOutline(g: string[][]): string[][] {
+  const h = g.length;
+  const w = g[0].length;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= w || y >= h ? '.' : g[y][x]);
+  const thin = g.map((r) => [...r]);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      if (g[y][x] !== 'o') continue;
+      if (N4.some(([dx, dy]) => at(x + dx, y + dy) === '.')) continue; // äußerer Rand bleibt
+      const touchesOuter = N4.some(([dx, dy]) => at(x + dx, y + dy) === 'o' && N4.some(([ex, ey]) => at(x + dx + ex, y + dy + ey) === '.'));
+      if (!touchesOuter) continue; // echte Innenlinie bleibt
+      const fill = N4.map(([dx, dy]) => at(x + dx, y + dy)).find((c) => c !== 'o' && c !== '.');
+      if (fill) thin[y][x] = fill;
+    }
+  return thin;
+}
+
+/** Innenlinien (4 Pixel dick) auf 2 Pixel halbieren: rechte/untere Hälfte bekommt die Nachbarfarbe */
+function thinInner(g: string[][]): string[][] {
+  const h = g.length;
+  const w = g[0].length;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= w || y >= h ? '.' : g[y][x]);
+  const out = g.map((r) => [...r]);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      if (g[y][x] !== 'o' || N4.some(([dx, dy]) => at(x + dx, y + dy) === '.')) continue;
+      // senkrechte Linie: links 2 Pixel Umriss davor, rechts Farbe → dieses Pixel einfärben
+      if (at(x - 1, y) === 'o' && at(x - 2, y) === 'o' && at(x + 1, y) !== 'o' && at(x + 1, y) !== '.') out[y][x] = at(x + 1, y);
+      else if (at(x, y - 1) === 'o' && at(x, y - 2) === 'o' && at(x, y + 1) !== 'o' && at(x, y + 1) !== '.') out[y][x] = at(x, y + 1);
+    }
+  return out;
+}
+
+/** Sprite in vierfacher Pixeldichte: 2× Scale2x, 1-Pixel-Umrisse, feine Schattierung */
 function spriteBitmap(map: string[], colors: ColorMap, flip: boolean): HTMLCanvasElement {
   const key = `${flip ? 1 : 0}|${map.join('/')}|${Object.entries(colors).map(([k, v]) => k + v).join(',')}`;
   const hit = spriteCache.get(key);
@@ -58,22 +103,13 @@ function spriteBitmap(map: string[], colors: ColorMap, flip: boolean): HTMLCanva
     }
     g.push(row);
   }
-  g = scale2x(g);
+  // zweimal Scale2x (4-fache Dichte): Rundungen werden weich, danach Umrisse jeweils auf 1 Pixel ausdünnen
+  g = thinOutline(scale2x(g));
+  g = thinOutline(scale2x(g));
+  g = thinInner(g);
   const h = g.length;
   const w = g[0].length;
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= w || y >= h ? '.' : g[y][x]);
-  // Umrisse auf 1 Pixel ausdünnen: innere Umriss-Pixel bekommen die Farbe des Inneren
-  const thin = g.map((r) => [...r]);
-  for (let y = 0; y < h; y++)
-    for (let x = 0; x < w; x++) {
-      if (g[y][x] !== 'o') continue;
-      if (N4.some(([dx, dy]) => at(x + dx, y + dy) === '.')) continue; // äußerer Rand bleibt
-      const touchesOuter = N4.some(([dx, dy]) => at(x + dx, y + dy) === 'o' && N4.some(([ex, ey]) => at(x + dx + ex, y + dy + ey) === '.'));
-      if (!touchesOuter) continue; // echte Innenlinie bleibt
-      const fill = N4.map(([dx, dy]) => at(x + dx, y + dy)).find((c) => c !== 'o' && c !== '.');
-      if (fill) thin[y][x] = fill;
-    }
-  g = thin;
   const cv = document.createElement('canvas');
   cv.width = w;
   cv.height = h;
@@ -87,11 +123,34 @@ function spriteBitmap(map: string[], colors: ColorMap, flip: boolean): HTMLCanva
       if (c === '.') continue;
       let col = colors[c];
       if (!flat(c)) {
-        // Licht oben links, Schatten unten rechts (1 Pixel breit)
-        const light = edge(at(x - 1, y)) || edge(at(x, y - 1));
-        const dark = edge(at(x + 1, y)) || edge(at(x, y + 1));
-        if (light && !dark) col = shade(col, 0.18);
-        else if (dark && !light) col = shade(col, -0.18);
+        // Licht oben links, Schatten unten rechts: 2 Pixel breit, nach innen schwächer
+        const l1 = edge(at(x - 1, y)) || edge(at(x, y - 1));
+        const d1 = edge(at(x + 1, y)) || edge(at(x, y + 1));
+        const l2 = edge(at(x - 2, y)) || edge(at(x, y - 2));
+        const d2 = edge(at(x + 2, y)) || edge(at(x, y + 2));
+        if (l1 && !d1) col = shade(col, 0.2);
+        else if (d1 && !l1) col = shade(col, -0.2);
+        else if (l2 && !d2) col = shade(col, 0.09);
+        else if (d2 && !l2) col = shade(col, -0.1);
+        else if (c === 'a' || c === 'd' || c === 'c') {
+          // feine Fell-/Federstruktur: kurze schräge Striche (2 Pixel), etwas dunkler bzw. heller
+          const n = ((x * 73856093) ^ (y * 19349663)) >>> 0;
+          const m = (((x - 1) * 73856093) ^ ((y - 1) * 19349663)) >>> 0;
+          if (n % 13 === 0 || m % 13 === 0) col = shade(col, -0.1);
+          else if (n % 31 === 0) col = shade(col, 0.08);
+        }
+      } else if (c === 'E' && !'E'.includes(at(x - 1, y)) && !'E'.includes(at(x, y - 1)) && at(x + 1, y) === 'E' && at(x, y + 1) === 'E') {
+        col = '#ffffff'; // Glanzpunkt im Auge
+      }
+      if (c === 'o' && N4.some(([dx, dy]) => at(x + dx, y + dy) === '.')) {
+        // Außenumriss in der (abgedunkelten) Farbe des angrenzenden Fells – oben links etwas heller
+        let fill: string | undefined;
+        for (let r = 1; r <= 2 && !fill; r++)
+          fill = [[0, r], [0, -r], [r, 0], [-r, 0]].map(([dx, dy]) => at(x + dx, y + dy)).find((n) => n !== 'o' && n !== '.' && !flat(n));
+        if (fill) {
+          const lit = edge(at(x - 1, y)) || edge(at(x, y - 1));
+          col = mixHex(shade(colors[fill], lit ? -0.5 : -0.62), colors.o, 0.35);
+        }
       }
       const [r, gg, b] = hexToRgb(col);
       const i = (y * w + x) * 4;
@@ -120,16 +179,38 @@ export function drawMap(
   ctx.drawImage(bmp, snap(x), snap(y), map[0].length, map.length);
 }
 
-/** Zeichnet eine Pixel-Grafik in voller Rasterauflösung (1 Zeichen = 1 Bildpixel) */
+const pixCache = new Map<string, HTMLCanvasElement>();
+/**
+ * Zeichnet eine feine Pixel-Grafik (1 Zeichen = 0,5 Spiel-Einheiten). Sie wird per Scale2x
+ * auf die volle Rasterdichte verfeinert (Schrägen und Rundungen werden glatter).
+ * Farben werden über ctx.fillStyle aufgelöst, damit Umfärbungen (Jahreszeiten) greifen.
+ */
 export function drawPixels(ctx: CanvasRenderingContext2D, map: string[], colors: ColorMap, x: number, y: number) {
-  const p = 1 / RES;
-  for (let r = 0; r < map.length; r++)
-    for (let c = 0; c < map[r].length; c++) {
-      const col = colors[map[r][c]];
-      if (!col) continue;
-      ctx.fillStyle = col;
-      ctx.fillRect(x + c * p, y + r * p, p, p);
-    }
+  const resolved: ColorMap = {};
+  for (const [k, v] of Object.entries(colors)) {
+    ctx.fillStyle = v;
+    resolved[k] = String(ctx.fillStyle);
+  }
+  const key = `${map.join('/')}|${Object.entries(resolved).map(([k, v]) => k + v).join(',')}`;
+  let bmp = pixCache.get(key);
+  if (!bmp) {
+    const mw = Math.max(...map.map((r) => r.length));
+    const g = scale2x(map.map((r) => [...r.padEnd(mw, '.')].map((c) => (resolved[c] ? c : '.'))));
+    bmp = document.createElement('canvas');
+    bmp.width = g[0]?.length ?? 1;
+    bmp.height = g.length || 1;
+    const cx = bmp.getContext('2d')!;
+    for (let r = 0; r < g.length; r++)
+      for (let c = 0; c < g[r].length; c++) {
+        const col = resolved[g[r][c]];
+        if (!col) continue;
+        cx.fillStyle = col;
+        cx.fillRect(c, r, 1, 1);
+      }
+    if (pixCache.size > 1500) pixCache.clear();
+    pixCache.set(key, bmp);
+  }
+  ctx.drawImage(bmp, snapPx(x), snapPx(y), bmp.width / RES, bmp.height / RES);
 }
 
 /** Canvas in hoher Auflösung, Koordinaten in Spiel-Pixeln */

@@ -2,7 +2,7 @@ import { MIN, RULES } from '../engine/config';
 import { activePet, type GameState, type Pet } from '../engine/state';
 import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
-import { ColorMap, ICONS, RES, drawMap, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
+import { ColorMap, ICONS, PX, RES, drawMap, snapPx, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
 import { Critters } from './critters';
 import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
@@ -214,7 +214,7 @@ export class Scene {
       if (k < 0) continue;
       this.ctx.globalAlpha = k > 0.7 ? (1 - k) / 0.3 : 1;
       const sway = Math.sin(k * 9 + h.drift) * 0.8;
-      drawPixels(this.ctx, HEART, { r: '#ff5a7a' }, Math.round((h.x + h.drift * k + sway) * 2) / 2, Math.round((h.y - k * 7) * 2) / 2);
+      drawPixels(this.ctx, HEART, { r: '#ff5a7a' }, snapPx((h.x + h.drift * k + sway)), snapPx((h.y - k * 7)));
       this.ctx.globalAlpha = 1;
     }
   }
@@ -445,27 +445,57 @@ export class Scene {
     const ctx = this.ctx;
     // Wand mit leichtem Verlauf und Tapetenmuster
     bands(ctx, 0, 0, SCREEN_W, FLOOR_Y, sp.colors.wall, shadeHex(sp.colors.wallDark, 0.3), 5);
-    ctx.fillStyle = sp.colors.wallDark;
-    for (let x = 0; x < SCREEN_W; x += 8) ctx.fillRect(x, 0, 0.5, FLOOR_Y);
-    ctx.globalAlpha = 0.35;
+    // Tapete: feine Streifen (dunkle Linie mit heller Kante) und kleine Blüten-Motive
+    for (let x = 0; x < SCREEN_W; x += 8) {
+      ctx.fillStyle = sp.colors.wallDark;
+      ctx.fillRect(x, 0, PX, FLOOR_Y);
+      ctx.fillStyle = shadeHex(sp.colors.wall, 0.35);
+      ctx.fillRect(x + PX, 0, PX, FLOOR_Y);
+    }
+    ctx.globalAlpha = 0.45;
     for (let y = 2; y < FLOOR_Y - 3; y += 4)
       for (let x = (y / 4) % 2 ? 2 : 6; x < SCREEN_W; x += 8) {
-        ctx.fillRect(x, y - 0.5, 0.5, 1.5);
-        ctx.fillRect(x - 0.5, y, 1.5, 0.5);
+        // kleine Blüte: vier Blätter um eine helle Mitte
+        ctx.fillStyle = sp.colors.wallDark;
+        for (const [dx, dy] of [[0, -2], [0, 2], [-2, 0], [2, 0], [0, -1], [0, 1], [-1, 0], [1, 0]]) ctx.fillRect(x + dx * PX, y + dy * PX, PX, PX);
+        ctx.fillStyle = shadeHex(sp.colors.wall, 0.45);
+        ctx.fillRect(x, y, PX, PX);
       }
     ctx.globalAlpha = 1;
-    // Dielenboden
+    // Dielenboden: Bretter mit Fugen, Lichtkante, Maserung und Astlöchern
     bands(ctx, 0, FLOOR_Y, SCREEN_W, SCREEN_H - FLOOR_Y, shadeHex(sp.colors.floor, -0.12), shadeHex(sp.colors.floor, 0.06), 3);
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
-    for (let i = 0, y = FLOOR_Y + 2; y < SCREEN_H; y += 2.5, i++) {
-      ctx.fillRect(0, y, SCREEN_W, 0.5);
-      for (let x = (i * 13) % 17; x < SCREEN_W; x += 17) ctx.fillRect(x, y - 2.5, 0.5, 2.5);
+    for (let i = 0, y = FLOOR_Y; y < SCREEN_H; y += 2.5, i++) {
+      // Maserung: kurze dunklere und hellere Striche
+      for (let x = 0; x < SCREEN_W; x += PX) {
+        const n = (((Math.round(x * 4) * 73856093) ^ ((i + 7) * 19349663)) >>> 0) % 997;
+        if (n % 9 === 0) {
+          ctx.fillStyle = 'rgba(60,30,10,0.16)';
+          ctx.fillRect(x, y + PX * (2 + (n % 6)), PX * (4 + (n % 9)), PX);
+        } else if (n % 23 === 0) {
+          ctx.fillStyle = 'rgba(255,240,210,0.14)';
+          ctx.fillRect(x, y + PX * (2 + (n % 5)), PX * (3 + (n % 6)), PX);
+        }
+      }
+      ctx.fillStyle = 'rgba(255,240,210,0.16)';
+      ctx.fillRect(0, y + PX, SCREEN_W, PX); // Lichtkante
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      if (i > 0) ctx.fillRect(0, y, SCREEN_W, PX); // Fuge
+      for (let x = (i * 13) % 17; x < SCREEN_W; x += 17) {
+        ctx.fillStyle = 'rgba(0,0,0,0.22)';
+        ctx.fillRect(x, y, PX, 2.5); // Stoßfuge
+        ctx.fillStyle = 'rgba(60,30,10,0.3)';
+        ctx.fillRect(x + 5 + (i % 3) * 2, y + 1, PX * 3, PX * 2); // Astloch
+      }
     }
-    // Fußleiste
+    // Fußleiste mit Lichtkante und Schatten
     ctx.fillStyle = shadeHex(sp.colors.wallDark, -0.25);
     ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, 1.5);
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, 0.5);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, PX);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(0, FLOOR_Y - 1.5 + PX, SCREEN_W, PX);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(0, FLOOR_Y - PX, SCREEN_W, PX);
     this.drawPicture(21, 8);
     this.drawRug(BOWL_X + 4.5, 44.5, 9, 2.5); // Teppich unter dem Napf
     this.drawWindow(clock);
@@ -494,7 +524,7 @@ export class Scene {
     ctx.fillRect(ix + 6.5, iy + 1, 1, 1);
     for (let k = 0; k < iw / P; k++) {
       const hx = ix + k * P;
-      const hy = iy + ih - 2 - Math.round(Math.sin(k / 3) * 2) / 2;
+      const hy = iy + ih - 2 - snapPx(Math.sin(k / 3));
       ctx.fillStyle = '#6aa850';
       ctx.fillRect(hx, hy, P, iy + ih - hy);
       ctx.fillStyle = '#86c262';
@@ -508,14 +538,16 @@ export class Scene {
   /** ovaler Teppich mit Randmuster */
   private drawRug(cx: number, cy: number, rx: number, ry: number) {
     const ctx = this.ctx;
-    const P = 0.5;
+    const P = PX;
     for (let y = cy - ry; y < cy + ry; y += P)
       for (let x = cx - rx; x < cx + rx; x += P) {
         const d = ((x + P / 2 - cx) / rx) ** 2 + ((y + P / 2 - cy) / ry) ** 2;
         if (d > 1) continue;
         let c = '#b8483a';
         if (d > 0.78) c = '#7a2a22';
-        else if (d > 0.55) c = (Math.round(x * 2) % 4 < 2) ? '#e8c46a' : '#b8483a';
+        else if (d > 0.55) c = (Math.round(x * 4) + Math.round(y * 4)) % 6 < 2 ? '#e8c46a' : '#b8483a';
+        else if (d < 0.18) c = (Math.round(x * 4) + Math.round(y * 4)) % 4 === 0 ? '#e88a6a' : '#d8705a';
+        else if ((Math.round(x * 4) * 3 + Math.round(y * 4) * 5) % 17 === 0) c = '#a83e32'; // Webstruktur
         else if (d < 0.18) c = '#d8705a';
         ctx.fillStyle = c;
         ctx.fillRect(x, y, P, P);
@@ -536,7 +568,11 @@ export class Scene {
     ctx.fillStyle = '#5a4630';
     ctx.fillRect(WIN.x - 1, WIN.y - 1, WIN.w + 2, WIN.h + 2);
     ctx.fillStyle = '#7a5c3c';
-    ctx.fillRect(WIN.x - 1, WIN.y - 1, WIN.w + 2, 0.5);
+    ctx.fillRect(WIN.x - 1, WIN.y - 1, WIN.w + 2, PX * 2);
+    ctx.fillRect(WIN.x - 1, WIN.y - 1, PX * 2, WIN.h + 2);
+    ctx.fillStyle = '#3e2e1e';
+    ctx.fillRect(WIN.x - PX, WIN.y - PX, WIN.w + PX * 2, PX); // Schattenfuge innen
+    ctx.fillRect(WIN.x - PX, WIN.y - PX, PX, WIN.h + PX * 2);
     // Himmel als Verlauf
     const [top, bottom] = !day ? ['#0f1330', '#262c5c'] : edge < 0.08 ? ['#e98f5c', '#f8c79a'] : edge < 0.16 ? ['#9fbcd8', '#e4ecf2'] : ['#6fb8ea', '#c4e6f8'];
     bands(ctx, WIN.x, WIN.y, WIN.w, WIN.h, top, bottom, 5);
@@ -547,7 +583,7 @@ export class Scene {
     ctx.clip();
     if (!day) {
       ctx.fillStyle = '#e8e6c8';
-      for (const [sx, sy] of STARS) ctx.fillRect(WIN.x + sx, WIN.y + sy, 0.5, 0.5);
+      for (const [sx, sy] of STARS) ctx.fillRect(WIN.x + sx, WIN.y + sy, PX, PX);
     }
     const icon = ICONS[day ? 'sun' : 'moon'];
     const sx = WIN.x - 5 + f * (WIN.w + 5);
@@ -566,23 +602,30 @@ export class Scene {
     ctx.rect(WIN.x, WIN.y, WIN.w, WIN.h);
     ctx.clip();
     ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    for (const off of [3, 4.5]) {
-      for (let k = 0; k < WIN.h * 2; k++) {
-        const yy = WIN.y + WIN.h - 0.5 - k * 0.5;
-        const xx = WIN.x + off + Math.floor(k / 3) * 0.5;
-        ctx.fillRect(xx, yy, 0.5, 0.5);
+    for (const [off, wd] of [[3, 2], [4.5, 1]] as [number, number][]) {
+      for (let k = 0; k < WIN.h * 4; k++) {
+        const yy = WIN.y + WIN.h - PX - k * PX;
+        const xx = WIN.x + off + Math.floor(k / 3) * PX;
+        ctx.fillRect(xx, yy, PX * wd, PX);
       }
     }
     ctx.restore();
     ctx.fillStyle = '#5a4630';
     ctx.fillRect(WIN.x + WIN.w / 2 - 0.5, WIN.y, 1, WIN.h);
     ctx.fillRect(WIN.x, WIN.y + WIN.h / 2 - 0.5, WIN.w, 1);
+    ctx.fillStyle = '#7a5c3c'; // Lichtkante am Fensterkreuz
+    ctx.fillRect(WIN.x + WIN.w / 2 - 0.5, WIN.y, PX, WIN.h);
+    ctx.fillRect(WIN.x, WIN.y + WIN.h / 2 - 0.5, WIN.w, PX);
     ctx.fillStyle = '#7a5c3c';
     ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 2);
     ctx.fillStyle = '#9a7a54';
-    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 0.5);
+    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, PX * 2);
+    ctx.fillStyle = '#b8966a';
+    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, PX);
+    ctx.fillStyle = '#5a4630';
+    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 3 - PX, WIN.w + 6, PX);
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 3, WIN.w + 6, 0.5);
+    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 3, WIN.w + 6, PX * 2);
   }
 
   /** Deko passend zur Tierart: Gras, Laub, Kratzbaum */
@@ -629,11 +672,11 @@ export class Scene {
     const by = ay + len + 1;
     // Schnur in Pixelschritten
     ctx.fillStyle = POST_COLORS.l;
-    for (let i = 0; i <= (by - ay) * 2; i++) {
-      const k = i / ((by - ay) * 2);
-      ctx.fillRect(Math.round((ax + (bx - ax) * k) * 2) / 2, ay + i * 0.5, 0.5, 0.5);
+    for (let i = 0; i <= (by - ay) * RES; i++) {
+      const k = i / ((by - ay) * RES);
+      ctx.fillRect(snapPx(ax + (bx - ax) * k), ay + i * PX, PX, PX);
     }
-    drawMap(ctx, TOY_BALL, TOY_COLORS, Math.round(bx * 2) / 2 - 1, by);
+    drawMap(ctx, TOY_BALL, TOY_COLORS, snapPx(bx) - 1, by);
   }
 
   private drawPoops(p: Pet, t: number) {
@@ -904,19 +947,19 @@ export class Scene {
     if (s >= 0 && s < 600) x += Math.round(Math.sin(s / 25) * 1.5);
     if (petted) x += Math.floor((t - a.start) / 300) % 2 ? 0.5 : 0; // genießerisch wiegen
 
-    let ground = FLOOR_Y + Math.round(this.depth * 2) / 2;
+    let ground = FLOOR_Y + snapPx(this.depth);
     if (visiting === 'hop') {
       // hochhüpfen, oben stehen, runterhüpfen
       const kk = (t - (a.arrived ?? t)) / Math.max(1, a.until - (a.arrived ?? t));
       const up = kk < 0.1 ? kk / 0.1 : kk > 0.9 ? (1 - kk) / 0.1 : 1;
       const arc = up < 1 ? Math.sin(Math.PI * up) * 2.5 : 0;
-      ground = Math.round((ground - (STRAW_HEAP.h - 0.5) * up - arc) * 2) / 2;
+      ground = snapPx((ground - (STRAW_HEAP.h - 0.5) * up - arc));
     }
     const y = ground - h + 1 - bob;
     // kleiner Schatten unter dem Tier
     ctx.fillStyle = 'rgba(0,0,0,0.16)';
-    ctx.fillRect(Math.round((x + 2) * 2) / 2, ground + 0.5, Math.round((w - 4) * 2) / 2, 0.5);
-    ctx.fillRect(Math.round((x + 3) * 2) / 2, ground + 1, Math.round((w - 6) * 2) / 2, 0.5);
+    ctx.fillRect(snapPx((x + 2)), ground + 0.5, snapPx((w - 4)), 0.5);
+    ctx.fillRect(snapPx((x + 3)), ground + 1, snapPx((w - 6)), 0.5);
     if (visiting === 'sill' || visiting === 'dustbath') {
       // Katze döst auf dem Fensterkissen / Huhn plustert sich im Sandbad
       const sl = petSprite(sp, p, { sleeping: true, sleepSmall: visiting === 'sill' });
@@ -933,7 +976,7 @@ export class Scene {
       } else if (Math.floor(t / 180) % 2) {
         // Staubwölkchen im Sandbad
         ctx.fillStyle = 'rgba(200,170,110,0.8)';
-        for (let i = 0; i < 4; i++) ctx.fillRect(Math.round((sx + 2 + ((t / 60 + i * 5) % (sl.w - 3))) * 2) / 2, Math.round((ground - 1 - (i % 2)) * 2) / 2, 0.5, 0.5);
+        for (let i = 0; i < 4; i++) ctx.fillRect(snapPx((sx + 2 + ((t / 60 + i * 5) % (sl.w - 3)))), snapPx((ground - 1 - (i % 2))), 0.5, 0.5);
       }
       drawMap(ctx, sl.map, sl.colors, sx, sy, false);
     } else if (stretching) {
@@ -947,7 +990,7 @@ export class Scene {
 
     if (visiting === 'drink' && Math.floor(t / 320) % 2 === 0) {
       ctx.fillStyle = '#7ac0f0'; // Wassertropfen
-      ctx.fillRect(Math.round((x + w / 2) * 2) / 2, Math.round((ground - 1) * 2) / 2, 0.5, 0.5);
+      ctx.fillRect(snapPx((x + w / 2)), snapPx((ground - 1)), 0.5, 0.5);
     }
     if (grooming) {
       // Zunge beim Putzen und am Ende ein Glitzern
@@ -956,7 +999,7 @@ export class Scene {
         const nx = img.map[ny].indexOf('n');
         const sx = flip ? w - 1 - nx : nx;
         ctx.fillStyle = '#f07a8a';
-        ctx.fillRect(Math.round((x + sx) * 2) / 2, Math.round((y + ny + 1) * 2) / 2, 0.5, 0.5);
+        ctx.fillRect(snapPx((x + sx)), snapPx((y + ny + 1)), 0.5, 0.5);
       }
       if (k > 0.75 && p.species !== 'chicken') drawMap(ctx, ICONS.sparkle.map, ICONS.sparkle.colors, x + w - 3, y - 2);
     }

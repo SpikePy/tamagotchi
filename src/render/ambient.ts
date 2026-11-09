@@ -1,10 +1,10 @@
 // Atmosphäre: Schmetterlinge am Tag, Glühwürmchen in der Nacht, warmes Abendlicht, Stehlampe drinnen.
-import { drawPixels, type ColorMap } from './pixels';
+import { PX, RES, drawPixels, snapPx, type ColorMap } from './pixels';
 import { pixelCircle } from './fx';
 import type { SceneKind, Sky } from './outdoor';
 
 const W = 64;
-const snap = (v: number) => Math.round(v * 2) / 2;
+const snap = (v: number) => snapPx(v);
 
 const BUTTERFLY = [
   ['o.o', '.b.', 'o.o'],
@@ -57,7 +57,7 @@ export class Ambient {
     pixelCircle(ctx, x, y, 1.2, '#e8f870');
     ctx.globalAlpha = 0.6 + 0.4 * glow;
     ctx.fillStyle = '#f4ff9a';
-    ctx.fillRect(snap(x), snap(y), 0.5, 0.5);
+    ctx.fillRect(snap(x), snap(y), PX, PX);
     ctx.globalAlpha = 1;
   }
 }
@@ -90,7 +90,6 @@ let shadeCanvas: HTMLCanvasElement | null = null;
  */
 export function roomNight(ctx: CanvasRenderingContext2D, amount: number, lights: { x: number; y: number; r: number }[]) {
   if (amount <= 0) return;
-  const RES = 2;
   shadeCanvas ??= Object.assign(document.createElement('canvas'), { width: 64 * RES, height: 48 * RES });
   const c = shadeCanvas.getContext('2d')!;
   c.setTransform(RES, 0, 0, RES, 0, 0);
@@ -101,7 +100,7 @@ export function roomNight(ctx: CanvasRenderingContext2D, amount: number, lights:
   // Lichtkreise ausstanzen (außen schwach, innen stark)
   c.globalCompositeOperation = 'destination-out';
   for (const l of lights)
-    for (const [k, a] of [[1, 0.35], [0.7, 0.35], [0.45, 0.5]] as [number, number][]) {
+    for (const [k, a] of [[1, 0.16], [0.88, 0.16], [0.76, 0.16], [0.64, 0.16], [0.52, 0.2], [0.4, 0.25]] as [number, number][]) {
       c.globalAlpha = a;
       pixelCircle(c, l.x, l.y, l.r * k, '#000');
     }

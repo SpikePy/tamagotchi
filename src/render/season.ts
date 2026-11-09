@@ -83,12 +83,13 @@ export function remapContext(ctx: CanvasRenderingContext2D, f: (hex: string) => 
 
 /** Winter: Schneedecke auf dem Boden (mit ein paar Lücken) */
 export function snowGround(ctx: CanvasRenderingContext2D, groundY: number) {
-  for (let y = groundY; y < 48; y += 0.5)
-    for (let x = 0; x < 64; x += 0.5) {
-      const n = (((Math.round(x * 2) * 73856093) ^ (Math.round(y * 2) * 19349663)) >>> 0) % 997;
+  const P = 0.25;
+  for (let y = groundY; y < 48; y += P)
+    for (let x = 0; x < 64; x += P) {
+      const n = (((Math.round(x * 4) * 73856093) ^ (Math.round(y * 4) * 19349663)) >>> 0) % 997;
       if (n % 11 === 0) continue; // Lücken
       ctx.fillStyle = n % 5 === 0 ? '#dce6f0' : n % 7 === 0 ? '#ffffff' : '#eef3f8';
-      ctx.fillRect(x, y, 0.5, 0.5);
+      ctx.fillRect(x, y, P, P);
     }
 }
 
