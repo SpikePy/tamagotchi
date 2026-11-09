@@ -177,6 +177,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
   - Igel: „legt die Stacheln ganz flach an“, „schnuffelt an deinen Fingern“, „quiekt leise vor Freude“.
   - Huhn: „gluckst zufrieden“, „plustert sich wohlig auf“, „legt den Kopf schief und schaut dich an“.
 - **Meldungen** (ergänzt): Texte nennen das Tier beim Namen statt „Es“ und sind freundlich formuliert. Statt „gekackt“ heißt es „hat ein Häufchen gemacht – bitte aufräumen!“.
+- **Abwechslung** (ergänzt): Auch Füttern (teils je Tierart, z. B. „Pick, pick, pick – … pickt alle Körner auf“), Leckerli, Aufräumen, Licht aus, Medizin, Schimpfen und Spielergebnis haben je **mehrere zufällige Texte**, nie zweimal hintereinander derselbe.
 - Streicheln gibt **+25 % Laune**, aber höchstens **einmal pro Minute**. Öfter streicheln geht, bringt aber keine zusätzliche Laune.
 - **Schlafende Tiere** lassen sich nicht streicheln (keine Herzen). Tippt man trotzdem, kommen Hinweise, die sich steigern („Psst …“, „grummelt im Schlaf“, „dreht sich unruhig um“, „Noch einmal und … wacht auf!“). Beim **5. Antippen innerhalb von 15 Sekunden wacht das Tier auf**, mit den üblichen Folgen des zu frühen Weckens (−50 % Laune).
 
