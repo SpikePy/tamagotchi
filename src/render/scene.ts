@@ -343,6 +343,7 @@ export class Scene {
       ctx.drawImage(this.bg, 0, 0, SCREEN_W, SCREEN_H); // Wiese, Bäume, Busch, Schlafplatz
       if (weatherAt(s.clock).precip === 'rain') drawPuddles(ctx, t);
       this.critters.draw(ctx, 'air', t); // wehende Blätter
+      this.critters.draw(ctx, 'near', t); // Vogel auf dem Aststummel (vor dem Baumstamm)
       nightTint(ctx, night * 0.26); // Nahes etwas weniger dunkel
       if (season !== 'winter') this.ambient.draw(ctx, this.env, skyState(s.clock), t, WIN); // Schmetterlinge / Glühwürmchen
     }

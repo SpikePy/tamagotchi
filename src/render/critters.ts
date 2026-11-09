@@ -12,8 +12,8 @@ const FLOOR_Y = 40;
 const GROUND_Y = 33;
 const PX = 1 / RES;
 
-type Kind = 'mouse' | 'hedgehog' | 'deer' | 'bird' | 'fly';
-export type CritterLayer = 'sky' | 'window' | 'background' | 'foreground';
+type Kind = 'mouse' | 'hedgehog' | 'deer' | 'bird' | 'fly' | 'perch';
+export type CritterLayer = 'sky' | 'window' | 'background' | 'near' | 'foreground';
 
 const MOUSE_BODY = [
   '..........oo....',
@@ -98,16 +98,29 @@ export const SPRITES: Record<Kind, { frames: string[][]; colors: ColorMap }> = {
     ],
     colors: { o: '#3a2a20', b: '#8a6040', w: '#c8a070', e: '#111111', y: '#f0a020' },
   },
+  // Vogel, der auf dem Aststummel landet: Flug-Frames wie oben, dazu Sitzen und Picken/Umschauen
+  perch: {
+    frames: [
+      ['o.......o..', 'wo.....ow..', '.wo...ow...', '..obbbbbo..', '..obbbbeyy.', '...ooooo...'],
+      ['...........', '...........', '..obbbbbo..', '.wobbbbeyy.', 'wo.ooooo...', 'o..........'],
+      ['...........', '....obbo...', '...obbbeyy.', '..wwbbbbo..', '.wwwbbbo...', '....o.o....'],
+      ['...........', '...........', '....obbbo..', '..wwbbbbeyy', '.wwwbbbbo..', '....o.o....'],
+    ],
+    colors: { o: '#3a2a20', b: '#8a6040', w: '#c8a070', e: '#111111', y: '#f0a020' },
+  },
 };
 
 const KINDS: Record<SceneKind, Kind[]> = {
   room: ['bird'],
-  forest: ['mouse', 'hedgehog', 'deer', 'bird', 'bird'],
+  forest: ['mouse', 'hedgehog', 'deer', 'bird', 'perch'],
   garden: ['mouse', 'bird', 'bird'],
   farm: ['mouse', 'bird', 'bird'],
 };
 
-const DURATION: Record<Kind, number> = { mouse: 3000, hedgehog: 14000, deer: 20000, bird: 5000, fly: 9000 };
+const DURATION: Record<Kind, number> = { mouse: 3000, hedgehog: 14000, deer: 20000, bird: 5000, fly: 9000, perch: 0 };
+// Aststummel am Baum des Fuchses: Landeplatz (Mitte x, Oberkante y in Spiel-Einheiten)
+const PERCH = { x: 38.5, y: 11.5 };
+const PERCH_FLY = 1800; // An- bzw. Abflug in ms
 
 // Blätter: zwei Frames (Drehung), Farben je Umgebung
 export const LEAF_FRAMES = [
@@ -139,6 +152,7 @@ interface Active {
   start: number;
   dir: 1 | -1;
   y: number;
+  sit?: number; // Vogel auf dem Ast: Sitzdauer in ms
 }
 
 interface Leaf {
@@ -169,7 +183,7 @@ export class Critters {
 
   /** zum Testen: ein bestimmtes Tier auf einer bestimmten Bodenlinie vorbeischicken */
   debugSpawn(kind: Kind, lane: number, dir: 1 | -1 = 1) {
-    this.active = { env: this.env, kind, start: performance.now(), dir, y: lane };
+    this.active = { env: this.env, kind, start: performance.now(), dir, y: lane, sit: kind === 'perch' ? 6000 : undefined };
   }
 
   /** Bodenlinie des Tiers, das gerade am Boden vorbeiläuft (für die Tiefensortierung), sonst null */
@@ -230,9 +244,10 @@ export class Critters {
         kind,
         start: t,
         dir: Math.random() < 0.5 ? 1 : -1,
+        sit: kind === 'perch' ? 5000 + Math.random() * 15000 : undefined,
         // Vögel: Flughöhe; Maus und Igel: eigene Bodenlinie (Tiefe), damit sie mal vor, mal hinter dem Haustier laufen
         y:
-          kind === 'bird'
+          kind === 'bird' || kind === 'perch'
             ? env === 'room' && win ? win.y + 2 + Math.random() * (win.h - 6) : 4 + Math.random() * 10
             : kind === 'mouse' || kind === 'hedgehog'
               ? FLOOR_Y + 1.5 + Math.random() * 5
@@ -241,7 +256,7 @@ export class Critters {
     }
     const a = this.active;
     const inRoom = a.env === 'room' && !!win && a.kind !== 'fly';
-    const dur = inRoom ? 2600 : DURATION[a.kind];
+    const dur = inRoom ? 2600 : a.kind === 'perch' ? PERCH_FLY * 2 + (a.sit ?? 8000) : DURATION[a.kind];
     const k = (t - a.start) / dur;
     if (k >= 1) {
       this.active = null;
@@ -254,6 +269,7 @@ export class Critters {
     const [x0, span] = inRoom ? [win!.x, win!.w] : [0, W];
     const across = (p: number) => x0 + (a.dir > 0 ? -w + p * (span + w * 2) : span + w - p * (span + w * 2));
     let frame = 0;
+    let flipNow = false;
     let x = 0;
     let y = 0;
     switch (a.kind) {
@@ -280,6 +296,33 @@ export class Critters {
         y = a.y - hPx * PX;
         frame = Math.floor(t / 220) % 2;
         break;
+      case 'perch': {
+        // anfliegen, eine Weile auf dem Ast sitzen (umschauen, picken), weiterfliegen
+        const el = t - a.start;
+        const sit = a.sit ?? 8000;
+        const sx = PERCH.x - w / 2;
+        const sy = PERCH.y - hPx * PX;
+        const from = a.dir > 0 ? -w - 2 : W + 2;
+        if (el < PERCH_FLY) {
+          const q = el / PERCH_FLY;
+          const e = 1 - (1 - q) * (1 - q); // abbremsen zur Landung
+          x = from + (sx - from) * e;
+          y = a.y + (sy - a.y) * e - Math.sin(q * Math.PI) * 3;
+          frame = q > 0.85 ? 2 : Math.floor(t / 110) % 2;
+        } else if (el < PERCH_FLY + sit) {
+          x = sx;
+          y = sy;
+          const s = Math.floor((el - PERCH_FLY) / 700);
+          frame = (s * 7) % 5 === 0 ? 3 : 2; // ab und zu picken
+          if (Math.floor((el - PERCH_FLY) / 2300) % 2 === 1) flipNow = true; // umschauen
+        } else {
+          const q = (el - PERCH_FLY - sit) / PERCH_FLY;
+          x = sx + (a.dir > 0 ? 1 : -1) * q * q * (W * 0.8);
+          y = sy - q * 14;
+          frame = Math.floor(t / 100) % 2;
+        }
+        break;
+      }
       case 'bird':
         x = across(k);
         y = a.y + Math.sin(k * 12) * 1.2;
@@ -294,8 +337,8 @@ export class Critters {
         break;
       }
     }
-    const rows = a.dir < 0 ? flipRows(sp.frames[frame]) : sp.frames[frame];
-    const layer: CritterLayer = inRoom ? 'window' : a.kind === 'bird' ? 'sky' : a.kind === 'deer' ? 'background' : 'foreground';
+    const rows = (a.dir < 0) !== flipNow ? flipRows(sp.frames[frame]) : sp.frames[frame];
+    const layer: CritterLayer = inRoom ? 'window' : a.kind === 'bird' ? 'sky' : a.kind === 'perch' ? 'near' : a.kind === 'deer' ? 'background' : 'foreground';
     this.flyY = y;
     this.frame = { layer, rows, colors: sp.colors, x, y, ground: y + hPx * PX, clip: inRoom ? win : undefined };
     const cx = x + w / 2;

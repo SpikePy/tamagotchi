@@ -98,7 +98,6 @@ export function drawOutdoorSky(ctx: CanvasRenderingContext2D, clock: number): bo
 type Pal5 = [string, string, string, string, string]; // Umriss, Schatten, Mitte, Licht, Glanz
 
 const PINE_NEAR: Pal5 = ['#122a18', '#1c4026', '#2a5a32', '#3a7440', '#56924c'];
-const PINE_FAR: Pal5 = ['#38584a', '#43664f', '#52785c', '#62896a', '#78a07c'];
 
 /** Tanne: gestufte, hängende Astetagen, Licht links, dunkle Unterseiten, Nadelstruktur */
 function pine(p: Painter, cx: number, base: number, h: number, pal: Pal5, seed: number) {
@@ -259,6 +258,73 @@ function ridgeFn(peaks: [number, number, number][], seed: number, rough: number)
     Math.min(...peaks.map(([c, h, k]) => h + Math.abs(x - c) * k)) + (vnoise(x / 4, 1, seed) - 0.5) * rough + (vnoise(x / 12, 2, seed + 1) - 0.5) * rough * 1.6;
 }
 
+const HAZE = '#b4c8d4';
+
+/** kleine Tanne für die Ferne: schmaler Stamm, hängende Astetagen, Lichtseite links; haze 0..1 = Dunst */
+function farPine(p: Painter, cx: number, base: number, h: number, season: Season, haze: number, seed: number) {
+  const pal = (
+    season === 'winter'
+      ? ['#24382c', '#30483a', '#3e5a48', '#52705a', '#eef3f8']
+      : ['#16301e', '#20422a', '#2c5636', '#3e6c44', '#5a8a54']
+  ).map((c) => mix(c, HAZE, haze));
+  const trunkH = Math.max(1, Math.round(h * 0.1));
+  p.rect(cx, base - trunkH, 1, trunkH, mix('#3a2818', HAZE, haze));
+  const top = Math.round(base - h);
+  const bottom = base - trunkH;
+  const tiers = Math.max(2, Math.round(h / 6));
+  p.px(cx, top - 1, pal[1]); // Spitze
+  for (let y = top; y < bottom; y++) {
+    const t = (y - top) / (bottom - top);
+    const tp = (t * tiers) % 1;
+    const env = 0.6 + t * h * 0.27;
+    const half = Math.round(env * (0.42 + 0.58 * tp) + (hash(y, 3, seed) > 0.78 ? 1 : 0));
+    for (let dx = -half; dx <= half; dx++) {
+      const rel = half ? dx / half : 0;
+      const n = hash(cx + dx, y, seed);
+      let c = pal[2];
+      if (rel < -0.15) c = n < 0.6 ? pal[3] : pal[2];
+      if (rel > 0.3) c = n < 0.8 ? pal[1] : pal[2];
+      if (tp > 0.8 || rel > 0.75) c = pal[0]; // Unterseite der Etage, Schattenkante
+      if (season === 'winter') {
+        if (tp < 0.35 && rel < 0.5) c = pal[4]; // Schnee auf den Ästen
+      } else if (rel < -0.55 && n < 0.3 && tp < 0.7) c = pal[4];
+      p.px(cx + dx, y, c);
+    }
+    // hängende Zweigspitzen an der Unterkante jeder Etage
+    if (tp > 0.8 && half > 1) {
+      p.px(cx - half - 1, y + 1, pal[0]);
+      p.px(cx + half + 1, y + 1, pal[0]);
+    }
+  }
+}
+
+/** kleiner Laubbaum für die Ferne (im Winter kahl) */
+function farLeafTree(p: Painter, cx: number, base: number, h: number, season: Season, haze: number, seed: number) {
+  const trunk = mix('#4a3424', HAZE, haze);
+  const crownR = h * 0.36;
+  const cy = base - h + crownR;
+  p.rect(cx, cy, Math.max(1, Math.round(h / 12)), base - cy, trunk);
+  if (season === 'winter') {
+    for (const [a, l] of [[-1.9, h * 0.45], [-1.25, h * 0.4], [-2.4, h * 0.35]] as [number, number][])
+      branch(p, cx, cy + 2, a, l, 1, 2, seed + Math.round(l));
+    return;
+  }
+  const pal = TREE[season].map((c) => mix(c, HAZE, haze)) as Pal5;
+  foliage(p, [[cx, cy, crownR, crownR * 0.9], [cx - crownR * 0.5, cy + crownR * 0.35, crownR * 0.6, crownR * 0.5], [cx + crownR * 0.55, cy + crownR * 0.3, crownR * 0.55, crownR * 0.5]], pal, seed, PH, season === 'spring' ? mix('#fbe0ec', HAZE, haze) : undefined);
+}
+
+/** Waldsaum: dichte Reihe aus Tannen (und Laubbäumen), hinten kleiner, nach Basis sortiert */
+function treeLine(p: Painter, x0: number, x1: number, baseF: (x: number) => number, minH: number, maxH: number, season: Season, haze: number, seed: number, leafy = 0) {
+  const trees: [number, number, number, boolean][] = [];
+  for (let x = x0; x < x1; ) {
+    const h = minH + hash(x, 0, seed) * (maxH - minH);
+    trees.push([x, baseF(x) + Math.round(hash(x, 2, seed) * 3), h, hash(x, 4, seed) < leafy]);
+    x += 3 + Math.floor(hash(x, 1, seed) * 5);
+  }
+  trees.sort((a, b) => a[1] - b[1]);
+  for (const [x, b, h, leaf] of trees) (leaf ? farLeafTree : farPine)(p, x, b, h, season, haze, seed + x);
+}
+
 function forestFar(p: Painter, season: Season) {
   // ferne Bergkette mit Schnee, Felsrippen und Dunst
   const rA = ridgeFn([[18, 40, 0.8], [68, 28, 0.72], [120, 46, 0.84], [172, 30, 0.74], [228, 40, 0.8], [270, 30, 0.7]], 3, 3);
@@ -295,21 +361,11 @@ function forestFar(p: Painter, season: Season) {
       p.px(x, y, mix(c, '#b2c6d2', (Math.floor(hz * 3) / 3) * 0.55));
     }
   }
-  // Waldsaum in zwei Tiefen: viele kleine Tannen-Silhouetten
-  const band = (base: number, minH: number, maxH: number, col: string, lit: string, seed: number) => {
-    for (let x = -4; x < PW + 4; ) {
-      const h = minH + Math.floor(hash(x, 0, seed) * (maxH - minH));
-      for (let r = 0; r <= h; r++) {
-        const half = Math.floor(r * 0.42 + (r % 4 === 3 ? 1 : 0));
-        for (let dx = -half; dx <= half; dx++) p.px(x + dx, base - h + r, dx < 0 && r % 4 !== 3 ? lit : col);
-      }
-      x += 3 + Math.floor(hash(x, 1, seed) * 4);
-    }
-    p.rect(0, base, PW, GY - base, col);
-  };
-  const wf = season === 'winter';
-  band(118, 8, 16, wf ? '#8ea4ae' : '#5c8272', wf ? '#a8bcc4' : '#6c9282', 21);
-  band(124, 9, 19, wf ? '#7a929a' : '#4b6f5e', wf ? '#94aab2' : '#5a7f6c', 22);
+  // Waldsaum in zwei Tiefen: dichte Reihen kleiner Tannen, hinten stärker im Dunst
+  p.rect(0, 116, PW, GY - 116, mix(season === 'winter' ? '#30483a' : '#20422a', HAZE, 0.6));
+  treeLine(p, -4, PW + 4, (x) => 117 + Math.sin(x / 19) * 2, 7, 15, season, 0.62, 21);
+  p.rect(0, 122, PW, GY - 122, mix(season === 'winter' ? '#30483a' : '#20422a', HAZE, 0.42));
+  treeLine(p, -4, PW + 4, (x) => 123 + Math.sin(x / 13 + 2) * 2, 9, 19, season, 0.42, 22);
   // Hügel mit kleinen Tannen
   const hillCols: Record<Season, [string, string, string]> = {
     spring: ['#a6d07e', '#8cbe64', '#c0e098'],
@@ -331,9 +387,9 @@ function forestFar(p: Painter, season: Season) {
   const hc = hillCols[season];
   const h1 = (x: number) => 110 + 5 * Math.sin(x / 34 + 1) + 3 * Math.sin(x / 13);
   hill(h1, [mix(hc[0], '#9ab4c0', 0.25), mix(hc[1], '#9ab4c0', 0.25), hc[2]], 31);
-  for (const [x, h] of [[78, 18], [90, 14], [150, 20], [162, 15], [230, 17]] as [number, number][]) pine(p, x, h1(x) + 3, h, PINE_FAR, x);
+  for (const [x, h] of [[74, 15], [80, 20], [88, 13], [148, 22], [156, 16], [163, 12], [226, 18], [233, 13]] as [number, number][]) farPine(p, x, Math.round(h1(x)) + 3, h, season, 0.25, x);
   hill((x) => 120 + 4 * Math.sin(x / 22 + 2) + 2 * Math.sin(x / 9), hc, 33);
-  for (const [x, h] of [[116, 34], [134, 26]] as [number, number][]) pine(p, x, 125, h, PINE_FAR, x + 7);
+  for (const [x, h] of [[112, 26], [120, 36], [131, 28], [139, 19]] as [number, number][]) farPine(p, x, 127, h, season, 0.08, x + 7);
 }
 
 const BUSH: Record<Season, Pal5> = {
@@ -564,10 +620,13 @@ function farmFar(p: Painter, season: Season) {
   p.rect(bx + 6, by + 9, 6, 7, '#5a1e16');
   p.line(bx + 6, by + 9, bx + 11, by + 15, '#e8dcc8');
   p.line(bx + 11, by + 9, bx + 6, by + 15, '#e8dcc8');
-  for (const [tx, ty, tr] of [[52, 76, 7], [62, 78, 5], [188, 74, 8], [200, 77, 5], [150, 90, 6]] as [number, number, number][]) {
-    p.rect(tx, ty + tr - 2, 2, 6, '#4a3424');
-    foliage(p, [[tx + 1, ty, tr, tr * 0.85]], season === 'winter' ? HEDGE.winter : TREE[season], tx, PH);
-  }
+  // Waldstück am Horizont rechts, Baumgruppe links, einzelne Bäume zwischen den Feldern
+  const ridge = (x: number) => Math.round(top(x)) + 2;
+  treeLine(p, 140, PW + 6, ridge, 12, 24, season, 0.42, 81, 0.35);
+  treeLine(p, 150, PW + 6, (x) => ridge(x) + 4, 14, 28, season, 0.3, 82, 0.4);
+  treeLine(p, -6, 64, ridge, 10, 20, season, 0.42, 83, 0.6);
+  for (const [x, y, h, leaf] of [[78, 96, 16, true], [86, 97, 11, false], [184, 98, 18, true], [132, 92, 12, true]] as [number, number, number, boolean][])
+    (leaf ? farLeafTree : farPine)(p, x, y, h, season, 0.18, x);
   // Koppelzaun aus Pfosten und zwei leicht durchhängenden Querbalken
   const wood = (x: number, y: number) => (hash(x, y, 2) > 0.8 ? '#7a6448' : '#9a8262');
   for (const ry of [106, 120]) {
