@@ -38,9 +38,12 @@ export interface ChickenRig {
 }
 export type RigDef = QuadRig | DachsRig | HogRig | ChickenRig;
 
+export type Mood = 'joy' | 'ok' | 'sad' | 'down' | 'sick';
 export interface RigOpts {
   eyesClosed?: boolean;
   brows?: boolean;
+  /** Mimik nach Laune: strahlend, zufrieden, traurig, sehr traurig, krank */
+  mood?: Mood;
   gaze?: number;
   pose?: 'stand' | 'sleep' | 'stretch0' | 'stretch1' | 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1';
   male?: boolean;
@@ -174,29 +177,80 @@ export class Raster {
 
 // ------------------------------------------------------------------ Gesichts-Teile
 
-function eye(r: Raster, cx: number, cy: number, ry: number, o: RigOpts, iris = false, mirror = false) {
+function eye(r: Raster, cx: number, cy: number, ry: number, o: RigOpts, iris = false, mirror = false, outer = mirror ? 1 : -1) {
   const rx = Math.max(1.5, ry * 0.62);
   const g = Math.round(o.gaze ?? 0);
+  const mood = o.mood ?? 'ok';
+  const glum = mood === 'sad' || mood === 'down';
   cx += g;
   if (o.eyesClosed) {
-    // geschlossenes Auge: nach unten gebogener Lidstrich
+    // geschlossenes Auge: Lidstrich; vor Freude nach oben gewölbt (^ ^)
+    const up = mood === 'joy' ? -1 : 1;
+    const amp = Math.max(1, ry * 0.35);
     for (let dx = -Math.ceil(rx); dx <= Math.ceil(rx); dx++) {
-      const yy = cy + Math.round((1 - (dx / (rx + 0.5)) ** 2) * Math.max(1, ry * 0.35));
+      const yy = cy + (up < 0 ? amp : 0) + up * Math.round((1 - (dx / (rx + 0.5)) ** 2) * amp);
       r.dot(cx + dx, yy, 'E');
     }
   } else {
-    r.fill(ell(cx, cy, rx, ry), 'E', { line: false, flat: true });
+    // Oberlid: traurig hängen die äußeren Winkel, krank ist das Auge halb zu
+    const lidDrop = mood === 'sick' ? 0.75 : glum ? 0.5 : 0;
+    const slope = glum ? 0.45 : 0;
+    const lid = (x: number) => cy - ry + 2 * ry * lidDrop + slope * (x - cx) * outer;
+    const open: Shape = lidDrop ? inter(ell(cx, cy, rx, ry), { ins: (x, y) => y >= lid(x), box: [cx - rx - 1, cy - ry - 1, cx + rx + 1, cy + ry + 1] }) : ell(cx, cy, rx, ry);
+    r.fill(open, 'E', { line: false, flat: true });
     if (iris) {
-      r.fill(ell(cx, cy + ry * 0.15, rx * 0.8, ry * 0.75), 'e', { line: false, flat: true });
-      r.fill(ell(cx, cy + ry * 0.1, Math.max(0.6, rx * 0.25), ry * 0.65), 'E', { line: false, flat: true });
+      r.fill(inter(ell(cx, cy + ry * 0.15, rx * 0.8, ry * 0.75), open), 'e', { line: false, flat: true });
+      r.fill(inter(ell(cx, cy + ry * 0.1, Math.max(0.6, rx * 0.25), ry * 0.65), open), 'E', { line: false, flat: true });
     }
-    const hs = ry >= 4 ? 2 : 1;
-    for (let j = 0; j < hs; j++) for (let i = 0; i < hs; i++) r.dot(cx - rx * 0.35 + i - (mirror ? 0 : 0), cy - ry * 0.45 + j, 'h');
-    if (ry >= 5) r.dot(cx + rx * 0.3, cy + ry * 0.35, 'h');
+    if (lidDrop) {
+      for (let dx = -Math.ceil(rx); dx <= Math.ceil(rx); dx++) r.dot(cx + dx, lid(cx + dx + 0.5) - 0.5, 'o');
+      // matter Glanz unten im Auge
+      r.dot(cx - rx * 0.3, cy + ry * 0.4, 'h');
+    } else {
+      const hs = ry >= 4 ? 2 : 1;
+      for (let j = 0; j < hs; j++) for (let i = 0; i < hs; i++) r.dot(cx - rx * 0.35 + i, cy - ry * 0.45 + j, 'h');
+      if (ry >= 5 || mood === 'joy') r.dot(cx + rx * 0.3, cy + ry * 0.35, 'h'); // fröhlich: zweiter Glanzpunkt
+    }
   }
-  if (o.brows) {
+  if (glum) {
+    // Brauen innen hochgezogen
+    r.seg(cx - rx * 1.0 * outer, cy - ry - 3, cx + rx * 0.9 * outer, cy - ry - 1.4, 'o');
+  } else if (o.brows) {
     const dir = mirror ? -1 : 1;
     r.seg(cx - rx * 1.2 * dir, cy - ry - 3, cx + rx * 0.9 * dir, cy - ry - 1, 'o');
+  }
+  if (mood === 'down' && !mirror) {
+    // Träne am äußeren Augenwinkel
+    const tx = cx + outer * rx * 0.7;
+    r.dot(tx, cy + ry + 1, 't');
+    r.dot(tx, cy + ry + 2, 't');
+    r.dot(tx + 1, cy + ry + 2, 't');
+    r.dot(tx, cy + ry + 3, 't');
+  }
+}
+
+/** Mund nach Laune; (x, y) = Mitte unter der Nase, w = halbe Breite */
+function mouth(r: Raster, x: number, y: number, w: number, mood: Mood = 'ok', side = false) {
+  const hw = Math.max(1, Math.round(w));
+  if (mood === 'joy') {
+    // offenes Lachen mit Zunge
+    if (!side) r.dot(x, y, 'o');
+    for (let dx = -hw; dx <= hw; dx++) r.dot(x + dx, y + 1 + (Math.abs(dx) < hw ? 1 : 0) + (Math.abs(dx) < hw - 1 ? 1 : 0), 'o');
+    for (let dx = -hw + 1; dx < hw; dx++) r.dot(x + dx, y + 1, 'o');
+    for (let dx = -hw + 2; dx <= hw - 2; dx++) r.dot(x + dx, y + 2, 'p');
+    if (hw < 2) r.dot(x, y + 2, 'p');
+  } else if (mood === 'sad' || mood === 'down') {
+    if (!side) r.dot(x, y, 'o');
+    for (let dx = -hw + 1; dx <= hw - 1; dx++) r.dot(x + dx, y + 1, 'o');
+    r.dot(x - hw, y + 2, 'o');
+    r.dot(x + hw, y + 2, 'o');
+  } else if (mood === 'sick') {
+    if (!side) r.dot(x, y, 'o');
+    for (let dx = -hw; dx <= hw; dx++) r.dot(x + dx, y + 1 + ((dx + hw) % 2), 'o');
+  } else {
+    if (!side) r.dot(x, y, 'o');
+    r.dot(x - 1, y + 1, 'o');
+    r.dot(x + 1, y + 1, 'o');
   }
 }
 
@@ -314,14 +368,12 @@ function quadSit(r: Raster, d: QuadRig, stage: Exclude<Stage, 'egg'>, o: RigOpts
   }
   // Augen, Wangen, Nase, Mund
   for (const s of [-1, 1]) eye(r, cx + s * headW * 0.21, eyeY, eyeRy, o, d.iris, s > 0);
-  if (d.cheeks) for (const s of [-1, 1]) r.fill(ell(cx + s * headW * 0.32, eyeY + eyeRy * 1.7, headW * 0.07, headH * 0.04 + 0.6), 'p', { line: false, flat: true });
+  if (d.cheeks || o.mood === 'joy') for (const s of [-1, 1]) r.fill(ell(cx + s * headW * 0.32, eyeY + eyeRy * 1.7, headW * 0.07, headH * 0.04 + 0.6), 'p', { line: false, flat: true });
   const nw = Math.max(1.5, headW * (d.muzzle === 'cat' ? 0.06 : 0.085));
   r.fill(ell(cx, noseY - 0.5, nw, nw * 0.7), 'n', { line: false, flat: true });
   if (d.muzzle !== 'cat') r.dot(cx - nw * 0.4, noseY - nw * 0.4, 'h');
   // Mund: kleiner Strich und zwei Bögen
-  r.dot(cx, noseY + nw * 0.6 + 1, 'o');
-  r.dot(cx - 1, noseY + nw * 0.6 + 2, 'o');
-  r.dot(cx + 1, noseY + nw * 0.6 + 2, 'o');
+  mouth(r, cx, noseY + nw * 0.6 + 1, o.mood === 'ok' || !o.mood ? 1 : headW * 0.09, o.mood);
   if (d.whiskers)
     for (const s of [-1, 1])
       for (let i = 0; i < 3; i++) {
@@ -361,8 +413,9 @@ function dachs(r: Raster, stage: Exclude<Stage, 'egg'>, o: RigOpts) {
   r.fill(snout, 'a');
   r.fill(inter(ell(hx - hr * 0.8, hy + hr * 0.6, hr * 0.6, hr * 0.22), snout), 'b', { line: false });
   r.fill(ell(hx - hr * 1.42, hy + hr * 0.3, 1.8, 1.4), 'n', { line: false, flat: true });
-  r.dot(hx - hr * 1.0, hy + hr * 0.68, 'o');
-  eye(r, hx - hr * 0.35, hy - hr * 0.08, hr * 0.24, o);
+  if (!o.mood || o.mood === 'ok') r.dot(hx - hr * 1.0, hy + hr * 0.68, 'o');
+  else mouth(r, hx - hr * 0.95, hy + hr * 0.52, hr * 0.18, o.mood, true);
+  eye(r, hx - hr * 0.35, hy - hr * 0.08, hr * 0.24, o, false, false, 1);
   // langes Schlappohr
   r.fill(tube([hx + hr * 0.15, hy - hr * 0.55], [hx + hr * 0.75, hy - hr * 0.5], [hx + hr * 0.8, hy + hr * 0.6], [hx + hr * 0.45, hy + hr * 1.05], (u) => hr * (0.3 + 0.12 * Math.sin(u * Math.PI))), 'c');
 }
@@ -416,6 +469,7 @@ function hog(r: Raster, stage: Exclude<Stage, 'egg'>, o: RigOpts) {
   for (const s of [-1, 1]) r.fill(ell(cx + s * fw * 0.36, fy + fh * 0.14, 2.4, 1.3), 'p', { line: false, flat: true });
   r.fill(ell(cx, fy + fh * 0.16, 2.6, 1.8), 'n', { line: false, flat: true });
   r.dot(cx - 1, fy + fh * 0.16 - 1, 'h');
+  if (o.mood && o.mood !== 'ok') mouth(r, cx, fy + fh * 0.16 + 2, 1.6, o.mood, true);
 }
 
 // ------------------------------------------------------------------ Huhn (Seitenansicht, Kopf links)
@@ -457,7 +511,7 @@ function chicken(r: Raster, d: ChickenRig, stage: Exclude<Stage, 'egg'>, o: RigO
     const hr = W * 0.22;
     r.fill(ell(hx, hy, hr, hr * 0.92), 'b');
     r.fill(poly([[hx - hr * 0.85, hy - 1], [hx - hr * 1.45, hy + 1], [hx - hr * 0.8, hy + 3]]), 'p');
-    eye(r, hx - hr * 0.3, hy - hr * 0.12, hr * 0.26, o);
+    eye(r, hx - hr * 0.3, hy - hr * 0.12, hr * 0.26, o, false, false, 1);
     // Flaum-Spitzen oben auf dem Kopf
     r.dot(hx - 1, hy - hr - 1, 'o');
     r.dot(hx + 1, hy - hr - 2, 'o');
@@ -512,7 +566,7 @@ function chicken(r: Raster, d: ChickenRig, stage: Exclude<Stage, 'egg'>, o: RigO
   r.fill(poly([[hx - hr * 0.8, hy - 1], [hx - hr * 1.75, hy + 1], [hx - hr * 0.75, hy + hr * 0.45]]), 'p');
   r.seg(hx - hr * 1.6, hy + 1, hx - hr * 0.8, hy + 1, '5');
   if (!d.silkie) r.fill(ell(hx - hr * 0.6, hy + hr * (male ? 1.0 : 0.85), hr * 0.3, hr * (male ? 0.55 : 0.38)), 'c');
-  eye(r, hx - hr * 0.2, hy - hr * 0.15, hr * 0.32, o);
+  eye(r, hx - hr * 0.2, hy - hr * 0.15, hr * 0.32, o, false, false, 1);
 }
 
 // ------------------------------------------------------------------ Schlafposen

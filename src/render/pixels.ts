@@ -1,7 +1,7 @@
 import type { Look, Stage, Variant } from '../engine/state';
 import type { Breed, Palette, Pattern, SpeciesDef, Sprite } from '../species/types';
 import { sleepSprite, stretchSprite } from './sleepers';
-import { SHADE_KEYS, renderRig, type RigOpts } from './rig';
+import { SHADE_KEYS, renderRig, type Mood, type RigOpts } from './rig';
 
 export type ColorMap = Record<string, string>;
 
@@ -176,7 +176,7 @@ function hiresBitmap(map: string[], colors: ColorMap, flip: boolean): HTMLCanvas
   const h = map.length;
   const w = map[0].length;
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= w || y >= h ? '.' : map[y][flip ? w - 1 - x : x]);
-  const flat = (c: string) => c === 'o' || c === 'E' || c === 'e' || c === 'n' || c === 'h' || c === '.';
+  const flat = (c: string) => c === 'o' || c === 'E' || c === 'e' || c === 'n' || c === 'h' || c === 't' || c === '.';
   const cv = document.createElement('canvas');
   cv.width = w;
   cv.height = h;
@@ -384,7 +384,7 @@ export function petMap(sprite: Sprite, look: PetLook): string[] {
 export function petSprite(
   sp: SpeciesDef,
   pet: { stage: Stage; variant: Variant; look?: Look | null },
-  opts: { eyesClosed?: boolean; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1; pose?: 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1' } = {},
+  opts: { eyesClosed?: boolean; mood?: Mood; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1; pose?: 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1' } = {},
 ) {
   const look = pet.look ?? null;
   const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
@@ -537,6 +537,7 @@ function rigSprite(
   const map = renderRig(rig, stage, w, h, {
     eyesClosed: opts.eyesClosed,
     brows: pet.variant === 'cheeky',
+    mood: opts.sleeping || !opts.mood || opts.mood === 'ok' ? undefined : opts.mood,
     gaze: opts.sleeping ? 0 : (opts.gaze ?? 0) * 2,
     pose,
     male,
@@ -545,7 +546,7 @@ function rigSprite(
   }, RES);
   HIRES.add(map);
   const colors = paletteFor(sp, pet.variant, look?.coat, breed) as unknown as ColorMap;
-  const full: ColorMap = { ...colors, h: '#ffffff' };
+  const full: ColorMap = { ...colors, h: '#ffffff', t: '#8fd3ff' };
   for (const [k, base, f] of SHADE_KEYS) if (colors[base]) full[k] = shade(colors[base], f);
   return {
     map,

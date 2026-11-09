@@ -40,6 +40,13 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 **Status-Leisten:** Sättigung, Müdigkeit und Laune stehen **über dem Spielbild** (nicht mehr im Bild) in einer Zeile:
 - Die Symbole sitzen auf dunklen runden Plaketten, damit sie gut erkennbar sind.
 - 🍽️ **Sättigung** (orange, Besteck mit Teller), 💤 **Müdigkeit** (lila; füllt sich, je müder das Tier ist), **Laune** (gelb) mit einem Gesicht passend zur Stimmung: 😄 / 🙂 / 😟.
+- **Mimik des Tiers** (ergänzt): Das Gesicht zeigt den Zustand.
+  - **Laune voll (4 Herzen) und beim Streicheln:** strahlend. Offenes Lachen mit Zunge, rosige Wangen, zweiter Glanzpunkt im Auge, beim Blinzeln/Streicheln fröhlich gebogene Augen (^ ^).
+  - **2–3 Herzen:** zufrieden (normales Gesicht).
+  - **1 Herz:** traurig. Hängende Oberlider, innen hochgezogene Brauen, Mundwinkel nach unten.
+  - **0 Herzen:** sehr traurig wie oben, dazu eine Träne.
+  - **Krank:** halb geschlossene Augen und ein welliger Mund.
+  - Bei Seitenansichten (Dackel, Huhn) wirken Augen, Brauen und, wo vorhanden, Mund genauso; im Schlaf bleibt das Gesicht ruhig.
 - Die Leisten sind durchgehend und füllen sich sanft. Sättigung und Laune **blinken rot** bei höchstens 25 %, die Müdigkeit ab 80 %.
 - In der Zeile darüber stehen links **Hinweis-Abzeichen**: „🤒 krank“ und ein pulsierendes „❗ ruft“. Rechts stehen Name und Entwicklungsstufe.
 - Im Statusbildschirm stehen Sättigung und Laune zusätzlich als Balken mit Prozentangabe.

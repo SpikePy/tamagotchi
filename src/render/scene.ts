@@ -1,5 +1,6 @@
 import { MIN, RULES } from '../engine/config';
-import { activePet, type GameState, type Pet } from '../engine/state';
+import { activePet, hearts, type GameState, type Pet } from '../engine/state';
+import type { Mood } from './rig';
 import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, PX, RES, drawMap, snapPx, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
@@ -711,7 +712,8 @@ export class Scene {
     let birdPose: 'peck' | 'scrape0' | 'scrape1' | undefined;
     if (bigBird && scraping) birdPose = k < 0.7 ? (Math.floor(t / 170) % 2 ? 'scrape1' : 'scrape0') : Math.floor(t / 220) % 2 ? 'peck' : undefined;
     else if (bigBird && (grooming || eating)) birdPose = Math.floor(t / 220) % 2 ? 'peck' : undefined;
-    const img = petSprite(sp, p, { eyesClosed: !birdPose && (blink || grooming || stretching || petted), gaze: flip ? -gaze : gaze, pose: birdPose });
+    const mood: Mood = petted ? 'joy' : moodOf(p);
+    const img = petSprite(sp, p, { eyesClosed: !birdPose && (blink || grooming || stretching || petted), mood, gaze: flip ? -gaze : gaze, pose: birdPose });
 
     let x = this.walkX;
     let bob = 0;
@@ -751,7 +753,7 @@ export class Scene {
         const up = kk < 0.07 ? kk / 0.07 : kk > 0.93 ? (1 - kk) / 0.07 : 1;
         const lieX = WIN.x + 0.5;
         if (up < 1) {
-          const lp = petSprite(sp, p, { pose: 'leap' });
+          const lp = petSprite(sp, p, { pose: 'leap', mood: moodOf(p) });
           const c0 = x + w / 2;
           const c1 = lieX + sl.w / 2;
           const cx = c0 + (c1 - c0) * up;
@@ -772,7 +774,7 @@ export class Scene {
       // Katze wetzt die Krallen am Kratzbaum bzw. schlägt nach der Kugel
       const fr = Math.floor(t / (visiting === 'scratch' ? 240 : 360)) % 2;
       const pose = visiting === 'scratch' ? (fr ? 'scratch1' : 'scratch0') : fr ? 'bat1' : 'bat0';
-      const st = petSprite(sp, p, { pose });
+      const st = petSprite(sp, p, { pose, mood: moodOf(p) });
       const sx = visiting === 'scratch' ? POST_X + 6.2 : POST_X + 9.5 - st.w * 0.03;
       drawMap(ctx, st.map, st.colors, sx, ground - st.h + 1, false);
       if (visiting === 'play' && fr && t - this.ballKick > 700) this.ballKick = t;
@@ -839,4 +841,11 @@ function visitDepth(v?: VisitKind): number {
   if (v === 'drink' || v === 'dustbath') return 2.5;
   if (v === 'hop' || v === 'scratch' || v === 'play') return 0;
   return 1;
+}
+
+/** Mimik passend zum Zustand: krank, sonst nach Laune (Herzen) */
+export function moodOf(p: Pet): Mood {
+  if (p.sick) return 'sick';
+  const h = hearts(p.happy);
+  return h >= 4 ? 'joy' : h >= 2 ? 'ok' : h === 1 ? 'sad' : 'down';
 }
