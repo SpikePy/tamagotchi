@@ -271,6 +271,8 @@ export const chicken: SpeciesDef = {
       description: 'Fang die Körner, weich den Steinchen aus!',
       good: 'Korn',
       bad: 'Steinchen',
+      goodItem: 'grain',
+      badItem: 'pebble',
     },
     throw: {
       title: 'Weitflattern',
@@ -278,6 +280,24 @@ export const chicken: SpeciesDef = {
       thing: 'Huhn',
       emoji: '🐔',
       water: 'Teich',
+    },
+    dodge: {
+      title: 'Hagelschauer',
+      description: 'Ein Hagelschauer zieht übers Gehege! Weich den Hagelkörnern und Tropfen aus.',
+      items: ['hail', 'drop'],
+    },
+    sneak: {
+      title: 'Wurm erwischen',
+      description: 'Ein Wurm schaut aus der Erde. Anschleichen, solange er nicht hinsieht!',
+      prey: 'Der Wurm',
+      preyItem: 'worm',
+      hit: 'Pick! Der Wurm flutscht gerade noch zurück in die Erde.',
+    },
+    rhythm: {
+      title: 'Gacker-Takt',
+      description: 'Das Huhn gackert ein Lied. Tippe im Takt, wenn ein Korn im Kreis ist!',
+      sound: 'Gack!',
+      noteItem: 'grain',
     },
     memory: {
       title: 'Spuren lesen',

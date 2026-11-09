@@ -136,6 +136,8 @@ export const fox: SpeciesDef = {
       description: 'Fang die roten Beeren, weich den faulen aus!',
       good: 'Beere',
       bad: 'faule Beere',
+      goodItem: 'berry',
+      badItem: 'rottenBerry',
     },
     throw: {
       title: 'Stöckchen holen',
@@ -143,6 +145,24 @@ export const fox: SpeciesDef = {
       thing: 'Stöckchen',
       emoji: '🪵',
       water: 'Bach',
+    },
+    dodge: {
+      title: 'Schneeballschlacht',
+      description: 'Die Waldtiere werfen mit Schneebällen und Zapfen. Weich allem aus!',
+      items: ['snowball', 'pinecone'],
+    },
+    sneak: {
+      title: 'Maus belauern',
+      description: 'Eine Maus knabbert an einem Samen. Schleich dich an, solange sie wegschaut!',
+      prey: 'Die Maus',
+      preyItem: 'mouse',
+      hit: 'Mäusesprung! Die Maus huscht quiekend davon.',
+    },
+    rhythm: {
+      title: 'Keckern im Takt',
+      description: 'Der Fuchs keckert ein Lied. Tippe im Takt, wenn eine Beere im Kreis ist!',
+      sound: 'Kek!',
+      noteItem: 'berry',
     },
     memory: {
       title: 'Spuren lesen',

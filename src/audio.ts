@@ -36,5 +36,7 @@ export const beep = {
   no: () => (tone(330, 0, 0.12), tone(247, 0.13, 0.15)),
   call: () => [0, 0.15, 0.3].forEach((d) => tone(1760, d, 0.08)),
   win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.1, 0.09)),
+  note: (f: number) => tone(f, 0, 0.09),
+  tick: () => tone(2400, 0, 0.012),
   lose: () => [392, 330, 262].forEach((f, i) => tone(f, i * 0.14, 0.12)),
 };

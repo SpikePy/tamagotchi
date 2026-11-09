@@ -145,6 +145,8 @@ export const cat: SpeciesDef = {
       description: 'Fang die Fische, weich den alten Socken aus!',
       good: 'Fisch',
       bad: 'alte Socke',
+      goodItem: 'fish',
+      badItem: 'sock',
     },
     throw: {
       title: 'Wollknäuel',
@@ -152,6 +154,24 @@ export const cat: SpeciesDef = {
       thing: 'Wollknäuel',
       emoji: '🧶',
       water: 'Wasserschale',
+    },
+    dodge: {
+      title: 'Gurken-Alarm',
+      description: 'Jemand hat Gurken und Wasserspritzer auf die Katze abgesehen! Steuere ihr Herz durch den Kasten und weiche allem aus.',
+      items: ['cucumber', 'drop'],
+    },
+    sneak: {
+      title: 'Vogel belauern',
+      description: 'Ein Spatz pickt auf dem Rasen. Schleiche dich nur an, solange er wegschaut!',
+      prey: 'Der Spatz',
+      preyItem: 'bird',
+      hit: 'Sprung! Der Spatz flattert lachend davon.',
+    },
+    rhythm: {
+      title: 'Schnurr-Konzert',
+      description: 'Die Katze gibt ein Konzert. Tippe im Takt, wenn ein Fisch im Kreis ist!',
+      sound: 'Miau!',
+      noteItem: 'fish',
     },
     memory: {
       title: 'Spuren lesen',

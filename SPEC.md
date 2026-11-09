@@ -152,7 +152,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.4 Spielen
 
-**Jedes zu Ende gespielte Minispiel gibt +1 Laune, egal ob gewonnen oder verloren.** Wer das Spiel mittendrin abbricht, bekommt nichts. Spielen senkt außerdem das Gewicht (−1 g) und macht etwas müde. Es gibt 5 Minispiele. Jede Tierart hat dafür ein eigenes Thema, die Spielmechanik ist bei allen gleich. Beim Fuchs:
+**Jedes zu Ende gespielte Minispiel gibt +1 Laune, egal ob gewonnen oder verloren.** Wer das Spiel mittendrin abbricht, bekommt nichts. Spielen senkt außerdem das Gewicht (−1 g) und macht etwas müde. Es gibt 8 Minispiele (siehe unten). Jede Tierart hat dafür ein eigenes Thema, die Spielmechanik ist bei allen gleich. Beim Fuchs:
 
 1. **Mäusesprung:** Unter dem Schnee raschelt eine Maus. Im richtigen Moment tippen, damit der Fuchs kopfüber hineinspringt. Ein Timing-Spiel.
 2. **Links oder rechts?** Der Fuchs versteckt sich hinter einem von zwei Büschen. Man rät, wo er ist. Wer 3 von 5 Mal richtig liegt, gewinnt.
@@ -163,6 +163,12 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 Beim Igel: **Regenwurm schnappen** (Timing), **Links oder rechts?** (unter welchem Laubhaufen), **Äpfel fangen**, **Kugelrollen** (statt in den Bach darf er nicht in den Teich rollen) und **Spuren lesen**.
 
 Gewinnbedingungen: Mäusesprung 2 von 3 Treffern · Links oder rechts? 3 von 5 richtig · Fangen mindestens 8 Punkte in 20 s · Werfen ein Wurf über 70 m · Spuren lesen eine Folge der Länge 5 schaffen.
+
+**Neue Minispiele** (ergänzt, angelehnt an Indie-Spiele mit Minispielen). Insgesamt gibt es jetzt **8 Spiele**; im Menü stehen Fangen und die drei neuen oben.
+- **Fangen mit echten Grafiken:** Was herunterfällt, ist als Pixelbild gezeichnet und passt zur Art: Katze **Fische** (alte Socken meiden), Hund Leckerli-Knochen (Zitronen meiden), Fuchs Beeren (faule meiden), Igel Äpfel (faule meiden), Huhn Körner (Steinchen meiden).
+- **Ausweichen** (Kampfkasten-Stil): Man steuert ein kleines Herz in einem schwarzen Kasten (Finger ziehen oder Pfeiltasten) und weicht 16 s lang Angriffswellen aus: Regen von oben, Reihen von der Seite mit einer Lücke, gezielte Würfe und Schlangenlinien. 3 Leben, nach einem Treffer kurz unverwundbar (Herz blinkt). Das Tier schaut von oben zu. Themen: Katze „Gurken-Alarm“ (Gurken, Wasserspritzer), Hund „Badetag“ (Seifenblasen, Tropfen), Fuchs „Schneeballschlacht“ (Schneebälle, Zapfen), Igel „Eichelregen“ (Eicheln, Tropfen), Huhn „Hagelschauer“ (Hagel, Tropfen). Gewonnen, wenn noch ein Leben übrig ist.
+- **Anschleichen** (Ochs-vorm-Berg): Gedrückt halten (Knopf, Bild oder Leertaste) lässt das Tier vorwärtsschleichen. Die Beute schaut zwischendurch um; vorher zeigt ein „?“ die Warnung. Wer sich bewegt, während sie schaut, wird erwischt („!!“, zurück auf Abstand). 2 Fehler = verloren, 30 s Zeit. Katze belauert einen Spatz, Hund einen Schmetterling, Fuchs eine Maus, Igel einen Käfer, Huhn einen Wurm.
+- **Rhythmus:** Auf einer Bühne laufen Noten (das Lieblingsfutter der Art) auf einen Kreis zu; im Takt (100 BPM, 4 Schläge Vorzähler, Achtelnoten zwischendurch) tippen. Bewertung „Perfekt“/„Gut“/„Daneben“; mindestens 75 % treffen. Das Tier wippt im Takt und ruft bei Treffern („Miau!“, „Wuff!“, „Kek!“, „Schnauf!“, „Gack!“). Titel: Schnurr-Konzert, Bell-Chor, Keckern im Takt, Schnauf-Rhythmus, Gacker-Takt.
 
 Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
@@ -365,7 +371,7 @@ Die Hauptansicht zeigt das Tier in seinem Zuhause, die Haufen und alle Statussym
 |---|---|
 | Füttern | Mahlzeit oder Snack wählen |
 | Licht | Licht an/aus, schlafen schicken oder wecken |
-| Spielen | Eins der 5 Minispiele auswählen |
+| Spielen | Eins der 8 Minispiele auswählen |
 | Medizin | Das kranke Tier behandeln |
 | Sauber machen | Alle Haufen entfernen |
 | Schimpfen | Disziplin, siehe 6.6 |

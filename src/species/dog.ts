@@ -233,6 +233,8 @@ export const dog: SpeciesDef = {
       description: 'Fang die Leckerli, weich den Zitronen aus!',
       good: 'Leckerli',
       bad: 'Zitrone',
+      goodItem: 'treat',
+      badItem: 'lemon',
     },
     throw: {
       title: 'Ball werfen',
@@ -240,6 +242,24 @@ export const dog: SpeciesDef = {
       thing: 'Ball',
       emoji: '🎾',
       water: 'Pfütze',
+    },
+    dodge: {
+      title: 'Badetag',
+      description: 'Oh nein, Badetag! Weiche den Seifenblasen und Wassertropfen aus.',
+      items: ['bubble', 'drop'],
+    },
+    sneak: {
+      title: 'Schmetterling jagen',
+      description: 'Ein Schmetterling sitzt im Gras. Anschleichen, solange er wegschaut!',
+      prey: 'Der Schmetterling',
+      preyItem: 'butterfly',
+      hit: 'Hopp! Der Schmetterling gaukelt davon – was für ein Spaß!',
+    },
+    rhythm: {
+      title: 'Bell-Chor',
+      description: 'Der Hund singt im Hundechor. Tippe im Takt, wenn ein Leckerli im Kreis ist!',
+      sound: 'Wuff!',
+      noteItem: 'treat',
     },
     memory: {
       title: 'Spuren lesen',

@@ -79,7 +79,10 @@ export interface SpeciesDef {
   games: {
     timing: GameTheme & { target: string; hit: string };
     guess: GameTheme & { hideout: string; hideEmoji: string; petEmoji: string };
-    catch: GameTheme & { good: string; bad: string };
+    catch: GameTheme & { good: string; bad: string; goodItem: string; badItem: string };
+    dodge: GameTheme & { items: string[] };
+    sneak: GameTheme & { prey: string; preyItem: string; hit: string };
+    rhythm: GameTheme & { sound: string; noteItem: string };
     throw: GameTheme & { thing: string; emoji: string; water: string };
     memory: GameTheme;
   };

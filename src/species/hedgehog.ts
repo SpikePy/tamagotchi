@@ -130,6 +130,8 @@ export const hedgehog: SpeciesDef = {
       description: 'Fang die Äpfel mit den Stacheln, weich den faulen aus!',
       good: 'Apfel',
       bad: 'fauler Apfel',
+      goodItem: 'apple',
+      badItem: 'rottenApple',
     },
     throw: {
       title: 'Kugelrollen',
@@ -137,6 +139,24 @@ export const hedgehog: SpeciesDef = {
       thing: 'Igelkugel',
       emoji: '🦔',
       water: 'Teich',
+    },
+    dodge: {
+      title: 'Eichelregen',
+      description: 'Im Herbststurm fallen Eicheln und Regentropfen. Weich allem aus!',
+      items: ['acorn', 'drop'],
+    },
+    sneak: {
+      title: 'Käfer anpirschen',
+      description: 'Ein Käfer krabbelt im Laub. Anschleichen, solange er wegschaut!',
+      prey: 'Der Käfer',
+      preyItem: 'beetle',
+      hit: 'Schnapp! Der Käfer brummt erschrocken davon.',
+    },
+    rhythm: {
+      title: 'Schnauf-Rhythmus',
+      description: 'Der Igel schnauft im Takt. Tippe, wenn ein Apfel im Kreis ist!',
+      sound: 'Schnauf!',
+      noteItem: 'apple',
     },
     memory: {
       title: 'Spuren lesen',
