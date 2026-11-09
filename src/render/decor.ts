@@ -3,6 +3,7 @@
 import { PX, drawPixels, snapPx, type ColorMap } from './pixels';
 import { pixelCircle } from './fx';
 import type { SceneKind } from './outdoor';
+import * as PR from './props';
 
 const P = PX;
 const GROUND_Y = 33;
@@ -13,120 +14,6 @@ const rect = (ctx: CanvasRenderingContext2D, c: string, x: number, y: number, w:
   ctx.fillStyle = c;
   ctx.fillRect(snapPx(x), snapPx(y), w, h);
 };
-
-// ---------- Pixel-Grafiken ----------
-const MUSH_RED = ['..oooo..', '.orwrro.', 'orrrrwro', 'oooooooo', '...ss...', '...ss...'];
-const MUSH_BROWN = ['.oooo.', 'obbwbo', 'oooooo', '..ss..', '..ss..'];
-const MUSH_C: ColorMap = { o: '#4a1a10', r: '#d8343a', w: '#ffffff', b: '#a8743e', s: '#efe4cc' };
-const FERN = [
-  '.....g.....',
-  '..g..g..g..',
-  '...g.G.g...',
-  '.g..gGg..g.',
-  '..g.gGg.g..',
-  '...gGGGg...',
-  '.....G.....',
-];
-const FERN_C: ColorMap = { g: '#5fa84a', G: '#3f7432' };
-const FEATHER = ['.......ww', '....wwwg.', '..wwwwg..', '.wwgg....', 'og.......'];
-const FEATHER_C: ColorMap = { w: '#f4f0e6', g: '#b8b0a4', o: '#5a4a3a' };
-const LOG = [
-  '.ooooooooooooooo...',
-  'oMmMMmMMbbbMMmMbo..',
-  'obbbbbbbbbbbbbbbrro',
-  'oBbbbBbbbbBbbbbbrRo',
-  '.ooooooooooooooooo.',
-];
-const LOG_C: ColorMap = { o: '#3a2414', b: '#8a5a32', B: '#6a4426', r: '#c8945a', R: '#a07040', M: '#5f8a3a', m: '#7aa84a' };
-
-const HEDGEHOG_HOUSE = [
-  '.....oooo.....',
-  '...ooMMMMoo...',
-  '.ooMMmMMmMMoo.',
-  'oMMmMMMMMMmMMo',
-  'oooooooooooooo',
-  '.owwWwwwwWwwo.',
-  '.owwooooowwwo.',
-  '.owoKKKKKoWwo.',
-  '.oWoKKKKKowwo.',
-  '.owoKKKKKowWo.',
-  '.oooooooooooo.',
-];
-const HOUSE_C: ColorMap = { o: '#3a2414', M: '#4f8a3c', m: '#7cc45a', w: '#b07a44', W: '#8a5a32', K: '#2a180c' };
-const CAN = ['...oooo...', '..o....o..', 'oogggggo.o', 'oglggggooo', 'oggggggo..', '.oooooo...'];
-const CAN_C: ColorMap = { o: '#2a4a3a', g: '#4f9a7a', l: '#8fd0b0' };
-const GNOME = [
-  '...o...',
-  '..oro..',
-  '..orro.',
-  '.orrrro',
-  '.orrrro',
-  '.ooooo.',
-  '.ofpfo.',
-  '.owwwo.',
-  '.owwwo.',
-  'obbwbbo',
-  'obbbbbo',
-  '.oo.oo.',
-];
-const GNOME_C: ColorMap = { o: '#2a1a14', r: '#d8343a', f: '#f2c8a0', p: '#e07a7a', w: '#ffffff', b: '#4a6ad8' };
-const APPLE = ['..g..', '.ogo.', 'orrro', 'orwro', 'orrro', '.ooo.'];
-const APPLE_C: ColorMap = { o: '#5a1a10', r: '#d8343a', w: '#ff9a9a', g: '#4f8a3c' };
-const SNAIL = [
-  '..oooo...',
-  '.obsbbo..',
-  '.obbsbo.e',
-  'oobbbbooy',
-  'yyyyyyyy.',
-];
-const SNAIL_C: ColorMap = { o: '#5a3a1a', b: '#c8944a', s: '#8a5a2a', y: '#d8c8a0', e: '#2a2a2a' };
-
-// Zimmer
-const CUSHION = ['.oooooooooooo.', 'oppPppPppPpppo', 'opPppPppPppPpo', 'oooooooooooooo'];
-const CUSHION_C: ColorMap = { o: '#7a2a3a', p: '#e86a8a', P: '#f4a8c0' };
-const CATGRASS = ['.g..g.g..', '..g.gg.g.', '.g.gggg..', '..ggggg..', '.ooooooo.', '.ottttto.', '..ottto..', '..ooooo..'];
-const CATGRASS_C: ColorMap = { g: '#6ac04a', o: '#6a3a1a', t: '#c0623a' };
-const WOOL = ['.ooo.', 'obwbo', 'obbwo', 'owbbo', '.ooo.'];
-const WOOL_C: ColorMap = { o: '#4a2a6a', b: '#9a6ad8', w: '#c8a8f0' };
-const MOUSE_PORTRAIT = [
-  '..oo........oo..',
-  '.oppo......oppo.',
-  '.oppooooooooppo.',
-  '..oggggggggggo..',
-  '.ogggegggeggggo.',
-  '.oggggggggggggo.',
-  '..oggggnngggo...',
-  '...oogggggoo....',
-  '.....ooooo......',
-  '................',
-];
-const MOUSE_PORTRAIT_C: ColorMap = { o: '#4a4248', g: '#9a929a', p: '#f2a6b2', e: '#111111', n: '#e07a8a' };
-const TOYMOUSE = ['...pp..', '.ooggo.', 'oggggen', 't.oooo.'];
-const TOYMOUSE_C: ColorMap = { o: '#4a4248', g: '#9a929a', p: '#f2a6b2', e: '#111111', n: '#e07a8a', t: '#c89aa0' };
-const HARNESS = ['...oo...', '..o..o..', '.obbbbo.', 'ob.oo.bo', 'ob.oo.bo', '.obbbbo.', '..oyyo..', '...oo...'];
-const HARNESS_C: ColorMap = { o: '#1a3a6a', b: '#3a6ad8', y: '#c8c8c8' };
-const COLLAR = ['..oo..', '.o..o.', 'og..go', 'og..go', '.oggo.', '..yy..', '.yYYy.', '..yy..'];
-const COLLAR_C: ColorMap = { o: '#1e5a2a', g: '#3aa04a', y: '#c89a2a', Y: '#f4d24a' };
-const MAT = ['oooooooooooooooooooooo', 'obbbbbbbbbbbbbbbbbbbbo', 'obyybyybyybyybyybyybbo', 'obbbbbbbbbbbbbbbbbbbbo', 'oooooooooooooooooooooo'];
-const MAT_C: ColorMap = { o: '#5a3a1a', b: '#a8743e', y: '#e8c870' };
-const PAW = [
-  '..oo....oo..',
-  '.ohoo..ohoo.',
-  '.oooo..oooo.',
-  '..oo....oo..',
-  'oo........oo',
-  'hoo.oooo.hoo',
-  'oo.ohoooo.oo',
-  '..ohooooooo.',
-  '.oooooooooo.',
-  '.oooooooooo.',
-  '..oooooooo..',
-  '...oooooo...',
-];
-
-// Hühnerhof
-const TROUGH_WATER = ['...oo...', '..oWWo..', '.oooooo.', 'ollllllo', 'ommmmmmo', '.oooooo.'];
-const TROUGH_C: ColorMap = { o: '#4a5058', W: '#c8d0d8', l: '#7ac0f0', m: '#8a949e' };
 
 // ---------- Platzierungen ----------
 export type VisitKind = 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop' | 'scratch' | 'play' | 'scrape';
@@ -163,7 +50,7 @@ export function drawDecorFar(ctx: CanvasRenderingContext2D, scene: SceneKind) {
     if (Math.round(x * 4) % 7 === 0) rect(ctx, '#b8e2f8', x, y + 2 * P, P, P); // kleine Wellen
     rect(ctx, '#4a7a3a', x, y + 1, P, P);
   }
-  put(ctx, LOG, LOG_C, 23, 29.5);
+  PR.drawProp(ctx, PR.log(), 23, 29.5);
 }
 
 let sunflowersOff = false;
@@ -230,37 +117,37 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, _s
   sunflowersOff = winter;
   switch (species) {
     case 'fox':
-      put(ctx, FERN, FERN_C, 13.5, 35.5);
-      put(ctx, MUSH_RED, MUSH_C, 17, 38);
-      put(ctx, MUSH_BROWN, MUSH_C, 20, 38.5);
-      put(ctx, MUSH_BROWN, MUSH_C, 15.5, 39.5);
-      put(ctx, FEATHER, FEATHER_C, 36, 40);
+      PR.drawProp(ctx, PR.fern(), 13.5, 35.5);
+      PR.drawProp(ctx, PR.mushRed(), 17, 38);
+      PR.drawProp(ctx, PR.mushBrown(), 20, 38.5);
+      PR.drawProp(ctx, PR.mushBrown(), 15.5, 39.5, true);
+      PR.drawProp(ctx, PR.feather(), 36, 40);
       break;
     case 'hedgehog':
-      put(ctx, HEDGEHOG_HOUSE, HOUSE_C, 55, 22.5);
-      put(ctx, GNOME, GNOME_C, 26, 27);
-      put(ctx, CAN, CAN_C, 29.5, 30.5);
-      put(ctx, APPLE, APPLE_C, 13, 38.5);
+      PR.drawProp(ctx, PR.hedgehogHouse(), 55, 22.5);
+      PR.drawProp(ctx, PR.gnome(), 26, 27);
+      PR.drawProp(ctx, PR.wateringCan(), 29.5, 30.5);
+      PR.drawProp(ctx, PR.apple(), 13, 38.5);
       break;
     case 'cat': {
       // Wandregal mit Büchern und Katzenfigur über dem Kratzbaum
       shelf(ctx, 4, 9, ['#c0462e', '#3a6ab0', '#e8b030', '#4f8a3c', '#8a4ab0']);
-      put(ctx, ['.o.o.', 'ooooo', 'okkko', '.okko', '.ooo.'], { o: '#2a2a2e', k: '#4a4a52' }, 13, 6.5);
+      PR.drawProp(ctx, PR.catFigure(), 13, 6.5);
       // Bild einer Maus statt der Landschaft
       rect(ctx, '#6a4a28', 21, 8, 11, 8);
       rect(ctx, '#a07a4a', 21, 8, 11, P);
       rect(ctx, '#f4ead8', 22, 9, 9, 6);
-      put(ctx, MOUSE_PORTRAIT, MOUSE_PORTRAIT_C, 22.5, 9.5);
+      PR.drawProp(ctx, PR.mousePortrait(), 22.5, 9.5);
       // Spielzeug vor dem Körbchen, mit Abstand zum rechten Rand
-      put(ctx, WOOL, WOOL_C, 43, 43.5);
+      PR.drawProp(ctx, PR.wool(), 43, 43.5);
       for (let i = 0; i < 12; i++) rect(ctx, '#9a6ad8', 45.5 + i * P, 45 + Math.round(Math.sin(i / 1.6) * 1.5) * P + P, P, P);
-      put(ctx, TOYMOUSE, TOYMOUSE_C, 48.5, 44.5);
+      PR.drawProp(ctx, PR.toyMouse(), 48.5, 44.5);
       break;
     }
     case 'dog':
       // Bücherregal mit kleinem Knochen
       shelf(ctx, 4, 9, ['#3a6ab0', '#c0462e', '#4f8a3c', '#e8b030', '#6a4a8a']);
-      put(ctx, ['oo..oo', 'owoowo', '.owwo.', 'owoowo', 'oo..oo'].map((r) => r), { o: '#8a7a5e', w: '#f4ecd8' }, 12.5, 6.5);
+      PR.drawProp(ctx, PR.shelfBone(), 12.5, 6.5);
       // Pfotenbild: Goldrahmen, Passepartout, große Pfote
       rect(ctx, 'rgba(0,0,0,0.15)', 21.5, 8.5, 11, 9);
       rect(ctx, '#8a6a2a', 21, 8, 11, 9);
@@ -268,7 +155,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, _s
       rect(ctx, '#d8b058', 21, 8, P, 9);
       rect(ctx, '#f6efe0', 22, 9, 9, 7);
       rect(ctx, '#e8dcc4', 22.5, 9.5, 8, 6);
-      put(ctx, PAW, { o: '#7a4a24', h: '#a8703a' }, 23.5, 9.75);
+      PR.drawProp(ctx, PR.pawPrint(), 23.5, 9.75);
       // Hakenleiste unter dem Regal: Leine, Geschirr, Halsband mit Marke
       rect(ctx, '#6a4424', 4, 12.5, 13, 1);
       rect(ctx, '#8e6238', 4, 12.5, 13, P);
@@ -276,8 +163,8 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, _s
       rect(ctx, '#d8343a', 5.5, 14.5, P * 2, 6);
       rect(ctx, '#f06a6a', 5.5, 14.5, P, 6);
       put(ctx, ['.ooo.', 'o...o', 'o...o', '.ooo.'], { o: '#d8343a' }, 4.5, 20.5);
-      put(ctx, HARNESS, HARNESS_C, 8.25, 14.5);
-      put(ctx, COLLAR, COLLAR_C, 13, 14.5);
+      PR.drawProp(ctx, PR.harness(), 8.25, 14.5);
+      PR.drawProp(ctx, PR.collar(), 13, 14.5);
       break;
     case 'chicken': {
       // Sonnenblumen am Zaun, Sandbad-Kuhle, Tränke, Leiter, Nistkasten
@@ -287,7 +174,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, _s
           if (d < 1) rect(ctx, d < 0.5 ? '#b8923a' : '#c8a24a', x, y, P, P);
         }
       strawHeap(ctx);
-      put(ctx, TROUGH_WATER, TROUGH_C, 29, 38.5);
+      PR.drawProp(ctx, PR.trough(), 29, 38.5);
       // Leiter an der linken Stallwand
       for (const lx of [35.5, 37.5]) rect(ctx, '#7a5a34', lx, 30, P, 11);
       for (let ry = 31; ry < 41; ry += 2) rect(ctx, '#a07a4a', 35.5, ry, 2.5, P);
@@ -324,9 +211,7 @@ export function drawWeathervane(ctx: CanvasRenderingContext2D, wind: number, t =
   const turn = Math.sin(t / 900) * 0.6 + Math.sin(t / 370) * 0.25;
   const arm = 4.5 - Math.abs(turn) * 1.2;
   rect(ctx, '#3a3a3a', snapPx(x - arm / 2 + 0.25), 11, snapPx(arm), P);
-  const ROOSTER = ['.cc...dd', 'oooo.ddd', '.ooooood', '..oooo..', '...o....'];
-  const rows = wind < 0 ? ROOSTER : ROOSTER.map((r) => [...r].reverse().join(''));
-  put(ctx, rows, { o: '#2a2a2a', c: '#d8343a', d: '#2a2a2a' }, x - 1.75 + turn * 0.5, 6.5);
+  PR.drawProp(ctx, PR.vaneRooster(), x - 1.75 + turn * 0.5, 6.5, wind >= 0);
   // Pfeil zeigt dorthin, wohin der Wind weht
   rect(ctx, '#2a2a2a', wind > 0 ? x + 2 - Math.abs(turn) * 0.5 : x - 2.5 + Math.abs(turn) * 0.5, 10.5, 1, 1.5);
 }
@@ -348,25 +233,24 @@ export function drawDecorAnim(ctx: CanvasRenderingContext2D, species: string, t:
     const k = (t / 1000 / 40) % 2;
     const pos = k < 1 ? k : 2 - k;
     const flip = k >= 1;
-    const rows = flip ? SNAIL.map((r) => [...r].reverse().join('')) : SNAIL;
-    put(ctx, rows, SNAIL_C, 12 + pos * span, 39.5);
+    PR.drawProp(ctx, PR.snail(), 12 + pos * span, 39.5, flip);
   }
 }
 
 /** Fensterbank-Deko (über dem Fensterbrett gezeichnet) */
 export function drawSillDecor(ctx: CanvasRenderingContext2D, species: string, sill: { x: number; y: number; w: number }) {
   if (species !== 'cat') return;
-  put(ctx, CUSHION, CUSHION_C, sill.x + 2, sill.y - 1.5);
-  put(ctx, CATGRASS, CATGRASS_C, sill.x + sill.w - 5.5, sill.y - 4);
+  PR.drawProp(ctx, PR.cushion(), sill.x + 2, sill.y - 1.5);
+  PR.drawProp(ctx, PR.catgrass(), sill.x + sill.w - 5.5, sill.y - 4);
 }
 
 /** Vordergrund-Deko (vor dem Schlafplatz) */
 export function drawFrontDecorFor(ctx: CanvasRenderingContext2D, species: string) {
-  if (species === 'dog') put(ctx, MAT, MAT_C, 36.5, 45.5);
+  if (species === 'dog') PR.drawProp(ctx, PR.doormat(), 36.5, 45.5);
 }
 
 /** Eier im Nistkasten (Huhn) */
 export function drawNestEggs(ctx: CanvasRenderingContext2D, n: number) {
-  for (let i = 0; i < Math.min(3, n); i++) put(ctx, ['.oo.', 'owwo', '.oo.'], { o: '#c8b090', w: '#fbf6ee' }, 60.5 + i, 31.5 - (i % 2) * 0.5);
+  for (let i = 0; i < Math.min(3, n); i++) PR.drawProp(ctx, PR.nestEgg(), 60.5 + i, 31.5 - (i % 2) * 0.5);
 }
 export const NEST_BOX = { x: 59.5, y: 28.5, w: 4.5, h: 5.5 };

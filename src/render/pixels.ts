@@ -209,6 +209,18 @@ function hiresBitmap(map: string[], colors: ColorMap, flip: boolean): HTMLCanvas
   return cv;
 }
 
+/** Raster als „schon volle Dichte“ markieren (wird 1:1 gezeichnet) */
+export function markHires(map: string[]) {
+  HIRES.add(map);
+  return map;
+}
+/** Farbtabelle um Licht-/Schattenstufen und Glanzpunkt erweitern */
+export function withShades(colors: ColorMap): ColorMap {
+  const full: ColorMap = { h: '#ffffff', ...colors };
+  for (const [k, base, f] of SHADE_KEYS) if (colors[base]) full[k] = shade(colors[base], f);
+  return full;
+}
+
 /** Zeichnet ein Pixel-Sprite (Koordinaten in Spiel-Pixeln, ctx ist auf RES skaliert) */
 export function drawMap(
   ctx: CanvasRenderingContext2D,

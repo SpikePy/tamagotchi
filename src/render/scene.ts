@@ -9,6 +9,7 @@ import { Clouds, drawPrecip, drawPuddles, drawWindowDrops, weatherAt } from './w
 import { Ambient, eveningLight, nightTint, nightness, roomNight } from './ambient';
 import { remapContext, seasonOf, seasonTransform, snowCaps, type Season } from './season';
 import { drawRoomBack, drawRoomWindowFront } from './roomart';
+import * as PR from './props';
 import { NEST_BOX, STRAW_HEAP, type VisitKind, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawSunflowers, drawWeathervane } from './decor';
 
 export const SCREEN_W = 64;
@@ -19,25 +20,6 @@ const FLOOR_Y = 40;
 const BASKET_X = 37;
 const BASKET_Y = FLOOR_Y - 4; // flaches Körbchen
 const BASKET_CX = BASKET_X + 12;
-const BASKET_COLORS: ColorMap = {
-  o: '#4a2f17', // Umriss
-  b: '#e0b57a', // Flechtrand hell
-  c: '#a8743e', // Flechtrand dunkel
-  a: '#c48f55', // Geflecht
-  x: '#8a5a2b', // Weidenstäbe
-  i: '#5a3a20', // Innenschatten
-  p: '#6c8fd1', // Kissen
-};
-const BASKET_BACK = [
-  '..oobbbbbbbbbbbbbbbboo..',
-  '.oiippppppppppppppppiio.',
-];
-const BASKET_FRONT = [
-  'oobcbcbcbcbcbcbcbcbcbcoo',
-  'oxaaxaaxaaxaaxaaxaaxaaxo',
-  '.oaxaaxaaxaaxaaxaaxaaxo.',
-  '..oooooooooooooooooooo..',
-];
 const BASKET_FRONT_DY = 2; // Vorderseite beginnt unter der Rückseite
 
 // Futternapf neben der Pflanze
@@ -45,28 +27,15 @@ const BOWL_X = 17.5;
 const BOWL_Y = FLOOR_Y + 2;
 const BOWL = ['.ooooooo.', 'ohhhhhhho', '.obbbbbo.', '..ooooo..'];
 // flache Schale (Hühnerhof: Blech, Garten: blaue Keramik) – in voller Rasterauflösung
-const FLAT_DISH = ['.oooooooooooooooo.', 'ohhhhhhhhhhhhhhhho', 'obbbbbbbbbbbbbbbbo', '..oooooooooooooo..'];
 const FLAT_DISH_COLORS: Record<string, ColorMap> = {
   farm: { o: '#4a5058', h: '#c8d0d8', b: '#8a949e' },
   garden: { o: '#1e3a6a', h: '#cfe0f6', b: '#3a6ab0' },
 };
-const HEAP_LEVELS = [
-  [],
-  ['..............', '..............', '....gkgkgk....'],
-  ['..............', '....gkgkgk....', '..kgkgkgkgkg..'],
-  ['....kgkgk.....', '..gkgkgkgkgk..', '.kgkgkgkgkgkg.'],
-];
-const HEAP_COLORS: Record<'grain' | 'food' | 'candy', ColorMap> = {
+const HEAP_COLORS: Record<'grain' | 'food' | 'candy', { g: string; k: string }> = {
   grain: { g: '#e88a1c', k: '#6a3e1a' }, // Mais orange + dunkle Saat, hebt sich vom Heu ab
   food: { g: '#b07a42', k: '#7a4a24' },
   candy: { g: '#e46fb1', k: '#fff2f8' },
 };
-const FOOD_LEVELS = [
-  [], // leer
-  ['.......', '..fkf..'],
-  ['.......', '.fkfkf.'],
-  ['..fkf..', '.fkfkf.'],
-];
 const FOOD_COLORS: Record<'food' | 'candy', ColorMap> = {
   food: { f: '#8a5a2b', k: '#b07a42' },
   candy: { f: '#e46fb1', k: '#fff2f8' },
@@ -87,42 +56,14 @@ const EGG_Y = FLOOR_Y - EGG_H - 2;
 const WIN = { x: 37, y: 3, w: 22, h: 16 };
 // Kratzbaum (Katze)
 const POST_X = 6; // links im Zimmer
-const POST = [
-  '..ooooooo..',
-  '.ommmmmmmo.',
-  'ommmmmmmmmo',
-  'ooooooooooo',
-  ...Array.from({ length: 13 }, (_, i) => (i % 2 ? '...oRRRo...' : '...orrro...')),
-  '..ooooooo..',
-  '.ommmmmmmo.',
-  'ommmmmmmmmo',
-  'ooooooooooo',
-];
 const POST_COLORS: ColorMap = { o: '#4a3a30', m: '#b9a58a', r: '#d8c08e', R: '#b89a62', l: '#5a4a40', y: '#e2384d' };
 
 // Kauknochen und Socken (Hund), in voller Rasterauflösung
-const BONE = ['.oo......oo.', 'owwoooooowwo', '.owwwwwwwwo.', '.owwwwwwwso.', 'owwoooooowso', '.oo......oo.'];
-const BONE_COLORS: ColorMap = { o: '#8a7a5e', w: '#f4ecd8', s: '#cbbd9e' };
 // flach liegende Socken: Bündchen (c/C), Ringel (w), Ferse und Spitze (k), Schatten (R)
-const SOCK = [
-  '.oooooooooooooo..',
-  'occcrrwwrrwwrrrko',
-  'oCccrrwwrrwwrrkko',
-  'occcRRwwRRwwkRkko',
-  '.oooooooookkoooo.',
-  '..........oo.....',
-];
-const SOCK2 = SOCK.map((r) => [...r].reverse().join(''));
-const SOCK_RED: ColorMap = { o: '#5a1a22', r: '#d8404a', R: '#a82a36', w: '#f6f2ea', c: '#f6f2ea', C: '#d8d0c4', k: '#f6f2ea' };
-const SOCK_BLUE: ColorMap = { o: '#1a2a5a', r: '#4a6ad8', R: '#3448a8', w: '#f4d24a', c: '#f6f2ea', C: '#d8d0c4', k: '#f4d24a' };
 
 // Spielball am Kratzbaum
-const TOY_BALL = ['.rr.', 'rwrr', 'rrrr', '.rr.'];
-const TOY_COLORS: ColorMap = { r: '#e2384d', w: '#ffd0d6' };
 
 // Tennisball (Hund)
-const BALL = ['.ooo.', 'oyyso', 'oysyo', 'osyyo', '.ooo.'];
-const BALL_COLORS: ColorMap = { o: '#5a6a1a', y: '#d8e84a', s: '#f6f6e4' };
 
 // kleines Schlaf-Z in voller Rasterauflösung
 const Z_SMALL = ['www', '..w', '.w.', 'www'];
@@ -425,13 +366,13 @@ export class Scene {
 
   /** Schlafplatz hinten: Körbchen, Fuchsbau oder Laubnest */
   private nestBack(season: Season) {
-    if (this.env === 'room') drawMap(this.ctx, BASKET_BACK, BASKET_COLORS, BASKET_X, BASKET_Y);
+    if (this.env === 'room') PR.drawProp(this.ctx, PR.basketBack(), BASKET_X, BASKET_Y);
     else drawNestBack(this.ctx, this.env, season);
   }
 
   /** Vorderseite des Schlafplatzes, verdeckt den unteren Teil des Tiers */
   private nestFront() {
-    if (this.env === 'room') drawMap(this.ctx, BASKET_FRONT, BASKET_COLORS, BASKET_X, BASKET_Y + BASKET_FRONT_DY);
+    if (this.env === 'room') PR.drawProp(this.ctx, PR.basketFront(), BASKET_X, BASKET_Y + BASKET_FRONT_DY);
     else drawNestFront(this.ctx, this.env);
   }
 
@@ -473,25 +414,25 @@ export class Scene {
       return;
     }
     // Gras und Laub am Boden malen die Außenszenen selbst (outdoor.ts)
-    if (room.ball) drawMap(ctx, BALL, BALL_COLORS, 6, FLOOR_Y + 2);
-    if (room.bone) drawPixels(ctx, BONE, BONE_COLORS, 29.5, FLOOR_Y + 5);
+    if (room.ball) PR.drawProp(ctx, PR.tennisBall(), 6, FLOOR_Y + 2);
+    if (room.bone) PR.drawProp(ctx, PR.chewBone(), 29.5, FLOOR_Y + 5);
 
-    if (room.scratchingPost) drawMap(ctx, POST, POST_COLORS, POST_X, FLOOR_Y + 1 - POST.length);
+    if (room.scratchingPost) PR.drawProp(ctx, PR.scratchPost(), POST_X, FLOOR_Y + 1 - 21);
   }
 
   /** Dinge, die vor dem Schlafplatz liegen (nach dessen Vorderseite gezeichnet) */
   private drawFrontDecor(sp: SpeciesDef) {
     drawFrontDecorFor(this.ctx, sp.id);
     if (sp.room?.socks) {
-      drawPixels(this.ctx, SOCK, SOCK_RED, 46, FLOOR_Y + 3);
-      drawPixels(this.ctx, SOCK2, SOCK_BLUE, 54, FLOOR_Y + 4.5);
+      PR.drawProp(this.ctx, PR.sock(true), 46, FLOOR_Y + 3);
+      PR.drawProp(this.ctx, PR.sock(false), 54, FLOOR_Y + 4.5, true);
     }
   }
 
   /** Spielball am Kratzbaum pendelt an einer Schnur */
   private drawPostToy(t: number) {
     const ctx = this.ctx;
-    const top = FLOOR_Y + 1 - POST.length;
+    const top = FLOOR_Y + 1 - 21; // Kratzbaum ist 21 Einheiten hoch
     const kick = t - this.ballKick;
     const swing = Math.sin(t / 1100) * 0.08 + (kick >= 0 && kick < 1600 ? Math.sin(kick / 110) * 0.45 * (1 - kick / 1600) : 0); // leichtes Wackeln, beim Anstupsen stärker
     const len = 6;
@@ -505,7 +446,7 @@ export class Scene {
       const k = i / ((by - ay) * RES);
       ctx.fillRect(snapPx(ax + (bx - ax) * k), ay + i * PX, PX, PX);
     }
-    drawMap(ctx, TOY_BALL, TOY_COLORS, snapPx(bx) - 1, by);
+    PR.drawProp(ctx, PR.toyBall(), snapPx(bx) - 1, by);
   }
 
   private drawPoops(p: Pet, t: number) {
@@ -515,7 +456,7 @@ export class Scene {
       // zwischen Pflanze und Körbchen, 3 nebeneinander, dann eine zweite Reihe
       const x = 26 + (i % 3) * 4 + (Math.floor(i / 3) % 2) * 2 + (cleaning ? (this.cleaningUntil - t) / 20 : 0);
       const y = FLOOR_Y + 1 - Math.floor(i / 3) * 2 + (i % 2);
-      drawMap(ctx, ICONS.poop.map, ICONS.poop.colors, x, y);
+      PR.drawProp(ctx, PR.poop(), x, y);
       if (!cleaning) {
         // Stinkewölkchen
         ctx.fillStyle = 'rgba(110,130,70,0.8)';
@@ -537,20 +478,19 @@ export class Scene {
     }
     if (this.env === 'farm' || this.env === 'garden') {
       // flache Schale; Futter als kleiner Haufen (Huhn: Körner)
-      drawPixels(this.ctx, FLAT_DISH, FLAT_DISH_COLORS[this.env], BOWL_X, BOWL_Y + 1);
+      PR.drawProp(this.ctx, PR.flatDish(FLAT_DISH_COLORS[this.env]), BOWL_X, BOWL_Y + 1);
       if (m && level > 0) {
+        // Körner/Futter als Haufen mit dunkler Kontur, damit er sich vom Boden abhebt
         const colors = m.kind === 'candy' ? HEAP_COLORS.candy : this.env === 'farm' ? HEAP_COLORS.grain : HEAP_COLORS.food;
-        // Körner bekommen eine dunkle Kontur, damit sie vor dem Stroh gut sichtbar sind
-        if (this.env === 'farm') {
-          const dark = { g: '#3a2410', k: '#3a2410' };
-          for (const [dx, dy] of [[-0.5, 0], [0.5, 0], [0, -0.5]]) drawPixels(this.ctx, HEAP_LEVELS[level], dark, BOWL_X + 1.5 + dx, BOWL_Y - 0.5 + dy);
-        }
-        drawPixels(this.ctx, HEAP_LEVELS[level], colors, BOWL_X + 1.5, BOWL_Y - 0.5);
+        PR.drawProp(this.ctx, PR.foodHeap(level, colors, true), BOWL_X + 1, BOWL_Y - 0.25);
       }
       return;
     }
-    if (m && level > 0) drawMap(this.ctx, FOOD_LEVELS[level], FOOD_COLORS[m.kind], BOWL_X + 1, BOWL_Y - 2);
-    drawMap(this.ctx, BOWL, PLATE_COLORS[this.env], BOWL_X, BOWL_Y);
+    PR.drawProp(this.ctx, this.env === 'forest' ? PR.stonePlate() : PR.bowl(PLATE_COLORS[this.env]), BOWL_X, BOWL_Y);
+    if (m && level > 0) {
+      const fc = FOOD_COLORS[m.kind];
+      PR.drawProp(this.ctx, PR.foodHeap(level, { g: fc.f, k: fc.k }, false), BOWL_X + 1, this.env === 'forest' ? BOWL_Y - 0.5 : BOWL_Y - 0.6);
+    }
   }
 
   private drawEgg(s: GameState, p: Pet, sp: SpeciesDef, t: number) {

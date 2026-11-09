@@ -51,21 +51,21 @@ export interface RigOpts {
 // ------------------------------------------------------------------ Raster
 
 type Inside = (x: number, y: number) => boolean;
-interface Shape {
+export interface Shape {
   ins: Inside;
   box: [number, number, number, number];
 }
 
-const ell = (cx: number, cy: number, rx: number, ry: number): Shape => ({
+export const ell = (cx: number, cy: number, rx: number, ry: number): Shape => ({
   ins: (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1,
   box: [cx - rx - 1, cy - ry - 1, cx + rx + 1, cy + ry + 1],
 });
-const union = (...s: Shape[]): Shape => ({
+export const union = (...s: Shape[]): Shape => ({
   ins: (x, y) => s.some((q) => q.ins(x, y)),
   box: [Math.min(...s.map((q) => q.box[0])), Math.min(...s.map((q) => q.box[1])), Math.max(...s.map((q) => q.box[2])), Math.max(...s.map((q) => q.box[3]))],
 });
-const inter = (a: Shape, b: Shape): Shape => ({ ins: (x, y) => a.ins(x, y) && b.ins(x, y), box: a.box });
-function poly(pts: [number, number][]): Shape {
+export const inter = (a: Shape, b: Shape): Shape => ({ ins: (x, y) => a.ins(x, y) && b.ins(x, y), box: a.box });
+export function poly(pts: [number, number][]): Shape {
   return {
     ins: (x, y) => {
       let c = false;
@@ -80,7 +80,7 @@ function poly(pts: [number, number][]): Shape {
   };
 }
 /** Schlauch entlang einer Bézierkurve mit veränderlichem Radius */
-function tube(p0: [number, number], p1: [number, number], p2: [number, number], p3: [number, number], r: (t: number) => number, n = 24): Shape & { at: (x: number, y: number) => number } {
+export function tube(p0: [number, number], p1: [number, number], p2: [number, number], p3: [number, number], r: (t: number) => number, n = 24): Shape & { at: (x: number, y: number) => number } {
   const pts: [number, number, number, number][] = [];
   for (let i = 0; i <= n; i++) {
     const t = i / n;
@@ -111,15 +111,15 @@ function tube(p0: [number, number], p1: [number, number], p2: [number, number], 
     box: [Math.min(...pts.map((p) => p[0])) - maxR - 1, Math.min(...pts.map((p) => p[1])) - maxR - 1, Math.max(...pts.map((p) => p[0])) + maxR + 1, Math.max(...pts.map((p) => p[1])) + maxR + 1],
   };
 }
-const line2 = (x0: number, y0: number, x1: number, y1: number, r: number) => tube([x0, y0], [x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3], [x0 + ((x1 - x0) * 2) / 3, y0 + ((y1 - y0) * 2) / 3], [x1, y1], () => r, 8);
+export const line2 = (x0: number, y0: number, x1: number, y1: number, r: number) => tube([x0, y0], [x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3], [x0 + ((x1 - x0) * 2) / 3, y0 + ((y1 - y0) * 2) / 3], [x1, y1], () => r, 8);
 
-const hash = (x: number, y: number, s = 0) => {
+export const hash = (x: number, y: number, s = 0) => {
   let n = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(s | 0, 1013904223)) | 0;
   n = Math.imul(n ^ (n >>> 13), 1274126177);
   return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
 };
 
-class Raster {
+export class Raster {
   k: string[];
   s: Int8Array;
   constructor(
@@ -784,7 +784,7 @@ export const SHADE_KEYS: [string, string, number][] = [
   ...Object.entries(DARK).map(([b, k]) => [k, b, -0.22] as [string, string, number]),
 ];
 
-function output(r: Raster, furry: boolean): string[] {
+export function output(r: Raster, furry: boolean): string[] {
   const rows: string[] = [];
   for (let y = 0; y < r.h; y++) {
     let row = '';
