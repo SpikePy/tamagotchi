@@ -167,7 +167,18 @@ export class Critters {
     return this.seen;
   }
 
-  private frame: { layer: CritterLayer; rows: string[]; colors: ColorMap; x: number; y: number; clip?: { x: number; y: number; w: number; h: number } } | null = null;
+  /** zum Testen: ein bestimmtes Tier auf einer bestimmten Bodenlinie vorbeischicken */
+  debugSpawn(kind: Kind, lane: number, dir: 1 | -1 = 1) {
+    this.active = { env: this.env, kind, start: performance.now(), dir, y: lane };
+  }
+
+  /** Bodenlinie des Tiers, das gerade am Boden vorbeiläuft (für die Tiefensortierung), sonst null */
+  groundY(): number | null {
+    const f = this.frame;
+    return f && f.layer === 'foreground' ? f.ground : null;
+  }
+
+  private frame: { layer: CritterLayer; rows: string[]; colors: ColorMap; x: number; y: number; ground: number; clip?: { x: number; y: number; w: number; h: number } } | null = null;
   private dt = 0;
   private env: SceneKind = 'room';
 
@@ -219,7 +230,13 @@ export class Critters {
         kind,
         start: t,
         dir: Math.random() < 0.5 ? 1 : -1,
-        y: kind === 'bird' ? (env === 'room' && win ? win.y + 2 + Math.random() * (win.h - 6) : 4 + Math.random() * 10) : 0,
+        // Vögel: Flughöhe; Maus und Igel: eigene Bodenlinie (Tiefe), damit sie mal vor, mal hinter dem Haustier laufen
+        y:
+          kind === 'bird'
+            ? env === 'room' && win ? win.y + 2 + Math.random() * (win.h - 6) : 4 + Math.random() * 10
+            : kind === 'mouse' || kind === 'hedgehog'
+              ? FLOOR_Y + 1.5 + Math.random() * 5
+              : 0,
       };
     }
     const a = this.active;
@@ -255,12 +272,12 @@ export class Critters {
       }
       case 'mouse':
         x = across(k);
-        y = FLOOR_Y + 5 - hPx * PX;
+        y = a.y - hPx * PX;
         frame = Math.floor(t / 70) % 2;
         break;
       case 'hedgehog':
         x = across(k);
-        y = FLOOR_Y + 5 - hPx * PX;
+        y = a.y - hPx * PX;
         frame = Math.floor(t / 220) % 2;
         break;
       case 'bird':
@@ -280,7 +297,7 @@ export class Critters {
     const rows = a.dir < 0 ? flipRows(sp.frames[frame]) : sp.frames[frame];
     const layer: CritterLayer = inRoom ? 'window' : a.kind === 'bird' ? 'sky' : a.kind === 'deer' ? 'background' : 'foreground';
     this.flyY = y;
-    this.frame = { layer, rows, colors: sp.colors, x, y, clip: inRoom ? win : undefined };
+    this.frame = { layer, rows, colors: sp.colors, x, y, ground: y + hPx * PX, clip: inRoom ? win : undefined };
     const cx = x + w / 2;
     const visible = inRoom ? cx > win!.x && cx < win!.x + win!.w : cx > 0 && cx < W;
     if (visible) this.seen = { id: a.start, x: cx, kind: a.kind };

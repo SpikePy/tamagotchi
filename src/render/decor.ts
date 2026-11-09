@@ -229,7 +229,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       put(ctx, MUSH_RED, MUSH_C, 17, 38);
       put(ctx, MUSH_BROWN, MUSH_C, 20, 38.5);
       put(ctx, MUSH_BROWN, MUSH_C, 15.5, 39.5);
-      put(ctx, FEATHER, FEATHER_C, 36, 41.5);
+      put(ctx, FEATHER, FEATHER_C, 36, 40);
       break;
     case 'hedgehog':
       put(ctx, HEDGEHOG_HOUSE, HOUSE_C, 55, 22.5);
@@ -237,7 +237,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
       sunflower(ctx, 22, 18, sunX);
       put(ctx, GNOME, GNOME_C, 26, 27);
       put(ctx, CAN, CAN_C, 29.5, 30.5);
-      put(ctx, APPLE, APPLE_C, 12.5, 43.5);
+      put(ctx, APPLE, APPLE_C, 13, 38.5);
       break;
     case 'cat': {
       // Wandregal mit Büchern und Katzenfigur über dem Kratzbaum
@@ -286,7 +286,7 @@ export function drawDecorNear(ctx: CanvasRenderingContext2D, species: string, su
           if (d < 1) rect(ctx, d < 0.5 ? '#b8923a' : '#c8a24a', x, y, P, P);
         }
       strawHeap(ctx);
-      put(ctx, TROUGH_WATER, TROUGH_C, 29, 41.5);
+      put(ctx, TROUGH_WATER, TROUGH_C, 29, 38.5);
       // Leiter an der linken Stallwand
       for (const lx of [35.5, 37.5]) rect(ctx, '#7a5a34', lx, 30, P, 11);
       for (let ry = 31; ry < 41; ry += 2) rect(ctx, '#a07a4a', 35.5, ry, 2.5, P);
@@ -331,7 +331,7 @@ export function drawDecorAnim(ctx: CanvasRenderingContext2D, species: string, t:
     const pos = k < 1 ? k : 2 - k;
     const flip = k >= 1;
     const rows = flip ? SNAIL.map((r) => [...r].reverse().join('')) : SNAIL;
-    put(ctx, rows, SNAIL_C, 12 + pos * span, 45);
+    put(ctx, rows, SNAIL_C, 12 + pos * span, 39.5);
   }
 }
 

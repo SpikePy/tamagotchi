@@ -4,11 +4,11 @@ import { species } from '../species';
 import type { SpeciesDef } from '../species/types';
 import { ColorMap, ICONS, PX, RES, drawMap, snapPx, drawPixels, eggColors, eggMap, hiResCanvas, petSprite } from './pixels';
 import { Critters } from './critters';
-import { bands, glow, shadeHex } from './fx';
 import { COOP_PERCH_Y, DEN, GROUND_Y, PLATE_COLORS, clipToDen, SceneKind, drawNestBack, drawNestFront, drawOutdoorFar, drawOutdoorNear, drawOutdoorSky, skyState } from './outdoor';
 import { Clouds, drawPrecip, drawPuddles, drawWindowDrops, weatherAt } from './weather';
 import { Ambient, eveningLight, nightTint, nightness, roomNight } from './ambient';
-import { remapContext, seasonOf, seasonTransform, snowCaps, snowGround } from './season';
+import { remapContext, seasonOf, seasonTransform, snowCaps, type Season } from './season';
+import { drawRoomBack, drawRoomWindowFront } from './roomart';
 import { NEST_BOX, STRAW_HEAP, decorTargets, drawDecorAnim, drawDecorFar, drawDecorNear, drawFrontDecorFor, drawNestEggs, drawSillDecor, drawWeathervane } from './decor';
 
 export const SCREEN_W = 64;
@@ -85,9 +85,6 @@ const EGG_Y = FLOOR_Y - EGG_H - 2;
 
 // Fenster, Himmel, Pflanze
 const WIN = { x: 37, y: 3, w: 22, h: 16 };
-const SUNRISE = 7;
-const SUNSET = 20;
-const STARS: [number, number][] = [[2, 2], [8, 1], [15, 3], [19, 7], [4, 9], [12, 6], [17, 12], [6, 13]];
 // Kratzbaum (Katze)
 const POST_X = 6; // links im Zimmer
 const POST = [
@@ -126,24 +123,6 @@ const TOY_COLORS: ColorMap = { r: '#e2384d', w: '#ffd0d6' };
 // Tennisball (Hund)
 const BALL = ['.ooo.', 'oyyso', 'oysyo', 'osyyo', '.ooo.'];
 const BALL_COLORS: ColorMap = { o: '#5a6a1a', y: '#d8e84a', s: '#f6f6e4' };
-
-// Grasbüschel (Fuchs) und Herbstlaub (Igel)
-const TUFT = ['l.l.l', '.lgl.', 'ggggg'];
-const TUFT_COLORS: ColorMap = { l: '#8cc85a', g: '#4d9a3a' };
-const TUFTS_X = [12, 21, 29, 35, 60];
-const GRASS_DOTS: [number, number][] = [[3, 43], [9, 46], [15, 44], [24, 46], [31, 43], [40, 46], [47, 44], [55, 46], [61, 43], [19, 41], [51, 42]];
-const LEAF_SHAPES = [['.x.', 'xxx'], ['xx', '.x'], ['x.', 'xx']];
-const LEAF_COLORS = ['#d9772b', '#b8432a', '#e0b13a', '#8a5a2b', '#c95a2a'];
-const LEAVES: [number, number, number, number][] = [
-  [13, 42, 0, 0], [20, 45, 1, 1], [27, 41, 2, 2], [33, 44, 3, 0], [9, 45, 4, 1], [3, 42, 2, 2],
-  [42, 45, 0, 1], [49, 43, 1, 0], [56, 46, 2, 1], [61, 42, 3, 2], [24, 43, 4, 0], [37, 46, 1, 2], [16, 46, 3, 2],
-];
-// kleinere Blätter weiter hinten auf der Wiese (Tiefenwirkung)
-const LEAF_SMALL = [['.x', 'xx'], ['xx.', '.xx'], ['x.', 'xx']];
-const LEAVES_BACK: [number, number, number, number][] = Array.from({ length: 26 }, (_, i) => {
-  const n = (((i * 73856093) ^ (i * 7 * 19349663)) >>> 0) % 997;
-  return [((n * 7) % 126) / 2, 33.5 + ((n >> 2) % 14) / 2, n % 5, (n >> 1) % 3];
-});
 
 // kleines Schlaf-Z in voller Rasterauflösung
 const Z_SMALL = ['www', '..w', '.w.', 'www'];
@@ -184,6 +163,10 @@ export class Scene {
   }
 
   /** nur zum Testen: bestimmte Aktion sofort auslösen */
+  debugCritter(kind: string, lane: number, dir: 1 | -1 = 1) {
+    this.critters.debugSpawn(kind as never, lane, dir);
+  }
+
   debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle', visit?: 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop', target?: number) {
     const t = performance.now();
     this.act = { kind, visit, start: t, until: t + 30000, target, targetDepth: visit === 'drink' || visit === 'dustbath' ? 2.5 : visit === 'hop' ? 0 : 1, speed: 12 };
@@ -299,7 +282,7 @@ export class Scene {
       const sky = skyState(s.clock);
       const sunX = sky.day ? -5 + sky.f * 69 + 2.5 : 32;
       if (this.env === 'room') {
-        this.drawRoom(sp, s.clock);
+        this.drawRoom(sp, s.clock, season);
         this.drawDecor(sp, t, 'static');
         drawDecorNear(this.ctx, sp.id, sunX);
         this.bgDay = true;
@@ -312,14 +295,13 @@ export class Scene {
         farCtx.clearRect(0, 0, SCREEN_W, SCREEN_H);
         // Landschaft in Jahreszeiten-Farben
         const tf = seasonTransform(season);
-        drawOutdoorFar(remapContext(farCtx, tf), this.env);
+        drawOutdoorFar(farCtx, this.env, season);
         drawDecorFar(remapContext(farCtx, tf), this.env);
-        drawOutdoorNear(remapContext(this.ctx, tf), this.env);
-        if (season === 'winter') snowGround(this.ctx, GROUND_Y + 0.5);
+        drawOutdoorNear(this.ctx, this.env, season);
         this.drawDecor(sp, t, 'static');
         drawDecorNear(this.ctx, sp.id, sunX, season === 'winter');
       }
-      this.nestBack();
+      this.nestBack(season);
       if (season === 'winter' && this.env !== 'room') {
         snowCaps(this.bgFar);
         snowCaps(this.bg);
@@ -380,6 +362,11 @@ export class Scene {
     // Haufen liegen vorne: steht das Tier weiter hinten, verdecken sie es
     const poopsInFront = walking && this.depth < 1.5;
     if (!poopsInFront) this.drawPoops(p, t);
+    // Maus/Igel am Boden: nach Tiefe sortiert zwischen Haustier und Napf zeichnen
+    const critG = this.critters.groundY();
+    const petG = walking ? FLOOR_Y + this.depth + 1 : FLOOR_Y + 1; // Unterkante des Tiers
+    const bowlG = BOWL_Y + 2;
+    if (critG !== null && critG < petG) this.critters.draw(ctx, 'foreground', t);
     if (p.stage === 'egg') {
       this.drawEgg(s, p, sp, t);
       this.nestFront();
@@ -393,10 +380,11 @@ export class Scene {
       this.drawPetWalking(p, sp, t);
     }
     if (poopsInFront) this.drawPoops(p, t);
-    this.critters.draw(ctx, 'foreground', t); // Maus/Igel laufen vor dem Haustier vorbei
-
+    const critAfterPet = critG !== null && critG >= petG;
+    if (critAfterPet && critG < bowlG) this.critters.draw(ctx, 'foreground', t);
     // Napf liegt vorne auf dem Boden, also nach dem Tier zeichnen
     this.drawBowl(t);
+    if (critAfterPet && critG >= bowlG) this.critters.draw(ctx, 'foreground', t);
 
     const skyNow = skyState(s.clock);
     // Nacht: draußen das Tier nur leicht abdunkeln; drinnen zu den Rändern hin dunkler (Mitte heller)
@@ -430,9 +418,9 @@ export class Scene {
   }
 
   /** Schlafplatz hinten: Körbchen, Fuchsbau oder Laubnest */
-  private nestBack() {
+  private nestBack(season: Season) {
     if (this.env === 'room') drawMap(this.ctx, BASKET_BACK, BASKET_COLORS, BASKET_X, BASKET_Y);
-    else drawNestBack(this.ctx, this.env);
+    else drawNestBack(this.ctx, this.env, season);
   }
 
   /** Vorderseite des Schlafplatzes, verdeckt den unteren Teil des Tiers */
@@ -441,98 +429,9 @@ export class Scene {
     else drawNestFront(this.ctx, this.env);
   }
 
-  private drawRoom(sp: SpeciesDef, clock: number) {
-    const ctx = this.ctx;
-    // Wand mit leichtem Verlauf und Tapetenmuster
-    bands(ctx, 0, 0, SCREEN_W, FLOOR_Y, sp.colors.wall, shadeHex(sp.colors.wallDark, 0.3), 5);
-    // Tapete: feine Streifen (dunkle Linie mit heller Kante) und kleine Blüten-Motive
-    for (let x = 0; x < SCREEN_W; x += 8) {
-      ctx.fillStyle = sp.colors.wallDark;
-      ctx.fillRect(x, 0, PX, FLOOR_Y);
-      ctx.fillStyle = shadeHex(sp.colors.wall, 0.35);
-      ctx.fillRect(x + PX, 0, PX, FLOOR_Y);
-    }
-    ctx.globalAlpha = 0.45;
-    for (let y = 2; y < FLOOR_Y - 3; y += 4)
-      for (let x = (y / 4) % 2 ? 2 : 6; x < SCREEN_W; x += 8) {
-        // kleine Blüte: vier Blätter um eine helle Mitte
-        ctx.fillStyle = sp.colors.wallDark;
-        for (const [dx, dy] of [[0, -2], [0, 2], [-2, 0], [2, 0], [0, -1], [0, 1], [-1, 0], [1, 0]]) ctx.fillRect(x + dx * PX, y + dy * PX, PX, PX);
-        ctx.fillStyle = shadeHex(sp.colors.wall, 0.45);
-        ctx.fillRect(x, y, PX, PX);
-      }
-    ctx.globalAlpha = 1;
-    // Dielenboden: Bretter mit Fugen, Lichtkante, Maserung und Astlöchern
-    bands(ctx, 0, FLOOR_Y, SCREEN_W, SCREEN_H - FLOOR_Y, shadeHex(sp.colors.floor, -0.12), shadeHex(sp.colors.floor, 0.06), 3);
-    for (let i = 0, y = FLOOR_Y; y < SCREEN_H; y += 2.5, i++) {
-      // Maserung: kurze dunklere und hellere Striche
-      for (let x = 0; x < SCREEN_W; x += PX) {
-        const n = (((Math.round(x * 4) * 73856093) ^ ((i + 7) * 19349663)) >>> 0) % 997;
-        if (n % 9 === 0) {
-          ctx.fillStyle = 'rgba(60,30,10,0.16)';
-          ctx.fillRect(x, y + PX * (2 + (n % 6)), PX * (4 + (n % 9)), PX);
-        } else if (n % 23 === 0) {
-          ctx.fillStyle = 'rgba(255,240,210,0.14)';
-          ctx.fillRect(x, y + PX * (2 + (n % 5)), PX * (3 + (n % 6)), PX);
-        }
-      }
-      ctx.fillStyle = 'rgba(255,240,210,0.16)';
-      ctx.fillRect(0, y + PX, SCREEN_W, PX); // Lichtkante
-      ctx.fillStyle = 'rgba(0,0,0,0.22)';
-      if (i > 0) ctx.fillRect(0, y, SCREEN_W, PX); // Fuge
-      for (let x = (i * 13) % 17; x < SCREEN_W; x += 17) {
-        ctx.fillStyle = 'rgba(0,0,0,0.22)';
-        ctx.fillRect(x, y, PX, 2.5); // Stoßfuge
-        ctx.fillStyle = 'rgba(60,30,10,0.3)';
-        ctx.fillRect(x + 5 + (i % 3) * 2, y + 1, PX * 3, PX * 2); // Astloch
-      }
-    }
-    // Fußleiste mit Lichtkante und Schatten
-    ctx.fillStyle = shadeHex(sp.colors.wallDark, -0.25);
-    ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, 1.5);
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.fillRect(0, FLOOR_Y - 1.5, SCREEN_W, PX);
-    ctx.fillStyle = 'rgba(255,255,255,0.18)';
-    ctx.fillRect(0, FLOOR_Y - 1.5 + PX, SCREEN_W, PX);
-    ctx.fillStyle = 'rgba(0,0,0,0.25)';
-    ctx.fillRect(0, FLOOR_Y - PX, SCREEN_W, PX);
-    this.drawPicture(21, 8);
+  private drawRoom(sp: SpeciesDef, clock: number, season: Season) {
+    drawRoomBack(this.ctx, sp.colors, WIN, skyState(clock), season, sp.id, clock);
     this.drawRug(BOWL_X + 4.5, 44.5, 9, 2.5); // Teppich unter dem Napf
-    this.drawWindow(clock);
-  }
-
-  /** Bild an der Wand: kleine Landschaft im Holzrahmen */
-  private drawPicture(x: number, y: number) {
-    const ctx = this.ctx;
-    const P = 0.5;
-    const w = 11;
-    const h = 8;
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fillRect(x + P, y + P, w, h);
-    ctx.fillStyle = '#6a4a28';
-    ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = '#a07a4a';
-    ctx.fillRect(x, y, w, P);
-    ctx.fillRect(x, y, P, h);
-    // Landschaft
-    const ix = x + 1;
-    const iy = y + 1;
-    const iw = w - 2;
-    const ih = h - 2;
-    bands(ctx, ix, iy, iw, ih, '#8ccaf0', '#d8eef8', 3);
-    ctx.fillStyle = '#f6d23c';
-    ctx.fillRect(ix + 6.5, iy + 1, 1, 1);
-    for (let k = 0; k < iw / P; k++) {
-      const hx = ix + k * P;
-      const hy = iy + ih - 2 - snapPx(Math.sin(k / 3));
-      ctx.fillStyle = '#6aa850';
-      ctx.fillRect(hx, hy, P, iy + ih - hy);
-      ctx.fillStyle = '#86c262';
-      ctx.fillRect(hx, hy, P, P);
-    }
-    ctx.fillStyle = '#2f5a26';
-    ctx.fillRect(ix + 1.5, iy + 2.5, 1, 2);
-    ctx.fillRect(ix + 1, iy + 3, 2, 1);
   }
 
   /** ovaler Teppich mit Randmuster */
@@ -554,78 +453,9 @@ export class Scene {
       }
   }
 
-  /** Fenster: Sonne (7–20 Uhr) bzw. Mond wandern im Bogen über den Himmel */
-  private drawWindow(clock: number) {
-    const ctx = this.ctx;
-    const d = new Date(clock);
-    const h = d.getHours() + d.getMinutes() / 60;
-    const day = h >= SUNRISE && h < SUNSET;
-    // Fortschritt 0..1 über Tag bzw. Nacht
-    const f = day ? (h - SUNRISE) / (SUNSET - SUNRISE) : ((h - SUNSET + 24) % 24) / (24 - SUNSET + SUNRISE);
-    const edge = Math.min(f, 1 - f); // nahe 0 = Morgen/Abend
-
-    // Rahmen
-    ctx.fillStyle = '#5a4630';
-    ctx.fillRect(WIN.x - 1, WIN.y - 1, WIN.w + 2, WIN.h + 2);
-    ctx.fillStyle = '#7a5c3c';
-    ctx.fillRect(WIN.x - 1, WIN.y - 1, WIN.w + 2, PX * 2);
-    ctx.fillRect(WIN.x - 1, WIN.y - 1, PX * 2, WIN.h + 2);
-    ctx.fillStyle = '#3e2e1e';
-    ctx.fillRect(WIN.x - PX, WIN.y - PX, WIN.w + PX * 2, PX); // Schattenfuge innen
-    ctx.fillRect(WIN.x - PX, WIN.y - PX, PX, WIN.h + PX * 2);
-    // Himmel als Verlauf
-    const [top, bottom] = !day ? ['#0f1330', '#262c5c'] : edge < 0.08 ? ['#e98f5c', '#f8c79a'] : edge < 0.16 ? ['#9fbcd8', '#e4ecf2'] : ['#6fb8ea', '#c4e6f8'];
-    bands(ctx, WIN.x, WIN.y, WIN.w, WIN.h, top, bottom, 5);
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(WIN.x, WIN.y, WIN.w, WIN.h);
-    ctx.clip();
-    if (!day) {
-      ctx.fillStyle = '#e8e6c8';
-      for (const [sx, sy] of STARS) ctx.fillRect(WIN.x + sx, WIN.y + sy, PX, PX);
-    }
-    const icon = ICONS[day ? 'sun' : 'moon'];
-    const sx = WIN.x - 5 + f * (WIN.w + 5);
-    const sy = WIN.y + WIN.h - Math.sin(Math.PI * f) * (WIN.h - 1) - 1;
-    if (day) glow(ctx, sx + 2.5, sy + 2.5, 5, '#fff3b0');
-    drawMap(ctx, icon.map, icon.colors, sx, sy);
-    ctx.restore();
-    this.drawWindowFront();
-  }
-
-  /** Spiegelung, Fensterkreuz und Fensterbrett (liegen über Himmel und Wolken) */
+  /** Spiegelung, Fensterkreuz und Fensterbrett (liegen über Himmel, Wolken und Vogel) */
   private drawWindowFront() {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(WIN.x, WIN.y, WIN.w, WIN.h);
-    ctx.clip();
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
-    for (const [off, wd] of [[3, 2], [4.5, 1]] as [number, number][]) {
-      for (let k = 0; k < WIN.h * 4; k++) {
-        const yy = WIN.y + WIN.h - PX - k * PX;
-        const xx = WIN.x + off + Math.floor(k / 3) * PX;
-        ctx.fillRect(xx, yy, PX * wd, PX);
-      }
-    }
-    ctx.restore();
-    ctx.fillStyle = '#5a4630';
-    ctx.fillRect(WIN.x + WIN.w / 2 - 0.5, WIN.y, 1, WIN.h);
-    ctx.fillRect(WIN.x, WIN.y + WIN.h / 2 - 0.5, WIN.w, 1);
-    ctx.fillStyle = '#7a5c3c'; // Lichtkante am Fensterkreuz
-    ctx.fillRect(WIN.x + WIN.w / 2 - 0.5, WIN.y, PX, WIN.h);
-    ctx.fillRect(WIN.x, WIN.y + WIN.h / 2 - 0.5, WIN.w, PX);
-    ctx.fillStyle = '#7a5c3c';
-    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, 2);
-    ctx.fillStyle = '#9a7a54';
-    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, PX * 2);
-    ctx.fillStyle = '#b8966a';
-    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 1, WIN.w + 6, PX);
-    ctx.fillStyle = '#5a4630';
-    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 3 - PX, WIN.w + 6, PX);
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fillRect(WIN.x - 3, WIN.y + WIN.h + 3, WIN.w + 6, PX * 2);
+    drawRoomWindowFront(this.ctx, WIN);
   }
 
   /** Deko passend zur Tierart: Gras, Laub, Kratzbaum */
@@ -636,15 +466,7 @@ export class Scene {
       if (room.scratchingPost) this.drawPostToy(t);
       return;
     }
-    if (room.floor === 'grass') {
-      ctx.fillStyle = '#6aa84a';
-      for (const [x, y] of GRASS_DOTS) ctx.fillRect(x, y, 1, 1);
-      for (const x of TUFTS_X) drawMap(ctx, TUFT, TUFT_COLORS, x, FLOOR_Y - 2);
-    }
-    if (room.floor === 'leaves') {
-      for (const [x, y, c, shape] of LEAVES_BACK) drawPixels(ctx, LEAF_SMALL[shape], { x: LEAF_COLORS[c] }, x, y);
-      for (const [x, y, c, shape] of LEAVES) drawMap(ctx, LEAF_SHAPES[shape], { x: LEAF_COLORS[c] }, x, y);
-    }
+    // Gras und Laub am Boden malen die Außenszenen selbst (outdoor.ts)
     if (room.ball) drawMap(ctx, BALL, BALL_COLORS, 6, FLOOR_Y + 2);
     if (room.bone) drawPixels(ctx, BONE, BONE_COLORS, 29.5, FLOOR_Y + 5);
 

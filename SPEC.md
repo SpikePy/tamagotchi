@@ -238,15 +238,13 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 
 **Grafikstil:** Echter, scharfer **Pixel-Look** in hoher Pixeldichte. Das Spielbild hat **256 × 192 Pixel** (4 Bildpixel je Einheit des 64 × 48-Spielrasters) und wird ohne Weichzeichnen hochskaliert.
 - **Tiere und Objekte** werden in vierfacher Dichte gezeichnet: Rundungen und Schrägen sind geglättet, der Umriss ist nur **1 Pixel** dünn und in einer abgedunkelten Tönung der angrenzenden Farbe (oben links etwas heller). Licht oben links und Schatten unten rechts sind zweistufig, Fell und Gefieder haben eine feine Strich-Struktur, die Augen einen Glanzpunkt.
-- **Hintergründe** nutzen das feine Raster voll: Gras mit einzelnen Halmen, Laub- und Nadeltexturen, Rindenfurchen, Strohhalme, Schnee, Holzmaserung und Astlöcher im Dielenboden, Tapete mit kleinen Blüten, Fensterrahmen mit Licht- und Schattenkanten, gewebter Teppich.
+- **Hintergründe sind von Grund auf neu und direkt im 256 × 192-Raster gemalt** (nicht hochskaliert). Verläufe haben sichtbare Farbstufen mit geordnetem Dithering an den Übergängen; Laub, Wiesen und Felsen entstehen aus Rauschen, Licht fällt von oben links. Jede Szene passt sich der **Jahreszeit** an (Laubfarben, Blüten, Schnee, kahle Bäume).
+  - **Himmel:** Farbverlauf je Tageszeit, Sterne (helle mit kleinem Kreuz), Sonne mit Lichthof und hellem Rand bzw. Mond mit Kratern.
+  - **Wald (Fuchs):** zwei Bergketten hintereinander (hinten mit Schneegipfeln, Felsrippen und Dunst, davor bewaldet), zwei Bänder aus kleinen Tannen-Silhouetten, zwei Hügel mit Tannen, Wiese mit einzelnen Halmen und Blümchen, große Tannen mit hängenden Astetagen und Nadelstruktur, Beerenbusch, Kieselsteine, ausgetretene Erde vor dem Bau. Der Baumstamm hat Borkenplatten, Querrisse, Moos, zwei Astknoten und einen Aststummel mit Jahresring-Schnittfläche. Die Höhle hat eine helle Lippe oben, ein Inneres mit Tiefe und Laub. Davor kriechen Wurzeln über den Boden.
+  - **Garten (Igel):** drei Laubbäume (im Winter kahl mit verzweigten Ästen, im Frühling mit Blüten), Hecke aus runden Sträuchern, Lattenzaun mit Spitzen, Maserung, Astlöchern, zwei Querriegeln und Nägeln, Rasen mit Mähstreifen, Tulpen, Beerenbusch und Laub auf der Wiese (hinten klein, vorne groß). Das Laubnest besteht aus Hunderten einzelner Blätter mit Mulde.
+  - **Hühnerhof (Huhn):** ferne Felder als Flickenteppich mit Saatreihen und Hecken, eine kleine rote Scheune und Bäumchen, davor ein Koppelzaun mit leicht durchhängenden Balken. Der Boden ist Erde mit Hunderten Strohhalmen. Der Stall hat Bretterwände mit Nägeln, Eckpfosten, ein Ziegeldach mit Lichtkante und First, eine weiße Traufe, eine Tür mit heller Einfassung und ein warm leuchtendes Fenster.
+  - **Zimmer (Katze, Hund):** Streifentapete mit Ornamenten, Stuhlleiste, **Wandvertäfelung** mit Füllungen, Fußleiste, Dielenboden aus einzelnen Brettern (Fugen, Lichtkante, Maserung, Astlöcher). Das Fenster hat einen profilierten Rahmen, einen **Ausblick** auf Hügel und Bäume (je nach Jahreszeit und Tageszeit) und ein Fensterbrett. Daneben hängen **Vorhänge** mit Falten und goldenem Raffhalter an einer Stange (Katze rot, Hund blau).
 - Kleine Pixel-Grafiken (Deko) werden beim Zeichnen auf die volle Dichte verfeinert; Regen, Schneeflocken, Sterne, Glühwürmchen und Fäden sind 1 Pixel fein.
-- Die Sprites werden einmal mit Scale2x verfeinert, dabei werden Treppen an Schrägen abgerundet. Die Umrisse bleiben **1 Pixel dünn**, dazu kommt eine 1-Pixel-Schattierung (Licht oben links, Schatten unten rechts).
-- Alle Hintergrund-Details liegen auf demselben Pixelraster:
-  - Himmel und Wand mit **Farbstufen** statt weichem Verlauf
-  - Wolken und Sonnenschein aus Pixeln
-  - Tapetenmuster, Fußleiste, Dielen
-  - Fensterspiegelung als Pixel-Diagonalen
-  - Grashalme, Zaunmaserung
 - Die Tiere bewegen sich in halben Schritten.
 
 **Deko je Gehege (zusätzlich):**
@@ -290,13 +288,13 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   1. Himmel mit Sonne/Mond
   2. Wolken
   3. Vögel
-  4. ferne Landschaft (Berge, Waldsaum, Hügel bzw. Hecke und Zaun)
+  4. ferne Landschaft (Berge, Waldsaum, Hügel bzw. Bäume, Hecke und Zaun bzw. Felder und Koppelzaun)
   5. Reh
   6. nahe Landschaft (Wiese, große Tannen, Busch, Baum bzw. Laubhaufen)
   7. wehende Blätter
   8. Haustier
-  9. Maus und Igel ganz vorne
-  10. Napf
+  9. Maus und Igel am Boden: **nach Tiefe sortiert**. Jedes vorbeilaufende Tier bekommt eine zufällige Bodenlinie. Liegt sie hinter dem Haustier, läuft es hinter ihm vorbei, sonst davor; genauso vor oder hinter dem Napf. Flache Deko (Feder, Apfel, Tränke, Schnecke) liegt hinter der Laufzone, damit nichts falsch überdeckt wird.
+  10. Napf (Maus/Igel davor oder dahinter, je nach Bodenlinie)
 - **Drinnen:** Im Fenster liegen Himmel, Wolken und Vogel **hinter** Fensterkreuz und Spiegelung.
 
 **Atmosphäre:**
