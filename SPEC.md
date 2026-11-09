@@ -9,7 +9,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 ## 2. Grundprinzipien
 
 - **Echtzeit:** Die Zeit im Spiel läuft genauso schnell wie die echte Zeit. Ein Tag im Spiel ist ein echter Tag.
-- **Läuft weiter, wenn die App zu ist** (ergänzt): Ist die App geschlossen, läuft die Zeit trotzdem weiter. Beim nächsten Öffnen wird alles nachberechnet, was in der Zwischenzeit passiert ist (Hunger, Kacke, Krankheit usw.).
+- **Läuft weiter, wenn die App zu ist** (ergänzt): Ist die App geschlossen, läuft die Zeit trotzdem weiter. Beim nächsten Öffnen wird alles nachberechnet, was in der Zwischenzeit passiert ist (Hunger, Häufchen, Krankheit usw.).
 - **Alles über die UI:** Jede Pflegeaktion löst der Spieler selbst über die Oberfläche aus. Nichts passiert automatisch zugunsten des Tiers.
 - **Mehrere Tiere:** Man kann bis zu **5 Tiere** gleichzeitig haben. Alle leben parallel in Echtzeit, auch wenn sie gerade nicht angezeigt werden. Über eine **Leiste oben** schaltet man zwischen ihnen um. Jedes Tier hat dort ein Mini-Bild und seinen Namen; ein roter Punkt zeigt, dass es ruft, ein „z“, dass es schläft. Mit „+“ legt man ein neues Ei an. Die Tiere lassen sich in der Leiste per **Drag & Drop umsortieren** (mit Maus oder Finger ziehen). Ein normaler Tipp schaltet weiter um. Ruft ein Tier, das gerade nicht angezeigt wird, piept es, und unten erscheint eine Meldung mit seinem Namen. Stirbt ein Tier oder zieht in den Wald, geht es mit den übrigen weiter.
 
@@ -170,7 +170,13 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 - **Tippt oder klickt man auf das Tier**, wird es gestreichelt.
 - Es **bleibt stehen**, schließt genießerisch die Augen, **wiegt sich** leicht hin und her, und **Herzchen** steigen auf und driften dabei zufällig nach links oder rechts.
-- Unten erscheint eine passende Meldung: Die Katze „schnurrt“, der Hund „wedelt mit dem Schwanz“, der Fuchs „kuschelt sich an deine Hand“, der Igel „legt die Stacheln an“, das Huhn „gluckst zufrieden“.
+- Unten erscheint eine passende Meldung. Je Tierart gibt es **8 verschiedene Texte**, die zufällig wechseln, nie zweimal hintereinander derselbe (ergänzt), z. B.:
+  - Katze: „schnurrt wie ein kleiner Motor“, „tretelt zufrieden mit den Pfoten“, „blinzelt dir langsam zu – ein Katzenkuss“.
+  - Hund: „wedelt wie wild mit dem Schwanz“, „legt sich auf den Rücken: Bauch kraulen, bitte!“, „seufzt glücklich“.
+  - Fuchs: „kuschelt sich an deine Hand“, „wickelt den buschigen Schwanz um dich“, „keckert vergnügt“.
+  - Igel: „legt die Stacheln ganz flach an“, „schnuffelt an deinen Fingern“, „quiekt leise vor Freude“.
+  - Huhn: „gluckst zufrieden“, „plustert sich wohlig auf“, „legt den Kopf schief und schaut dich an“.
+- **Meldungen** (ergänzt): Texte nennen das Tier beim Namen statt „Es“ und sind freundlich formuliert. Statt „gekackt“ heißt es „hat ein Häufchen gemacht – bitte aufräumen!“.
 - Streicheln gibt **+25 % Laune**, aber höchstens **einmal pro Minute**. Öfter streicheln geht, bringt aber keine zusätzliche Laune.
 - **Schlafende Tiere** lassen sich nicht streicheln (keine Herzen). Tippt man trotzdem, kommen Hinweise, die sich steigern („Psst …“, „grummelt im Schlaf“, „dreht sich unruhig um“, „Noch einmal und … wacht auf!“). Beim **5. Antippen innerhalb von 15 Sekunden wacht das Tier auf**, mit den üblichen Folgen des zu frühen Weckens (−50 % Laune).
 
@@ -191,7 +197,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 ### 6.7 Rufen und Benachrichtigungen (ergänzt)
 
-- Das Tier ruft, sobald es etwas braucht: Hunger oder Laune auf 0, Müdigkeit, Krankheit, Kacke oder ein Ruf ohne Grund.
+- Das Tier ruft, sobald es etwas braucht: Hunger oder Laune auf 0, Müdigkeit, Krankheit, ein Häufchen oder ein Ruf ohne Grund.
 - Ein Rufsymbol zeigt das in der App an. Ist die App geschlossen, kommt eine Push-Benachrichtigung.
 - Kümmert man sich nicht innerhalb von **15 Minuten** um einen Ruf (Vorschlag), zählt das als **Pflegefehler**.
 
@@ -199,7 +205,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 **Das Tier wird krank, wenn:**
 - es zu lange hungrig ist (6.1),
-- eine Kacke länger als 4 Stunden liegt (6.3),
+- ein Häufchen länger als 4 Stunden liegt (6.3),
 - es dauerhaft zu wenig Schlaf bekommt (6.2),
 - es übergewichtig ist (Zufallschance).
 
@@ -263,7 +269,7 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - **Zimmer:** geflochtenes Körbchen (versetzte Flechtbänder über Weidenstäben, geflochtener Rand, Kissen), bauchiger Futternapf mit hellem Rand, Kratzbaum mit Teppich-Plattformen und umwickeltem Sisalstamm, Spielkugel, Tennisball mit Naht, Kauknochen, flach liegende Ringelsocken, Fußmatte mit Pfotenabdrücken, Fensterkissen, Katzengras im Tontopf, Wollknäuel, Spielmaus, Mausbild, Katzenfigur, Pfotenbild, Geschirr und Halsband mit Marke, Knochen im Regal.
   - **Draußen:** Fliegenpilz und brauner Pilz, Farn mit Fiederblättchen, Feder, bemooster Baumstamm mit Jahresringen, Igelhaus mit Grasdach, Gartenzwerg, Gießkanne, Apfel, Schnecke mit Spiralhaus, Tränke aus Blech, Eier im Nistkasten, flacher Stein bzw. flache Schale als Futterstelle.
   - **Wetterhahn** als Silhouette mit Sichelschwanz, rotem Kamm und Schnabel.
-  - **Futter** liegt als Haufen in Napf bzw. Schale (Körner beim Huhn mit dunkler Kontur), der beim Fressen in drei Stufen kleiner wird; **Kackhaufen** als geschichtetes Häufchen.
+  - **Futter** liegt als Haufen in Napf bzw. Schale (Körner beim Huhn mit dunkler Kontur), der beim Fressen in drei Stufen kleiner wird; **Häufchen** geschichtet.
 - Regen, Schneeflocken, Sterne, Glühwürmchen und Fäden sind 1 Pixel fein.
 - Die Tiere bewegen sich in halben Schritten.
 

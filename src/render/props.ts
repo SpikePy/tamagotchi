@@ -423,7 +423,7 @@ export const tennisBall = () =>
       }
     }),
   );
-/** Kackhaufen (6 × 5) */
+/** Häufchen (6 × 5) */
 export const poop = () =>
   prop('poop', () =>
     make(6, 5, { o: '#2a180a', a: '#7a4a1e', b: '#9a6430' }, (r, W, H) => {

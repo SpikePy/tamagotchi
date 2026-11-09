@@ -32,22 +32,76 @@ import { GAME_IDS, GameId, runGame } from './games';
 
 const STAGE_LABEL = { egg: 'Ei', baby: 'Baby', child: 'Kind', teen: 'Teenager', adult: 'Erwachsen' } as const;
 
-const STROKE_TEXT: Record<string, string> = {
-  cat: 'schnurrt',
-  dog: 'wedelt mit dem Schwanz',
-  fox: 'kuschelt sich an deine Hand',
-  hedgehog: 'legt die Stacheln an',
-  chicken: 'gluckst zufrieden',
+/** Was das Tier beim Streicheln tut; zufällig gewählt, nie zweimal hintereinander dasselbe */
+const STROKE_TEXT: Record<string, string[]> = {
+  cat: [
+    'schnurrt wie ein kleiner Motor',
+    'reibt den Kopf an deiner Hand',
+    'macht genüsslich die Augen zu',
+    'tretelt zufrieden mit den Pfoten',
+    'streckt dir den Bauch hin – aber Vorsicht!',
+    'schmiegt sich an dich',
+    'blinzelt dir langsam zu – ein Katzenkuss',
+    'stellt den Schwanz steil auf vor Freude',
+  ],
+  dog: [
+    'wedelt wie wild mit dem Schwanz',
+    'schleckt dir über die Hand',
+    'legt sich auf den Rücken: Bauch kraulen, bitte!',
+    'lehnt sich ganz fest an dich',
+    'schaut dich mit großen Augen an',
+    'klopft mit dem Schwanz auf den Boden',
+    'stupst dich mit der Nase an: mehr!',
+    'seufzt glücklich',
+  ],
+  fox: [
+    'kuschelt sich an deine Hand',
+    'schnurrt leise – ja, Füchse können das',
+    'wickelt den buschigen Schwanz um dich',
+    'legt die Ohren zufrieden an',
+    'gähnt und blinzelt dich an',
+    'stupst dich mit der kalten Schnauze an',
+    'keckert vergnügt',
+    'macht sich ganz lang zum Kraulen',
+  ],
+  hedgehog: [
+    'legt die Stacheln ganz flach an',
+    'schnuffelt an deinen Fingern',
+    'quiekt leise vor Freude',
+    'blinzelt dich mit Knopfaugen an',
+    'schnauft zufrieden',
+    'rollt sich ein bisschen ein – vor lauter Wohlgefühl',
+    'kitzelt dich mit der Nasenspitze',
+    'putzt sich das Näschen',
+  ],
+  chicken: [
+    'gluckst zufrieden',
+    'plustert sich wohlig auf',
+    'kuschelt sich in deine Hand',
+    'gurrt leise',
+    'legt den Kopf schief und schaut dich an',
+    'pickt dir sanft auf den Finger',
+    'schüttelt sich die Federn zurecht',
+    'macht die Äuglein zu und genießt',
+  ],
 };
+let lastStroke = -1;
+function strokeText(speciesId: string): string {
+  const list = STROKE_TEXT[speciesId] ?? ['genießt das Streicheln'];
+  let i = Math.floor(Math.random() * list.length);
+  if (list.length > 1 && i === lastStroke) i = (i + 1) % list.length;
+  lastStroke = i;
+  return list[i];
+}
 
 const CALL_TEXT: Record<CallType, string> = {
-  hunger: 'hat Hunger!',
-  happy: 'ist traurig und will spielen!',
-  poop: 'hat gekackt – bitte sauber machen!',
-  sick: 'ist krank und braucht Medizin!',
-  sleepy: 'ist müde.',
-  light: 'schläft – mach das Licht aus!',
-  fake: 'ruft nach dir …',
+  hunger: 'hat Hunger – Zeit fürs Essen!',
+  happy: 'ist traurig und möchte mit dir spielen!',
+  poop: 'hat ein Häufchen gemacht – bitte aufräumen!',
+  sick: 'fühlt sich krank und braucht Medizin!',
+  sleepy: 'ist müde und reibt sich die Augen.',
+  light: 'schläft – bitte das Licht ausmachen!',
+  fake: 'ruft nach dir … braucht es wirklich etwas?',
 };
 
 export function stageName(p: { species: string; stage: Pet['stage']; variant: Pet['variant']; look?: Pet['look'] }): string {
@@ -232,10 +286,10 @@ export class App {
           }
           break;
         case 'sick':
-          if (!quiet) this.say(isActive ? 'Oh nein, es ist krank geworden!' : `Oh nein, ${name} ist krank geworden!`);
+          if (!quiet) this.say(`Oh nein, ${name} ist krank geworden!`);
           break;
         case 'woke':
-          if (!quiet && isActive) this.say('Guten Morgen! Es hat Hunger.');
+          if (!quiet && isActive) this.say(`Guten Morgen! ${name} ist aufgewacht und hat Hunger.`);
           break;
         case 'ended':
           break;
@@ -397,7 +451,7 @@ export class App {
     if (p.stage === 'egg') return 'Gleich schlüpft es …';
     const calls = Object.keys(p.calls) as CallType[];
     if (calls.length) return `${petName(p)} ${CALL_TEXT[calls[0]]}`;
-    if (p.asleep) return p.lightOn ? 'Psst … es schläft (Licht ist noch an).' : 'Psst … es schläft.';
+    if (p.asleep) return p.lightOn ? `Psst … ${petName(p)} schläft (das Licht ist noch an).` : `Psst … ${petName(p)} schläft.`;
     return `${petName(p)} · ${Math.floor(ageDays(p, this.s.clock))} Tage alt`;
   }
 
@@ -407,13 +461,19 @@ export class App {
     this.msgUntil = performance.now() + 6000;
   }
 
+  /** {n} in Meldungen durch den Namen des Tiers ersetzen */
+  private named(text: string) {
+    const p = this.pet;
+    return text.replaceAll('{n}', p && p.stage !== 'egg' ? petName(p) : 'Es');
+  }
+
   private say(text: string) {
     this.msgEl.textContent = text;
     this.msgUntil = performance.now() + 3500;
   }
 
   private act(r: ActionResult, fx?: Parameters<Scene['effect']>[0]) {
-    this.say(r.msg);
+    this.say(this.named(r.msg));
     if (r.ok) {
       if (fx) this.scene.effect(fx);
       beep.ok();
@@ -451,7 +511,7 @@ export class App {
     if (!r.ok) return;
     this.scene.stroke();
     beep.click();
-    this.say(`${petName(p)} ${STROKE_TEXT[p.species] ?? 'genießt das Streicheln'}. ❤`);
+    this.say(`${petName(p)} ${strokeText(p.species)}. ❤`);
     this.refresh();
     save(this.s);
   }
@@ -501,7 +561,7 @@ export class App {
       won ? beep.win() : beep.lose();
       body.replaceChildren(
         h('p', { class: 'result' }, won ? '🎉 Gewonnen!' : '😅 Verloren'),
-        h('p', {}, r.msg),
+        h('p', {}, this.named(r.msg)),
         btn('Nochmal', () => {
           const c = canPlay(this.s);
           c.ok ? this.startGame(id) : (this.closeSheet(), this.act(c));

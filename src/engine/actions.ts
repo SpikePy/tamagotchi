@@ -62,26 +62,26 @@ const FULL_EPS = 0.05;
 export function feedMeal(s: GameState, rng: Rng = Math.random): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
-  if (p.asleep) return no('Es schläft.');
-  if (p.calls.fake) return no('Es dreht trotzig den Kopf weg.');
+  if (p.asleep) return no('Psst … {n} schläft gerade.');
+  if (p.calls.fake) return no('{n} dreht trotzig den Kopf weg.');
   // satt erst, wenn die Leiste (fast) voll ist – die Leiste ist stufenlos
-  if (p.hunger >= RULES.hearts - FULL_EPS) return no('Es ist satt.');
-  if (p.sick && rng() < 0.5) return no('Es hat keinen Appetit.');
+  if (p.hunger >= RULES.hearts - FULL_EPS) return no('{n} ist pappsatt – vielleicht später.');
+  if (p.sick && rng() < 0.5) return no('{n} hat gerade keinen Appetit.');
   p.hunger = Math.min(RULES.hearts, p.hunger + 1);
   p.weight += 1;
-  return yes('Mampf! Lecker.');
+  return yes('Mampf! {n} lässt es sich schmecken.');
 }
 
 export function feedSnack(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
-  if (p.asleep) return no('Es schläft.');
-  if (p.calls.fake) return no('Es dreht trotzig den Kopf weg.');
+  if (p.asleep) return no('Psst … {n} schläft gerade.');
+  if (p.calls.fake) return no('{n} dreht trotzig den Kopf weg.');
   p.happy = Math.min(RULES.hearts, p.happy + 1);
   p.weight += 2;
   p.snacksToday++;
-  if (p.snacksToday > RULES.snackLimitPerDay) return yes('Mmh! Aber das sind zu viele Snacks heute …');
-  return yes('Mmh, ein Snack!');
+  if (p.snacksToday > RULES.snackLimitPerDay) return yes('Mmh! Aber das waren heute schon viele Leckerlis …');
+  return yes('Mmh, ein Leckerli! {n} freut sich.');
 }
 
 /** Licht-Knopf: wach -> schlafen schicken; schläft mit Licht -> Licht aus. */
@@ -89,7 +89,7 @@ export function lightButton(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
   if (!p.asleep) {
-    if (p.tiredness < RULES.minTirednessToSleep) return no('Es ist noch nicht müde.');
+    if (p.tiredness < RULES.minTirednessToSleep) return no('{n} ist noch gar nicht müde.');
     fallAsleep(p, true, s.clock, []);
     return yes('Licht aus. Gute Nacht!');
   }
@@ -98,34 +98,34 @@ export function lightButton(s: GameState): ActionResult {
     delete p.calls.light;
     return yes('Licht aus. Schlaf gut!');
   }
-  return no('Es schläft schon.');
+  return no('{n} schläft schon.');
 }
 
 export function wakeUp(s: GameState, rng: Rng = Math.random): ActionResult {
   const p = hatchedPet(s);
-  if (!p || !p.asleep) return no('Es ist wach.');
+  if (!p || !p.asleep) return no('{n} ist doch wach.');
   const events: SimEvent[] = [];
   wake(p, false, s.clock, rng, events);
-  return yes('Aufgeweckt. Es ist richtig schlecht gelaunt!', events);
+  return yes('Aufgeweckt – {n} ist richtig schlecht gelaunt!', events);
 }
 
 export function giveMedicine(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
-  if (p.asleep) return no('Es schläft.');
+  if (p.asleep) return no('Psst … {n} schläft gerade.');
   if (!p.sick) {
     // unnötige Medizin: Pflegefehler und schlechte Laune
     careMistake(p);
     p.happy = Math.max(0, p.happy - 1);
     addLog(p, s.clock, 'Unnötig Medizin bekommen.');
-    return no('Bäh! Es war doch gar nicht krank. Pflegefehler!');
+    return no('Bäh! {n} war doch gar nicht krank. Pflegefehler!');
   }
   p.sick.doses--;
-  if (p.sick.doses > 0) return yes('Bäh! Noch eine Dosis nötig.');
+  if (p.sick.doses > 0) return yes('Bäh! Noch eine Dosis, dann geht es {n} besser.');
   p.sick = null;
   delete p.calls.sick;
   addLog(p, s.clock, 'Wieder gesund.');
-  return yes('Wieder gesund!');
+  return yes('{n} ist wieder gesund!');
 }
 
 export function clean(s: GameState): ActionResult {
@@ -134,29 +134,29 @@ export function clean(s: GameState): ActionResult {
   if (p.poops.length === 0) return no('Schon alles sauber.');
   p.poops = [];
   delete p.calls.poop;
-  return yes('Blitzblank!');
+  return yes('Alles weggeräumt – blitzblank!');
 }
 
 export function scold(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
-  if (p.asleep) return no('Es schläft.');
+  if (p.asleep) return no('Psst … {n} schläft gerade.');
   if (p.calls.fake) {
     delete p.calls.fake;
     p.discipline = Math.min(100, p.discipline + RULES.disciplinePerScold);
-    return yes('Es schaut betreten. Disziplin +25 %.');
+    return yes('{n} schaut betreten. Disziplin +25 %.');
   }
   p.happy = Math.max(0, p.happy - 1);
-  return no('Es hat doch nichts gemacht! Es ist traurig.');
+  return no('{n} hat doch gar nichts angestellt! Jetzt ist es traurig.');
 }
 
 /** Prüft, ob gespielt werden darf. */
 export function canPlay(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
-  if (p.asleep) return no('Es schläft.');
-  if (p.sick) return no('Es ist krank und mag nicht spielen.');
-  if (p.calls.fake) return no('Es hat keine Lust (trotzig).');
+  if (p.asleep) return no('Psst … {n} schläft gerade.');
+  if (p.sick) return no('{n} ist krank und mag nicht spielen.');
+  if (p.calls.fake) return no('{n} hat gerade keine Lust (trotzig).');
   return yes('');
 }
 
@@ -167,14 +167,14 @@ export function finishGame(s: GameState, won: boolean): ActionResult {
   p.tiredness = Math.min(100, p.tiredness + 3);
   // Spielen macht immer Spaß: +1 Laune, egal ob gewonnen oder verloren
   p.happy = Math.min(RULES.hearts, p.happy + 1);
-  return yes(won ? 'Gewonnen! Das hat Spaß gemacht.' : 'Verloren … aber es hatte trotzdem Spaß.');
+  return yes(won ? 'Gewonnen! Das hat {n} Spaß gemacht.' : 'Verloren … aber {n} hatte trotzdem Spaß.');
 }
 
 /** Streicheln: Laune +25 %, höchstens einmal pro Spielminute; schlafende Tiere nicht */
 export function stroke(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('');
-  if (p.asleep) return no('Psst … es schläft.');
+  if (p.asleep) return no('Psst … {n} schläft.');
   const gain = p.lastStrokedAt !== s.clock;
   p.lastStrokedAt = s.clock;
   if (gain) {
