@@ -847,5 +847,5 @@ function visitDepth(v?: VisitKind): number {
 export function moodOf(p: Pet): Mood {
   if (p.sick) return 'sick';
   const h = hearts(p.happy);
-  return h >= 4 ? 'joy' : h >= 2 ? 'ok' : h === 1 ? 'sad' : 'down';
+  return h >= 3 ? 'joy' : h === 2 ? 'ok' : h === 1 ? 'sad' : 'down';
 }

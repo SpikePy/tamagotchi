@@ -178,7 +178,7 @@ export class Raster {
 // ------------------------------------------------------------------ Gesichts-Teile
 
 function eye(r: Raster, cx: number, cy: number, ry: number, o: RigOpts, iris = false, mirror = false, outer = mirror ? 1 : -1) {
-  const rx = Math.max(1.5, ry * 0.62);
+  const rx = Math.max(1.5, ry * 0.72);
   const g = Math.round(o.gaze ?? 0);
   const mood = o.mood ?? 'ok';
   const glum = mood === 'sad' || mood === 'down';
@@ -248,9 +248,12 @@ function mouth(r: Raster, x: number, y: number, w: number, mood: Mood = 'ok', si
     if (!side) r.dot(x, y, 'o');
     for (let dx = -hw; dx <= hw; dx++) r.dot(x + dx, y + 1 + ((dx + hw) % 2), 'o');
   } else {
+    // zufriedenes Lächeln (ω): Mitte unten, Mundwinkel nach oben
     if (!side) r.dot(x, y, 'o');
-    r.dot(x - 1, y + 1, 'o');
-    r.dot(x + 1, y + 1, 'o');
+    const hw2 = Math.max(2, hw);
+    r.dot(x - hw2, y + 1, 'o');
+    r.dot(x + hw2, y + 1, 'o');
+    for (let dx = -hw2 + 1; dx <= hw2 - 1; dx++) r.dot(x + dx, y + 2, 'o');
   }
 }
 
@@ -469,7 +472,7 @@ function hog(r: Raster, stage: Exclude<Stage, 'egg'>, o: RigOpts) {
   for (const s of [-1, 1]) r.fill(ell(cx + s * fw * 0.36, fy + fh * 0.14, 2.4, 1.3), 'p', { line: false, flat: true });
   r.fill(ell(cx, fy + fh * 0.16, 2.6, 1.8), 'n', { line: false, flat: true });
   r.dot(cx - 1, fy + fh * 0.16 - 1, 'h');
-  if (o.mood && o.mood !== 'ok') mouth(r, cx, fy + fh * 0.16 + 2, 1.6, o.mood, true);
+  mouth(r, cx, fy + fh * 0.16 + 1.5, 1.6, o.mood, true);
 }
 
 // ------------------------------------------------------------------ Huhn (Seitenansicht, Kopf links)

@@ -41,8 +41,8 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - Die Symbole sitzen auf dunklen runden Plaketten, damit sie gut erkennbar sind.
 - 🍽️ **Sättigung** (orange, Besteck mit Teller), 💤 **Müdigkeit** (lila; füllt sich, je müder das Tier ist), **Laune** (gelb) mit einem Gesicht passend zur Stimmung: 😄 / 🙂 / 😟.
 - **Mimik des Tiers** (ergänzt): Das Gesicht zeigt den Zustand.
-  - **Laune voll (4 Herzen) und beim Streicheln:** strahlend. Offenes Lachen mit Zunge, rosige Wangen, zweiter Glanzpunkt im Auge, beim Blinzeln/Streicheln fröhlich gebogene Augen (^ ^).
-  - **2–3 Herzen:** zufrieden (normales Gesicht).
+  - **Ab 3 Herzen und beim Streicheln:** strahlend. Offenes Lachen mit Zunge, rosige Wangen, zweiter Glanzpunkt im Auge, beim Blinzeln/Streicheln fröhlich gebogene Augen (^ ^).
+  - **2 Herzen:** zufrieden, mit sichtbarem Lächeln und runden, glänzenden Augen (das Standardgesicht wirkt freundlich, nicht traurig).
   - **1 Herz:** traurig. Hängende Oberlider, innen hochgezogene Brauen, Mundwinkel nach unten.
   - **0 Herzen:** sehr traurig wie oben, dazu eine Träne.
   - **Krank:** halb geschlossene Augen und ein welliger Mund.
