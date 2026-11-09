@@ -7,6 +7,7 @@ export const cat: SpeciesDef = {
   homeName: 'Katzenzimmer',
   nameIdeas: ['Minka', 'Luna', 'Tiger', 'Socke', 'Flocke', 'Mimi', 'Kiki', 'Leo', 'Mautzi', 'Schnurri'],
   colors: { floor: '#a87b5a', wall: '#efe4d6', wallDark: '#dccbb7' },
+  rig: { kind: 'quad', ears: 'pointy', tail: 'thin', muzzle: 'cat', whiskers: true, cheeks: true, iris: true },
   palette: {
     o: '#2e2420',
     a: '#e8964a',

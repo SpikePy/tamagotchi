@@ -1,5 +1,6 @@
 import type { Stage, Variant } from '../engine/state';
 import type { SleepShape } from '../render/sleepers';
+import type { RigDef } from '../render/rig';
 
 /**
  * Pixel-Sprite als Zeilen. Zeichen:
@@ -36,6 +37,8 @@ export interface Breed {
   sleep: SleepShape;
   /** Sprite schaut nach links (Seitenansicht), z. B. Dackel */
   facesLeft?: boolean;
+  /** Bauplan für die Grafik in voller Rasterdichte */
+  rig?: RigDef;
   /** eigene Namen der Entwicklungsstufen (z. B. Hahn statt Huhn) */
   stageNames?: Partial<Record<Stage, Partial<Record<Variant, string>>>>;
 }
@@ -58,6 +61,8 @@ export interface SpeciesDef {
   egg: { shell: string; spots: string };
   /** realistisches Gewicht in Gramm bei Normalgewicht je Stufe (Anzeige) */
   weightGrams: Record<Exclude<Stage, 'egg'>, number>;
+  /** Bauplan für die Grafik in voller Rasterdichte */
+  rig?: RigDef;
   /** Schlafpose (eingerollt) */
   sleep: SleepShape;
   /** Deko im Raum passend zur Art */

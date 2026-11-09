@@ -141,9 +141,7 @@ function catchGame(el: HTMLElement, sp: SpeciesDef, pet: Pet, done: Done): Clean
   el.append(info, canvas, ctrl);
   const ctx = canvas.getContext('2d')!;
 
-  const { map: sprite, colors: pal } = petSprite(sp, pet);
-  const pw = sprite[0].length;
-  const ph = sprite.length;
+  const { map: sprite, colors: pal, w: pw, h: ph } = petSprite(sp, pet);
   let px = (W - pw) / 2;
   let move = 0;
   let score = 0;

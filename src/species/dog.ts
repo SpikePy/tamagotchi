@@ -1,5 +1,6 @@
 import { buildDogSprites, type DogShape } from './dogParts';
 import type { SleepShape } from '../render/sleepers';
+import type { RigDef } from '../render/rig';
 import type { Breed, SpeciesDef } from './types';
 
 // 10 typische Rassen. Jeder Hund bekommt beim Ei zufällig Rasse, Fellfarbe und Muster.
@@ -12,7 +13,8 @@ function sleepOf(d: DogShape): SleepShape {
   return { kind: 'curl', ears, tail: d.tail === 'none' ? 'none' : 'thin', tailTip: d.tail === 'tipped' };
 }
 function shape(d: DogShape) {
-  return { sprites: buildDogSprites(d), sleep: sleepOf(d) };
+  const rig: RigDef = { kind: 'quad', ears: d.ears, tail: d.tail, muzzle: d.face === 'flat' ? 'flat' : 'dog', tuft: d.tuft, head: d.face === 'flat' ? 1.1 : 1 };
+  return { sprites: buildDogSprites(d), sleep: sleepOf(d), rig };
 }
 
 const DACKEL = {
@@ -95,6 +97,7 @@ export const DOG_BREEDS: Breed[] = [
     // eigene, handgezeichnete Seitenansicht: langer, niedriger Körper, kurze Beine
     ...shape({ ears: 'floppyLong', tail: 'straight', short: true }),
     sprites: DACKEL,
+    rig: { kind: 'dachs' },
     facesLeft: true,
     coats: [
       { name: 'Rot', colors: { a: '#b0582a', c: '#8a4220', b: '#c06a38' } },

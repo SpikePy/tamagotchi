@@ -1,6 +1,7 @@
 import type { Look, Stage, Variant } from '../engine/state';
 import type { Breed, Palette, Pattern, SpeciesDef, Sprite } from '../species/types';
 import { sleepSprite, stretchSprite } from './sleepers';
+import { SHADE_KEYS, renderRig, type RigOpts } from './rig';
 
 export type ColorMap = Record<string, string>;
 
@@ -165,6 +166,49 @@ function spriteBitmap(map: string[], colors: ColorMap, flip: boolean): HTMLCanva
   return cv;
 }
 
+/** Grafiken, die schon in voller Rasterdichte vorliegen (1 Zeichen = 1 Bildpixel) */
+const HIRES = new WeakSet<string[]>();
+const hiresCache = new Map<string, HTMLCanvasElement>();
+function hiresBitmap(map: string[], colors: ColorMap, flip: boolean): HTMLCanvasElement {
+  const key = `${flip ? 1 : 0}|${map.join('/')}|${Object.entries(colors).map(([k, v]) => k + v).join(',')}`;
+  const hit = hiresCache.get(key);
+  if (hit) return hit;
+  const h = map.length;
+  const w = map[0].length;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= w || y >= h ? '.' : map[y][flip ? w - 1 - x : x]);
+  const flat = (c: string) => c === 'o' || c === 'E' || c === 'e' || c === 'n' || c === 'h' || c === '.';
+  const cv = document.createElement('canvas');
+  cv.width = w;
+  cv.height = h;
+  const cx = cv.getContext('2d')!;
+  const img = cx.createImageData(w, h);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const c = at(x, y);
+      if (c === '.' || !colors[c]) continue;
+      let col = colors[c];
+      if (c === 'o' && N4.some(([dx, dy]) => at(x + dx, y + dy) === '.')) {
+        // Außenumriss in abgedunkelter Farbe des angrenzenden Fells, oben links etwas heller
+        let fill: string | undefined;
+        for (let r = 1; r <= 2 && !fill; r++) fill = [[0, r], [0, -r], [r, 0], [-r, 0]].map(([dx, dy]) => at(x + dx, y + dy)).find((n) => !flat(n) && colors[n]);
+        if (fill) {
+          const lit = at(x - 1, y) === '.' || at(x, y - 1) === '.';
+          col = mixHex(shade(colors[fill], lit ? -0.5 : -0.62), colors.o, 0.35);
+        }
+      }
+      const [r, g, b] = hexToRgb(col);
+      const i = (y * w + x) * 4;
+      img.data[i] = r;
+      img.data[i + 1] = g;
+      img.data[i + 2] = b;
+      img.data[i + 3] = 255;
+    }
+  cx.putImageData(img, 0, 0);
+  if (hiresCache.size > 600) hiresCache.clear();
+  hiresCache.set(key, cv);
+  return cv;
+}
+
 /** Zeichnet ein Pixel-Sprite (Koordinaten in Spiel-Pixeln, ctx ist auf RES skaliert) */
 export function drawMap(
   ctx: CanvasRenderingContext2D,
@@ -174,8 +218,13 @@ export function drawMap(
   y: number,
   flip = false,
 ) {
-  const bmp = spriteBitmap(map, colors, flip);
   const snap = (v: number) => Math.round(v * RES) / RES;
+  if (HIRES.has(map)) {
+    const bmp = hiresBitmap(map, colors, flip);
+    ctx.drawImage(bmp, snap(x), snap(y), map[0].length / RES, map.length / RES);
+    return;
+  }
+  const bmp = spriteBitmap(map, colors, flip);
   ctx.drawImage(bmp, snap(x), snap(y), map[0].length, map.length);
 }
 
@@ -323,10 +372,12 @@ export function petMap(sprite: Sprite, look: PetLook): string[] {
 export function petSprite(
   sp: SpeciesDef,
   pet: { stage: Stage; variant: Variant; look?: Look | null },
-  opts: { eyesClosed?: boolean; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1 } = {},
+  opts: { eyesClosed?: boolean; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1; pose?: 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' } = {},
 ) {
   const look = pet.look ?? null;
   const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
+  const rig = breed?.rig ?? sp.rig;
+  if (rig) return rigSprite(sp, pet, opts, rig, breed);
   const sprite = opts.stretch !== undefined
     ? stretchSprite(breed?.sleep ?? sp.sleep, opts.stretch)
     : opts.sleeping
@@ -431,4 +482,61 @@ export function eggMap(): string[] {
     '..osssssso..',
     '...oooooo...',
   ];
+}
+
+const POSE_SIZE: Record<string, [number, number]> = { scratch0: [14, 22], scratch1: [14, 22], bat0: [20, 14], bat1: [20, 14], leap: [24, 13] };
+const STAGE_SCALE: Record<string, number> = { baby: 0.7, child: 0.8, teen: 0.9, adult: 1, egg: 0.7 };
+
+/** neues Aussehen: in voller Rasterdichte aus dem Bauplan gezeichnet (gleiche Maße wie die alten Sprites) */
+function rigSprite(
+  sp: SpeciesDef,
+  pet: { stage: Stage; variant: Variant; look?: Look | null },
+  opts: Parameters<typeof petSprite>[2] & object,
+  rig: NonNullable<SpeciesDef['rig']>,
+  breed?: Breed,
+) {
+  const look = pet.look ?? null;
+  const stage = pet.stage === 'egg' ? 'baby' : pet.stage;
+  const grown = stage === 'teen' || stage === 'adult';
+  const male = look?.sex === 'm' && grown;
+  let size: string[];
+  let pose: RigOpts['pose'] = 'stand';
+  let w: number;
+  let h: number;
+  if (opts.pose) {
+    const [pw, ph] = POSE_SIZE[opts.pose];
+    w = Math.round(pw * STAGE_SCALE[stage]);
+    h = Math.round(ph * STAGE_SCALE[stage]);
+    pose = opts.pose;
+  } else {
+    if (opts.stretch !== undefined) {
+      size = stretchSprite(breed?.sleep ?? sp.sleep, opts.stretch);
+      pose = opts.stretch ? 'stretch1' : 'stretch0';
+    } else if (opts.sleeping) {
+      size = sleepSprite(breed?.sleep ?? sp.sleep, !opts.sleepSmall && grown);
+      pose = 'sleep';
+    } else size = male && breed?.maleSprites ? breed.maleSprites[stage as 'teen' | 'adult'] : (breed?.sprites ?? sp.sprites)[stage];
+    w = size[0].length;
+    h = size.length;
+  }
+  const map = renderRig(rig, stage, w, h, {
+    eyesClosed: opts.eyesClosed,
+    brows: pet.variant === 'cheeky',
+    gaze: opts.sleeping ? 0 : (opts.gaze ?? 0) * 2,
+    pose,
+    male,
+    pattern: look?.pattern,
+    seed: look?.seed,
+  }, RES);
+  HIRES.add(map);
+  const colors = paletteFor(sp, pet.variant, look?.coat, breed) as unknown as ColorMap;
+  const full: ColorMap = { ...colors, h: '#ffffff' };
+  for (const [k, base, f] of SHADE_KEYS) if (colors[base]) full[k] = shade(colors[base], f);
+  return {
+    map,
+    colors: full,
+    w,
+    h,
+    facesLeft: opts.stretch !== undefined || !!opts.pose || (!opts.sleeping && !!breed?.facesLeft),
+  };
 }

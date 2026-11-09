@@ -7,6 +7,7 @@ export const fox: SpeciesDef = {
   homeName: 'Fuchsbau',
   nameIdeas: ['Rudi', 'Flinn', 'Feli', 'Rotpfote', 'Lumi', 'Fuchsia', 'Ronja', 'Pepper'],
   colors: { floor: '#8a6a45', wall: '#e9dcc0', wallDark: '#d3c3a2' },
+  rig: { kind: 'quad', ears: 'pointy', tail: 'fluffy', tailTip: true, muzzle: 'fox', feet: 'c' },
   palette: {
     o: '#3b1f0e',
     a: '#e8772e',
