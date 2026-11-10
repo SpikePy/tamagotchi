@@ -4,8 +4,8 @@
 //   ?pet=alle&max=1
 // Ohne `pet` wirken die Parameter auf das gerade angezeigte Tier.
 import { RULES } from './config';
-import { addLog, evolve, fallAsleep, makeSick, Rng, wake } from './sim';
-import { DAY, MIN } from './config';
+import { addLog, evolve, fallAsleep, hatch, makeSick, Rng, wake } from './sim';
+import { DAY } from './config';
 import { activePet, type GameState, type Pet, type Stage, type Variant } from './state';
 
 export const URL_PARAMS = [
@@ -16,7 +16,6 @@ export const URL_PARAMS = [
   'tired',
   'sleep',
   'weight',
-  'discipline',
   'poop',
   'mistakes',
   'stage',
@@ -93,10 +92,10 @@ function applyToPet(s: GameState, p: Pet, q: URLSearchParams, rng: Rng, gramsToU
   const done: string[] = [];
   const get = (k: string) => q.get(k);
 
-  // Ei sofort schlüpfen lassen (der Rest wirkt erst danach, beim nächsten Nachrechnen)
+  // Ei sofort schlüpfen lassen (statt 20× Tippen)
   if (get('hatch') !== null && yes(get('hatch')!) && p.stage === 'egg') {
-    p.createdAt = s.clock - RULES.eggMinutes * MIN;
-    done.push('schlüpft gleich');
+    hatch(p, s.clock, rng, []);
+    done.push('geschlüpft');
   }
   if (p.stage === 'egg') return done.length ? done : ['ist noch ein Ei – erst mit hatch=1 schlüpfen lassen'];
 
@@ -106,7 +105,6 @@ function applyToPet(s: GameState, p: Pet, q: URLSearchParams, rng: Rng, gramsToU
     p.sick = null;
     p.poops = [];
     p.tiredness = 0;
-    p.discipline = 100;
     p.weight = RULES.baseWeight[p.stage];
     p.hungerZeroSince = p.happyZeroSince = p.sleepDeficitSince = null;
     p.calls = {};
@@ -176,14 +174,6 @@ function applyToPet(s: GameState, p: Pet, q: URLSearchParams, rng: Rng, gramsToU
     if (v !== null) {
       p.tiredness = v;
       done.push(`Müdigkeit = ${v} %`);
-    }
-  }
-  const discipline = get('discipline');
-  if (discipline !== null) {
-    const v = num(discipline, 0, 100);
-    if (v !== null) {
-      p.discipline = v;
-      done.push(`Disziplin = ${v} %`);
     }
   }
   const weight = get('weight');

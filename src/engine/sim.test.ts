@@ -1,16 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { DAY, HOUR, MIN } from './config';
+import { DAY, HOUR, MIN, RULES } from './config';
 import { activePet, newGame } from './state';
 import { advance, layEgg, tirednessAtHatch } from './sim';
-import { clean, collectEggs, feedMeal, finishGame, giveMedicine, lightButton, scold, startEgg, stroke, wakeUp } from './actions';
+import { clean, collectEggs, feedMeal, finishGame, giveMedicine, lightButton, startEgg, stroke, tapEgg, wakeUp } from './actions';
 
 const T0 = new Date(2026, 0, 1, 8, 0).getTime();
 const rng = () => 0.5;
 const never = () => 0.999; // keine Zufallsereignisse
 
+/** so oft aufs aktive Ei tippen, bis es schlüpft */
+const hatchEgg = (s: ReturnType<typeof newGame>) => {
+  for (let i = 0; i < RULES.eggTaps; i++) tapEgg(s);
+};
 function game() {
   const s = newGame(T0);
   startEgg(s, 'fox');
+  hatchEgg(s);
   return s;
 }
 const realNow = new WeakMap<object, number>();
@@ -21,13 +26,18 @@ const run = (s: ReturnType<typeof newGame>, ms: number, r = never) => {
 };
 
 describe('Lebenszyklus', () => {
-  it('schlüpft nach 1 Minute', () => {
-    const s = game();
-    run(s, 30_000);
+  it('schlüpft erst nach 20× Tippen, nicht von allein', () => {
+    const s = newGame(T0);
+    startEgg(s, 'fox');
+    run(s, DAY);
     expect(activePet(s)!.stage).toBe('egg');
-    const ev = run(s, 30_000);
+    for (let i = 1; i < RULES.eggTaps; i++) expect(tapEgg(s)).toEqual({ taps: i, events: [] });
+    expect(activePet(s)!.stage).toBe('egg');
+    const { events } = tapEgg(s);
     expect(activePet(s)!.stage).toBe('baby');
-    expect(ev.some((e) => e.kind === 'hatched')).toBe(true);
+    expect(activePet(s)!.eggTaps).toBeUndefined();
+    expect(events).toEqual([{ kind: 'hatched', petId: activePet(s)!.id }]);
+    expect(tapEgg(s).taps).toBe(0); // geschlüpft: Tippen aufs Ei geht nicht mehr
   });
 
   it('wird nach 1 Tag zum Kind (bei Pflege)', () => {
@@ -113,20 +123,6 @@ describe('Krankheit', () => {
   });
 });
 
-describe('Disziplin', () => {
-  it('Schimpfen bei Fake-Ruf erhöht Disziplin, sonst sinkt die Laune', () => {
-    const s = game();
-    run(s, MIN);
-    const p = activePet(s)!;
-    p.happy = 3;
-    expect(scold(s).ok).toBe(false);
-    expect(p.happy).toBe(2);
-    p.calls.fake = { since: s.clock, penalized: false };
-    expect(scold(s).ok).toBe(true);
-    expect(p.discipline).toBe(25);
-  });
-});
-
 describe('Name', () => {
   it('wird gekürzt, getrimmt und landet im Tagebuch', async () => {
     const { renamePet } = await import('./actions');
@@ -161,12 +157,12 @@ describe('Müdigkeit beim Schlüpfen', () => {
     expect(tirednessAtHatch(at(2))).toBe(100);
   });
   it('Schlüpfen um 18 Uhr: schläft gegen 23 Uhr von selbst ein', () => {
-    const s = newGame(at(18) - MIN);
+    const s = newGame(at(18));
     startEgg(s, 'fox');
+    hatchEgg(s);
     const p = () => activePet(s)!;
-    let t = at(18) - MIN;
+    let t = at(18);
     const step = (ms: number) => advance(s, (t += ms), never);
-    step(MIN + 1000);
     expect(p().stage).toBe('baby');
     step(4 * HOUR + 50 * MIN);
     expect(p().asleep).toBe(false);
@@ -184,6 +180,8 @@ describe('Mehrere Tiere', () => {
     const second = activePet(s)!.id;
     expect(second).not.toBe(first);
     run(s, 2 * MIN);
+    expect(activePet(s)!.stage).toBe('egg');
+    hatchEgg(s);
     expect(s.pets.every((p) => p.stage === 'baby')).toBe(true);
     switchPet(s, first);
     expect(activePet(s)!.species).toBe('fox');
@@ -199,6 +197,7 @@ describe('Mehrere Tiere', () => {
   it('stirbt eins, bleibt das andere aktiv und ein Abschied wird gemeldet', () => {
     const s = game();
     startEgg(s, 'hedgehog');
+    hatchEgg(s);
     run(s, MIN);
     const [a, b] = s.pets;
     a.hunger = 0;

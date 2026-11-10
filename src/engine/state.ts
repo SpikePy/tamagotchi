@@ -1,6 +1,6 @@
 export type Stage = 'egg' | 'baby' | 'child' | 'teen' | 'adult';
 export type Variant = 'normal' | 'good' | 'bad' | 'great' | 'cheeky';
-export type CallType = 'hunger' | 'happy' | 'poop' | 'sick' | 'sleepy' | 'light' | 'fake';
+export type CallType = 'hunger' | 'happy' | 'poop' | 'sick' | 'sleepy' | 'light';
 
 /** Zufälliges Aussehen (z. B. Fellfarbe/Muster der Katze), bleibt ein Leben lang gleich */
 export interface Look {
@@ -31,12 +31,12 @@ export interface Pet {
   createdAt: number;
   hatchedAt: number | null;
   stageStartedAt: number;
+  eggTaps?: number; // wie oft schon aufs Ei getippt wurde
 
   hunger: number; // 0..4 (Kommazahl, Anzeige gerundet)
   happy: number; // 0..4
   tiredness: number; // 0..100
   weight: number;
-  discipline: number; // 0..100
 
   sick: { since: number; doses: number } | null;
   poops: number[]; // Zeitpunkte
@@ -52,7 +52,6 @@ export interface Pet {
   happyZeroSince: number | null;
 
   calls: Partial<Record<CallType, Call>>;
-  fakeCallsToday: number;
   snacksToday: number;
   dayKey: string;
 
@@ -135,7 +134,6 @@ export function newPet(species: string, clock: number, look: Look | null = null,
     happy: 4,
     tiredness: 0,
     weight: 0,
-    discipline: 0,
     sick: null,
     poops: [],
     poopInMin: 0,
@@ -147,7 +145,6 @@ export function newPet(species: string, clock: number, look: Look | null = null,
     hungerZeroSince: null,
     happyZeroSince: null,
     calls: {},
-    fakeCallsToday: 0,
     snacksToday: 0,
     dayKey: dayKeyOf(clock),
     careMistakesStage: 0,

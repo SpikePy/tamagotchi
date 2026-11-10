@@ -1,6 +1,6 @@
 # Waldling – virtuelles Haustier
 
-Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die sich auf Android installieren lässt. Man zieht einen **Fuchs**, einen **Igel**, eine **Katze** (mit zufälliger Fellfarbe und Muster) einen **Hund** (10 Rassen, zufällige Farbe und Muster) oder ein **Huhn** (4 Rassen) vom Ei bis zum Erwachsenen groß: füttern, schlafen legen, sauber machen, spielen, erziehen und gesund pflegen. Alles läuft in Echtzeit und geht auch weiter, wenn die App zu ist.
+Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die sich auf Android installieren lässt. Man zieht einen **Fuchs**, einen **Igel**, eine **Katze** (mit zufälliger Fellfarbe und Muster) einen **Hund** (10 Rassen, zufällige Farbe und Muster) oder ein **Huhn** (4 Rassen) vom Ei bis zum Erwachsenen groß: füttern, schlafen legen, sauber machen, spielen und gesund pflegen. Alles läuft in Echtzeit und geht auch weiter, wenn die App zu ist.
 
 **▶ Jetzt spielen: https://spikepy.github.io/tamagotchi/**
 
@@ -28,8 +28,8 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 
 ## Features
 
-- **Lebenszyklus:** Ei (1 min) → Baby (1 Tag) → Kind (5 Tage) → Teenager (5 Tage) → Erwachsen. Welche Form das Tier annimmt, hängt von Pflegefehlern und Disziplin ab. Am Lebensende zieht es sich in den Wald zurück.
-- **Bedürfnisse:** Sättigung und Laune (HUD-Leisten mit je 4 Segmenten), Müdigkeit, Gewicht, Disziplin und Gesundheit.
+- **Lebenszyklus:** Ei (schlüpft nach 20× Antippen) → Baby (1 Tag) → Kind (5 Tage) → Teenager (5 Tage) → Erwachsen. Welche Form das Tier annimmt, hängt von den Pflegefehlern ab. Am Lebensende zieht es sich in den Wald zurück.
+- **Bedürfnisse:** Sättigung und Laune (HUD-Leisten mit je 4 Segmenten), Müdigkeit, Gewicht und Gesundheit.
 - **Schlafen:** Das Tier wacht nach insgesamt 8 Stunden Schlaf automatisch auf. Danach hat es Hunger und macht innerhalb einer Stunde ein Häufchen.
 - **Hygiene:** Es macht alle 1–3 Stunden ein Häufchen. Liegt ein Haufen länger als 4 Stunden, wird es krank.
 - **Mehrere Tiere:** bis zu 5 gleichzeitig, Umschalter oben
@@ -49,7 +49,7 @@ Alle Regeln stehen in der **[SPEC.md](SPEC.md)**.
 
 Zum Beispiel https://spikepy.github.io/tamagotchi/?max=1 oder `?pet=Rudi&stage=erwachsen&form=pracht` oder `?pet=alle&hunger=4&poop=0`.
 
-`pet=Name|Nummer|alle` · `max=1` · `happy=0–4` · `hunger=0–4` · `sick=1|0` · `tired=0–100` · `sleep=1|0` · `discipline=0–100` · `weight=Gramm` · `poop=0–6` · `mistakes=0–99` · `stage=baby|kind|teen|erwachsen` · `form=gut|schlecht|pracht|normal|frech` · `age=Tage` · `name=Text` · `hatch=1`
+`pet=Name|Nummer|alle` · `max=1` · `happy=0–4` · `hunger=0–4` · `sick=1|0` · `tired=0–100` · `sleep=1|0` · `weight=Gramm` · `poop=0–6` · `mistakes=0–99` · `stage=baby|kind|teen|erwachsen` · `form=gut|schlecht|pracht|normal|frech` · `age=Tage` · `name=Text` · `hatch=1`
 
 Alle Details stehen in der [SPEC.md](SPEC.md#7a-cheat-codes-per-url-parameter).
 

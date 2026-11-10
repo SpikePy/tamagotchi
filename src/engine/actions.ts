@@ -1,6 +1,6 @@
 import { RULES } from './config';
 import { GameState, Look, MAX_PETS, Pet, activePet, newPet } from './state';
-import { Rng, SimEvent, addLog, careMistake, fallAsleep, wake } from './sim';
+import { Rng, SimEvent, addLog, careMistake, fallAsleep, hatch, wake } from './sim';
 import { T, pick, pickFor } from './texts';
 
 export interface ActionResult {
@@ -25,6 +25,20 @@ export function startEgg(s: GameState, species: string, look: Look | null = null
   s.activeId = p.id;
   s.ending = null;
   return true;
+}
+
+/**
+ * Einmal aufs Ei tippen. Nach RULES.eggTaps Tipps schlüpft es.
+ * Gibt die Zahl der Tipps zurück und, beim Schlüpfen, das Ereignis (mit petId).
+ */
+export function tapEgg(s: GameState, id = s.activeId, rng: Rng = Math.random): { taps: number; events: SimEvent[] } {
+  const p = s.pets.find((x) => x.id === id);
+  if (!p || p.stage !== 'egg') return { taps: 0, events: [] };
+  const taps = (p.eggTaps ?? 0) + 1;
+  p.eggTaps = taps;
+  const events: SimEvent[] = [];
+  if (taps >= RULES.eggTaps) hatch(p, s.clock, rng, events);
+  return { taps, events: events.map((e) => ({ ...e, petId: p.id })) };
 }
 
 export function switchPet(s: GameState, id: string) {
@@ -52,7 +66,6 @@ export function canAct(s: GameState) {
     play: !!p && !p.asleep,
     medicine: !!p && !p.asleep,
     clean: !!p && p.poops.length > 0,
-    scold: !!p && !p.asleep,
     status: !!activePet(s),
   };
 }
@@ -64,7 +77,6 @@ export function feedMeal(s: GameState, rng: Rng = Math.random): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
   if (p.asleep) return no(pick(T.asleep));
-  if (p.calls.fake) return no(pick(T.defiant));
   // satt erst, wenn die Leiste (fast) voll ist – die Leiste ist stufenlos
   if (p.hunger >= RULES.hearts - FULL_EPS) return no(pick(T.full));
   if (p.sick && rng() < 0.5) return no(pick(T.noAppetite));
@@ -77,7 +89,6 @@ export function feedSnack(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
   if (p.asleep) return no(pick(T.asleep));
-  if (p.calls.fake) return no(pick(T.defiant));
   p.happy = Math.min(RULES.hearts, p.happy + 1);
   p.weight += 2;
   p.snacksToday++;
@@ -138,26 +149,12 @@ export function clean(s: GameState): ActionResult {
   return yes(pick(T.clean));
 }
 
-export function scold(s: GameState): ActionResult {
-  const p = hatchedPet(s);
-  if (!p) return no('Da ist noch niemand.');
-  if (p.asleep) return no(pick(T.asleep));
-  if (p.calls.fake) {
-    delete p.calls.fake;
-    p.discipline = Math.min(100, p.discipline + RULES.disciplinePerScold);
-    return yes(pick(T.scoldOk));
-  }
-  p.happy = Math.max(0, p.happy - 1);
-  return no(pick(T.scoldWrong));
-}
-
 /** Prüft, ob gespielt werden darf. */
 export function canPlay(s: GameState): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('Da ist noch niemand.');
   if (p.asleep) return no(pick(T.asleep));
   if (p.sick) return no('{n} ist krank und mag nicht spielen.');
-  if (p.calls.fake) return no('{n} hat gerade keine Lust (trotzig).');
   return yes('');
 }
 

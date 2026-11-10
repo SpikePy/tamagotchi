@@ -54,10 +54,7 @@ export const T = {
   medDose: ['Bäh! Noch eine Dosis, dann geht es {n} besser.', '{n} verzieht das Gesicht. Einmal noch!', 'Tapfer, {n}! Noch eine Dosis.'],
   healed: ['{n} ist wieder gesund!', 'Geschafft! {n} fühlt sich wieder pudelwohl.', 'Gute Besserung hat gewirkt – {n} ist gesund!'],
   medNeedless: ['Bäh! {n} war doch gar nicht krank. Pflegefehler!', '{n} war kerngesund – die Medizin schmeckt scheußlich! Pflegefehler!'],
-  scoldOk: ['{n} schaut betreten. Disziplin +25 %.', '{n} senkt den Kopf und benimmt sich wieder. Disziplin +25 %.', 'Erwischt! {n} hat verstanden. Disziplin +25 %.'],
-  scoldWrong: ['{n} hat doch gar nichts angestellt! Jetzt ist es traurig.', 'Ungerecht! {n} war ganz brav und ist jetzt traurig.'],
   asleep: ['Psst … {n} schläft gerade.', 'Psst … {n} träumt gerade.'],
-  defiant: ['{n} dreht trotzig den Kopf weg.', '{n} tut so, als hätte es nichts gehört.'],
   won: ['Gewonnen! Das hat {n} Spaß gemacht.', 'Super gemacht! {n} ist ganz aus dem Häuschen.', 'Sieg! {n} hüpft vor Freude.'],
   lost: ['Verloren … aber {n} hatte trotzdem Spaß.', 'Knapp daneben! {n} will gleich nochmal.', 'Nicht geschafft – Spaß hatte {n} trotzdem.'],
 };

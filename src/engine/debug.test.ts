@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { MIN } from './config';
+import { MIN, RULES } from './config';
 import { advance } from './sim';
 import { activePet, newGame } from './state';
-import { startEgg } from './actions';
+import { startEgg, tapEgg } from './actions';
 import { applyUrlParams, hasUrlParams } from './debug';
 
 function hatched() {
   const s = newGame(new Date(2026, 0, 1, 10).getTime());
   startEgg(s, 'fox');
+  for (let i = 0; i < RULES.eggTaps; i++) tapEgg(s);
   advance(s, s.lastReal + MIN + 1000, () => 0.9);
   return s;
 }
@@ -47,6 +48,7 @@ describe('URL-Parameter', () => {
   it('wählt Tiere per Name, Nummer oder alle', () => {
     const s = hatched();
     startEgg(s, 'cat');
+    for (let i = 0; i < RULES.eggTaps; i++) tapEgg(s);
     advance(s, s.lastReal + MIN + 1000, () => 0.9);
     s.pets[0].name = 'Rudi';
     s.pets[1].name = 'Minka';
@@ -56,7 +58,7 @@ describe('URL-Parameter', () => {
     applyUrlParams(s, q('pet=2&hunger=0'));
     expect(s.pets[1].hunger).toBe(0);
     applyUrlParams(s, q('pet=alle&max=1'));
-    expect(s.pets.every((p) => p.happy === 4 && p.hunger === 4 && p.discipline === 100)).toBe(true);
+    expect(s.pets.every((p) => p.happy === 4 && p.hunger === 4)).toBe(true);
     expect(applyUrlParams(s, q('pet=Bello&happy=1'))[0]).toMatch(/Kein Tier/);
   });
   it('setzt Stufe, Form, Haufen, Pflegefehler, Alter und Name', () => {
@@ -77,7 +79,6 @@ describe('URL-Parameter', () => {
     const s = newGame(new Date(2026, 0, 1, 10).getTime());
     startEgg(s, 'fox');
     applyUrlParams(s, q('hatch=1'));
-    advance(s, s.lastReal + 1000 * 61, () => 0.9);
     expect(activePet(s)!.stage).toBe('baby');
   });
   it('setzt Gewicht über Umrechnung', () => {

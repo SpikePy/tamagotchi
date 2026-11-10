@@ -5,7 +5,7 @@ export const HOUR = 60 * MIN;
 export const DAY = 24 * HOUR;
 
 export const RULES = {
-  eggMinutes: 1,
+  eggTaps: 20, // so oft auf das Ei tippen, dann schlüpft es
   stageDays: { baby: 1, child: 5, teen: 5 },
   adultLifespanDays: { max: 25, min: 10, perCareMistake: 0.5 },
 
@@ -40,9 +40,6 @@ export const RULES = {
   careMistakesDeathPerStage: 20,
 
   callGraceMin: 15, // nicht reagiert -> Pflegefehler
-  fakeCallChancePerMin: { child: 1 / 360, teen: 1 / 300, adult: 1 / 720 } as Record<string, number>,
-  fakeCallMaxPerDay: 4,
-  disciplinePerScold: 25,
   strokeHappy: 1, // +25 % Laune beim Streicheln (in Viertel-Einheiten: 1 = ein Viertel der Leiste)
 
   baseWeight: { egg: 0, baby: 5, child: 10, teen: 20, adult: 30, gone: 0 } as Record<string, number>,

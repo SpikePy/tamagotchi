@@ -11,8 +11,8 @@ import {
   finishGame,
   giveMedicine,
   lightButton,
-  scold,
   startEgg,
+  tapEgg,
   stroke,
   collectEggs,
   movePet,
@@ -101,7 +101,6 @@ const CALL_TEXT: Record<CallType, string> = {
   sick: 'fühlt sich krank und braucht Medizin!',
   sleepy: 'ist müde und reibt sich die Augen.',
   light: 'schläft – bitte das Licht ausmachen!',
-  fake: 'ruft nach dir … braucht es wirklich etwas?',
 };
 
 export function stageName(p: { species: string; stage: Pet['stage']; variant: Pet['variant']; look?: Pet['look'] }): string {
@@ -173,7 +172,10 @@ export class App {
       if (this.scene.hitNestBox(x, y)) {
         const res = collectEggs(this.s);
         this.act(res, res.ok ? 'heart' : undefined);
-      } else if (this.scene.hitPet(x, y)) this.strokePet();
+      } else if (this.scene.hitPet(x, y)) {
+        if (this.pet?.stage === 'egg') this.tapEgg();
+        else this.strokePet();
+      }
     });
     this.hud = h('div', { class: 'hud' });
     this.tabs = h('div', { class: 'pet-tabs', role: 'tablist', 'aria-label': 'Deine Tiere' });
@@ -209,7 +211,6 @@ export class App {
       if (r.ok) this.scene.cleaning();
       this.act(r, 'sparkle');
     });
-    add('scold', '📣', 'Schimpfen', () => this.act(scold(this.s), 'angry'));
     add('status', '📊', 'Status', () => this.statusSheet());
     add('settings', '⚙️', 'Mehr', () => this.settingsSheet());
 
@@ -448,11 +449,11 @@ export class App {
   }
 
   private idleText(p: Pet): string {
-    if (p.stage === 'egg') return 'Gleich schlüpft es …';
+    if (p.stage === 'egg') return `Tippe ${RULES.eggTaps}× auf das Ei, dann schlüpft es!`;
     const calls = Object.keys(p.calls) as CallType[];
     if (calls.length) return `${petName(p)} ${CALL_TEXT[calls[0]]}`;
     if (p.asleep) return p.lightOn ? `Psst … ${petName(p)} schläft (das Licht ist noch an).` : `Psst … ${petName(p)} schläft.`;
-    return `${petName(p)} · ${Math.floor(ageDays(p, this.s.clock))} Tage alt`;
+    return `${petName(p)} · ${days(ageDays(p, this.s.clock))} alt`;
   }
 
   /** Meldung von außen (z. B. URL-Parameter) */
@@ -483,6 +484,23 @@ export class App {
   }
 
   // ---------- Aktionen ----------
+
+  /** Aufs Ei tippen: nach RULES.eggTaps Tipps schlüpft es */
+  private tapEgg() {
+    const { taps, events } = tapEgg(this.s);
+    if (!taps) return;
+    if (events.length) {
+      this.handleEvents(events, false);
+    } else {
+      this.scene.eggTap();
+      beep.click();
+      const k = taps / RULES.eggTaps;
+      const text = k >= 0.75 ? 'Gleich ist es so weit!' : k >= 0.5 ? 'Da bewegt sich was!' : k >= 0.25 ? 'Knack! Ein Riss!' : 'Klopf, klopf …';
+      this.say(`${text} (${taps}/${RULES.eggTaps})`);
+    }
+    this.refresh();
+    save(this.s);
+  }
 
   private strokePet() {
     const p = this.pet;
@@ -680,7 +698,7 @@ export class App {
           ? `${name} hat sich nach einem langen, schönen Leben in den Wald zurückgezogen.`
           : `${name} ist gestorben (${e.cause}).`,
       ),
-      h('p', {}, `Alter: ${Math.floor(e.ageDays)} Tage`),
+      h('p', {}, `Alter: ${days(e.ageDays)}`),
       m ? h('details', {}, h('summary', {}, 'Lebenslauf'), logList(m.log)) : null,
       this.s.pets.length
         ? btn(`Weiter zu ${this.pet ? petName(this.pet) : 'deinen Tieren'}`, () => {
@@ -713,7 +731,7 @@ export class App {
       ['Tier', `${stageName(p)} (${sp.name})`],
       ...(lookName(sp, p.look) ? [[sp.breeds ? 'Rasse & Fell' : 'Fell', lookName(sp, p.look)!] as [string, string]] : []),
       ['Phase', STAGE_LABEL[p.stage]],
-      ['Alter', `${Math.floor(ageDays(p, this.s.clock))} Tage`],
+      ['Alter', days(ageDays(p, this.s.clock))],
     ];
     if (p.stage !== 'egg') {
       const next = { baby: 1, child: 5, teen: 5 }[p.stage as 'baby'];
@@ -728,7 +746,6 @@ export class App {
         ['Schlaf (24 h)', duration(sleptLast24h(p, this.s.clock) * MIN)],
         ['Schlaf bis ausgeschlafen', duration((RULES.sleepNeedMin - p.sleptInCycleMin) * MIN)],
         ['Gewicht', `${weightLabel(sp, p)}${isOverweight(p) ? ' (zu dick!)' : ''}`],
-        ['Disziplin', `${p.discipline} %`],
         ['Gesundheit', p.sick ? `krank (noch ${p.sick.doses}× Medizin)` : 'gesund'],
         ...(p.species === 'chicken' && p.look?.sex === 'f'
           ? [['Eier', `${p.eggsInNest ?? 0} im Nest · ${p.eggsCollected ?? 0} gesammelt`] as [string, string]]
@@ -781,7 +798,7 @@ export class App {
       const list = h('ul', { class: 'memorials' });
       for (const m of this.s.memorials) {
         list.append(
-          h('li', {}, `${m.ending.reason === 'forest' ? '🌲' : '🪦'} ${m.name ? `${m.name} (${stageName(m)})` : stageName(m)} – ${Math.floor(m.ending.ageDays)} Tage`),
+          h('li', {}, `${m.ending.reason === 'forest' ? '🌲' : '🪦'} ${m.name ? `${m.name} (${stageName(m)})` : stageName(m)} – ${days(m.ending.ageDays)}`),
         );
       }
       body.append(h('details', {}, h('summary', {}, 'Frühere Tiere'), list));
@@ -837,6 +854,11 @@ function logList(log: { at: number; text: string }[]) {
     ul.append(h('li', {}, `${d.toLocaleDateString('de-DE')} ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} – ${l.text}`));
   }
   return ul;
+}
+
+/** Alter mit einer Nachkommastelle, abgerundet: „3,4 Tage“ */
+function days(d: number): string {
+  return `${(Math.floor(d * 10) / 10).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Tage`;
 }
 
 function duration(ms: number): string {

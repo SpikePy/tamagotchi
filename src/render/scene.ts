@@ -80,6 +80,7 @@ export class Scene {
   private fx: { kind: FxKind; start: number; until: number } | null = null;
   private cleaningUntil = 0;
   private hatchStart = -Infinity;
+  private eggTapAt = -Infinity;
   private flashStart = -Infinity;
   private jumpStart = -Infinity;
   private shakeStart = -Infinity;
@@ -163,7 +164,7 @@ export class Scene {
     this.walkX = 30;
     this.walkDir = 1;
     this.act = { kind: 'idle', start: 0, until: 0 };
-    this.hatchStart = this.flashStart = this.jumpStart = this.shakeStart = -Infinity;
+    this.hatchStart = this.eggTapAt = this.flashStart = this.jumpStart = this.shakeStart = -Infinity;
   }
 
   constructor(canvas: HTMLCanvasElement) {
@@ -192,6 +193,11 @@ export class Scene {
 
   hatch() {
     this.hatchStart = performance.now();
+  }
+
+  /** Ei antippen: kurz wackeln */
+  eggTap() {
+    this.eggTapAt = performance.now();
   }
 
   evolve() {
@@ -316,7 +322,7 @@ export class Scene {
     const bowlG = BOWL_Y + 2;
     if (critG !== null && critG < petG) this.critters.draw(ctx, 'foreground', t);
     if (p.stage === 'egg') {
-      this.drawEgg(s, p, sp, t);
+      this.drawEgg(p, sp, t);
       this.nestFront();
       this.drawFrontDecor(sp);
     } else if (!walking) {
@@ -494,12 +500,15 @@ export class Scene {
     }
   }
 
-  private drawEgg(s: GameState, p: Pet, sp: SpeciesDef, t: number) {
-    const left = RULES.eggMinutes * MIN - (s.clock - p.createdAt) - (Date.now() - s.lastReal);
-    const stage = left < 12_000 ? 3 : left < 25_000 ? 2 : left < 40_000 ? 1 : 0;
-    // wackelt in Schüben, kurz vor dem Schlüpfen immer heftiger
+  private drawEgg(p: Pet, sp: SpeciesDef, t: number) {
+    // Risse je nach Zahl der Tipps: ab einem Viertel, der Hälfte und drei Vierteln kommen mehr dazu
+    const k = (p.eggTaps ?? 0) / RULES.eggTaps;
+    const stage = k >= 0.75 ? 3 : k >= 0.5 ? 2 : k >= 0.25 ? 1 : 0;
+    // wackelt bei jedem Tipp, außerdem in Schüben – je mehr Risse, desto öfter
     let wobble = 0;
-    if (stage > 0) {
+    const sinceTap = t - this.eggTapAt;
+    if (sinceTap < 300) wobble = Math.round(Math.sin(sinceTap / 30) * 1.5);
+    else if (stage > 0) {
       const period = [0, 2200, 1400, 700][stage];
       const inBurst = t % period < 400;
       if (inBurst) wobble = Math.round(Math.sin(t / 45) * (stage === 3 ? 1.5 : 1));
@@ -508,6 +517,7 @@ export class Scene {
     drawMap(this.ctx, eggMap(), eggColors(sp, p.look), x, EGG_Y);
     this.ctx.fillStyle = '#3a2a1a';
     for (let k = 0; k < stage; k++) for (const [cx, cy] of CRACKS[k]) this.ctx.fillRect(x + cx, EGG_Y + cy, 1, 1);
+    this.petBox = { x: EGG_X, y: EGG_Y, w: EGG_W, h: EGG_H }; // zum Antippen
   }
 
   private drawPetInBasket(p: Pet, sp: SpeciesDef, t: number, hatching: boolean) {

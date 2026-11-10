@@ -78,7 +78,6 @@ export function fallAsleep(p: Pet, lightOff: boolean, clock: number, events: Sim
   p.asleep = true;
   p.lightOn = !lightOff;
   delete p.calls.sleepy;
-  delete p.calls.fake;
   addLog(p, clock, 'Eingeschlafen.');
   events.push({ kind: 'fellAsleep' });
 }
@@ -133,8 +132,8 @@ const NEXT_STAGE: Partial<Record<Stage, Stage>> = { baby: 'child', child: 'teen'
 export function chooseVariant(p: Pet, next: Stage): Variant {
   const m = p.careMistakesStage;
   if (next === 'child') return m <= 2 ? 'good' : 'bad';
-  if (next === 'teen') return m <= 3 && p.discipline >= 50 ? 'good' : 'bad';
-  if (m <= 2 && p.discipline >= 75) return 'great';
+  if (next === 'teen') return m <= 3 ? 'good' : 'bad';
+  if (m <= 2) return 'great';
   if (m <= 6) return 'normal';
   return 'cheeky';
 }
@@ -161,8 +160,9 @@ export function tirednessAtHatch(clock: number): number {
   return Math.min(100, (hours * 60 * 100) / RULES.awakeMinUntilTired);
 }
 
-function hatch(p: Pet, clock: number, rng: Rng, events: SimEvent[]) {
+export function hatch(p: Pet, clock: number, rng: Rng, events: SimEvent[]) {
   p.stage = 'baby';
+  delete p.eggTaps;
   p.variant = 'normal';
   p.hatchedAt = clock;
   p.stageStartedAt = clock;
@@ -175,7 +175,7 @@ function hatch(p: Pet, clock: number, rng: Rng, events: SimEvent[]) {
   events.push({ kind: 'hatched' });
 }
 
-function callConditions(p: Pet): Record<Exclude<CallType, 'fake'>, boolean> {
+function callConditions(p: Pet): Record<CallType, boolean> {
   const awake = !p.asleep;
   return {
     hunger: awake && hearts(p.hunger) === 0,
@@ -201,11 +201,6 @@ function updateCalls(p: Pet, clock: number, events: SimEvent[]) {
       careMistake(p);
     }
   }
-  const fake = p.calls.fake;
-  if (fake && clock - fake.since >= RULES.callGraceMin * MIN) {
-    careMistake(p);
-    delete p.calls.fake;
-  }
 }
 
 /** Eine Minute für alle Tiere. Ereignisse bekommen die petId angehängt. */
@@ -224,13 +219,10 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
   if (dk !== p.dayKey) {
     p.dayKey = dk;
     p.snacksToday = 0;
-    p.fakeCallsToday = 0;
   }
 
-  if (p.stage === 'egg') {
-    if (now - p.createdAt >= RULES.eggMinutes * MIN) hatch(p, now, rng, events);
-    return;
-  }
+  // Eier schlüpfen nicht von selbst, sondern erst nach RULES.eggTaps-mal Tippen (siehe tapEgg)
+  if (p.stage === 'egg') return;
 
   const rateKey = p.stage === 'baby' ? 'baby' : 'other';
   const deficit = p.sleepDeficitSince !== null;
@@ -257,19 +249,6 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
       p.poops.push(now);
       p.poopInMin = poopInterval(p, rng);
       events.push({ kind: 'pooped' });
-    }
-
-    const fakeChance = RULES.fakeCallChancePerMin[p.stage] ?? 0;
-    if (
-      fakeChance > 0 &&
-      !p.sick &&
-      !p.calls.fake &&
-      p.fakeCallsToday < RULES.fakeCallMaxPerDay &&
-      rng() < fakeChance
-    ) {
-      p.calls.fake = { since: now, penalized: false };
-      p.fakeCallsToday++;
-      events.push({ kind: 'call', call: 'fake' });
     }
 
     if (p.tiredness >= 100) fallAsleep(p, false, now, events);

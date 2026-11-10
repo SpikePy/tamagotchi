@@ -38,6 +38,12 @@ export function migrate(raw: any): GameState | null {
     else if (p.look.breed === 3) p.look = { ...p.look, breed: 2, sex: 'f' };
     else p.look = { ...p.look, sex: 'f' };
   }
+  // Schimpfen entfernt: Disziplin und Rufe ohne Grund gibt es nicht mehr
+  for (const p of raw.pets ?? []) {
+    delete p.discipline;
+    delete p.fakeCallsToday;
+    if (p.calls) delete p.calls.fake;
+  }
   return raw;
 }
 

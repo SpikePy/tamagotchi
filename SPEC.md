@@ -2,7 +2,7 @@
 
 ## 1. Ziel
 
-Die App ist ein virtuelles Haustier im Stil der Tamagotchis aus den 90ern. Man zieht ein Tier vom Ei bis zum Erwachsenen auf. Dafür muss man es regelmäßig füttern, schlafen schicken, sauber machen, mit ihm spielen, erziehen und bei Krankheit behandeln. Wie gut man sich kümmert, bestimmt, wie es sich entwickelt, wie lange es lebt und ob es überhaupt überlebt.
+Die App ist ein virtuelles Haustier im Stil der Tamagotchis aus den 90ern. Man zieht ein Tier vom Ei bis zum Erwachsenen auf. Dafür muss man es regelmäßig füttern, schlafen schicken, sauber machen, mit ihm spielen und bei Krankheit behandeln. Wie gut man sich kümmert, bestimmt, wie es sich entwickelt, wie lange es lebt und ob es überhaupt überlebt.
 
 Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung, sondern aus den klassischen Tamagotchi-Regeln. Zahlen mit **(Vorschlag)** sind Startwerte, die man beim Balancing noch anpassen kann.
 
@@ -30,8 +30,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 | Laune | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit, solange es wach ist. **Im Schlaf erholt sie sich langsam** (+25 % über eine volle Nacht). Spielen und Snacks heben sie. (ergänzt) |
 | Müdigkeit | 0–100 % | Steigt, solange es wach ist, und sinkt im Schlaf. |
 | Gewicht | in g/kg | Steigt durch Essen und sinkt durch Spielen. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
-| Alter | in Tagen | Zählt ab dem Schlüpfen. |
-| Disziplin | 0–100 % | Steigt durch richtiges Schimpfen. (ergänzt) |
+| Alter | in Tagen, mit einer Nachkommastelle (z. B. „3,4 Tage“) | Zählt ab dem Schlüpfen. |
 | Gesundheit | gesund / krank | Siehe Abschnitt 6. |
 | Pflegefehler | Zähler | Zählt verpasste Bedürfnisse. Beeinflusst Entwicklung und Lebensdauer. (ergänzt) |
 
@@ -55,13 +54,13 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 | Phase | Dauer | Hinweise |
 |---|---|---|
-| Ei | 1 Minute | Keine Pflege nötig. Danach schlüpft das Tier. |
+| Ei | bis man es ausbrütet | Schlüpft **nicht von allein**: Man tippt bzw. klickt **20-mal auf das Ei**, dann schlüpft das Tier. Unten steht „Tippe 20× auf das Ei, dann schlüpft es!“, jeder Tipp zeigt den Stand (z. B. „Knack! Ein Riss! (6/20)“). |
 | Baby | 1 Tag | Braucht viel Pflege: wird schnell hungrig und macht oft ein Häufchen. |
 | Kind | 5 Tage | |
 | Teenager | 5 Tage | |
 | Erwachsen | bis zum Lebensende | |
 
-- **Entwicklung hängt von der Pflege ab** (ergänzt): Bei jedem Phasenwechsel entscheiden Pflegefehler und Disziplin, welche Variante das Tier wird. Gute Pflege ergibt eine schöne, zufriedene Form. Schlechte Pflege ergibt eine verwahrloste oder freche Form. Vorschlag: zwei Varianten für das Kind, zwei für den Teenager und drei für den Erwachsenen.
+- **Entwicklung hängt von der Pflege ab** (ergänzt): Bei jedem Phasenwechsel entscheiden die Pflegefehler in dieser Phase, welche Variante das Tier wird. Gute Pflege ergibt eine schöne, zufriedene Form. Schlechte Pflege ergibt eine verwahrloste oder freche Form. Vorschlag: zwei Varianten für das Kind, zwei für den Teenager und drei für den Erwachsenen.
 - **Lebensende** (ergänzt): Ein erwachsenes Tier lebt nicht ewig. Wie lange es lebt, hängt von der Pflege ab (Vorschlag: 10–25 Tage als Erwachsener). Danach "zieht in den Wald zurück".
 - **Name:** Direkt nach dem Schlüpfen fragt die App nach einem Namen. Dazu gibt es ein paar Vorschläge passend zur Tierart, maximal 14 Zeichen. Im Statusbildschirm kann man das Tier jederzeit umbenennen. Der Name steht im HUD, in den Meldungen, im Tagebuch und in der Liste der früheren Tiere.
 - Nach dem Lebensende oder dem Tod kann man ein neues Ei starten.
@@ -183,7 +182,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
   - Igel: „legt die Stacheln ganz flach an“, „schnuffelt an deinen Fingern“, „quiekt leise vor Freude“.
   - Huhn: „gluckst zufrieden“, „plustert sich wohlig auf“, „legt den Kopf schief und schaut dich an“.
 - **Meldungen** (ergänzt): Texte nennen das Tier beim Namen statt „Es“ und sind freundlich formuliert. Statt „gekackt“ heißt es „hat ein Häufchen gemacht – bitte aufräumen!“.
-- **Abwechslung** (ergänzt): Auch Füttern (teils je Tierart, z. B. „Pick, pick, pick – … pickt alle Körner auf“), Leckerli, Aufräumen, Licht aus, Medizin, Schimpfen und Spielergebnis haben je **mehrere zufällige Texte**, nie zweimal hintereinander derselbe.
+- **Abwechslung** (ergänzt): Auch Füttern (teils je Tierart, z. B. „Pick, pick, pick – … pickt alle Körner auf“), Leckerli, Aufräumen, Licht aus, Medizin und Spielergebnis haben je **mehrere zufällige Texte**, nie zweimal hintereinander derselbe.
 - Streicheln gibt **+25 % Laune**, aber höchstens **einmal pro Minute**. Öfter streicheln geht, bringt aber keine zusätzliche Laune.
 - **Schlafende Tiere** lassen sich nicht streicheln (keine Herzen). Tippt man trotzdem, kommen Hinweise, die sich steigern („Psst …“, „grummelt im Schlaf“, „dreht sich unruhig um“, „Noch einmal und … wacht auf!“). Beim **5. Antippen innerhalb von 15 Sekunden wacht das Tier auf**, mit den üblichen Folgen des zu frühen Weckens (−50 % Laune).
 
@@ -194,17 +193,9 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 - **Unnötige Medizin:** Gibt man einem gesunden Tier Medizin, zählt das als **Pflegefehler**, und die Laune sinkt um 25 %.
 - Ein krankes Tier hat keine Lust zu spielen und isst weniger (ergänzt).
 
-### 6.6 Disziplin (ergänzt)
+### 6.6 Rufen und Benachrichtigungen (ergänzt)
 
-- Ab und zu ruft das Tier **ohne echten Grund** nach Aufmerksamkeit, oder es verweigert Essen und Spielen, obwohl es Hunger oder schlechte Laune hat.
-- In diesem Fall muss man es über die UI **schimpfen**. Das gibt +25 % Disziplin.
-- Schimpft man ohne Grund, sinkt die Laune.
-- Ignoriert man die Rufe ohne Grund, zählt das als Pflegefehler.
-- Wie hoch die Disziplin ist, beeinflusst die Entwicklung (siehe 4).
-
-### 6.7 Rufen und Benachrichtigungen (ergänzt)
-
-- Das Tier ruft, sobald es etwas braucht: Hunger oder Laune auf 0, Müdigkeit, Krankheit, ein Häufchen oder ein Ruf ohne Grund.
+- Das Tier ruft, sobald es etwas braucht: Hunger oder Laune auf 0, Müdigkeit, Krankheit oder ein Häufchen.
 - Ein Rufsymbol zeigt das in der App an. Ist die App geschlossen, kommt eine Push-Benachrichtigung.
 - Kümmert man sich nicht innerhalb von **15 Minuten** um einen Ruf (Vorschlag), zählt das als **Pflegefehler**.
 
@@ -236,13 +227,12 @@ Nach dem Anwenden verschwinden die Parameter aus der Adresse. Unten erscheint ei
 | Parameter | Werte | Wirkung |
 |---|---|---|
 | `pet` | Name, Nummer (ab 1) oder `alle` | Welches Tier gemeint ist. Ohne diesen Parameter gilt es für das angezeigte Tier. |
-| `max` | 1 | Alles perfekt: satt, gute Laune, gesund, sauber, ausgeschlafen, 100 % Disziplin, Normalgewicht |
+| `max` | 1 | Alles perfekt: satt, gute Laune, gesund, sauber, ausgeschlafen, Normalgewicht |
 | `happy` | 0–4 | Laune (0–4 entspricht 0–100 %) |
 | `hunger` | 0–4 | Sättigung (0–4 entspricht 0–100 %) |
 | `sick` | 1 / 0 | krank machen bzw. heilen |
 | `tired` | 0–100 | Müdigkeit in % |
 | `sleep` | 1 / 0 | schlafen schicken (Licht aus) bzw. aufwecken (gilt als ausgeschlafen) |
-| `discipline` | 0–100 | Disziplin in % |
 | `weight` | Gramm | Gewicht in echten Gramm (wird je Art bzw. Rasse umgerechnet) |
 | `poop` | 0–6 | Anzahl Haufen (0 = sauber) |
 | `mistakes` | 0–99 | Pflegefehler (0 setzt auch den Gesamtzähler zurück) |
@@ -374,7 +364,6 @@ Die Hauptansicht zeigt das Tier in seinem Zuhause, die Haufen und alle Statussym
 | Spielen | Eins der 8 Minispiele auswählen |
 | Medizin | Das kranke Tier behandeln |
 | Sauber machen | Alle Haufen entfernen |
-| Schimpfen | Disziplin, siehe 6.6 |
 | Status | Bildschirm mit allen Werten aus Abschnitt 3 |
 
 Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
@@ -419,11 +408,10 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 - Kommt ein **wildes Tier vorbei** (Maus, Igel, Reh, Vogel, auch der Vogel am Fenster oder die Fliege bei der Katze), reagiert das Haustier **zufällig**: Meist bleibt es stehen und **beobachtet** es. Bei Tieren am Boden in seiner Nähe (Maus, Igel, Fliege bei der Katze) **läuft es ihm manchmal hinterher**, Katze, Fuchs und Hund springen dabei auch mal danach. Manchmal ignoriert es das Tier und macht einfach weiter.
 
 **Animationen:**
-- **Ei:** Etwa 40 Sekunden vor dem Schlüpfen bekommt es die ersten Risse, die dann in drei Stufen mehr werden. Dabei wackelt es in immer kürzeren Abständen.
+- **Ei:** Bei jedem Tipp wackelt es kurz. Nach 5, 10 und 15 Tipps kommen mehr Risse dazu, und es wackelt von selbst in immer kürzeren Abständen.
 - **Schlüpfen:** Die obere Schalenhälfte fliegt weg, das Baby taucht aus der unteren Hälfte auf, und es funkelt. Danach kommt der Dialog für den Namen.
 - **Essen:** Beim Füttern erscheint das Futter im Napf (Mahlzeit braun, Snack rosa). Das Tier läuft zum Napf, steckt den Kopf hinein und frisst. Dabei wird das Futter in drei Stufen weniger, bis der Napf leer ist. Bei einem Snack hüpft es danach.
 - **Freude:** Bei einem gewonnenen Spiel oder einem Snack hüpft es.
-- **Schimpfen:** Das Tier schüttelt sich.
 - **Entwicklung:** Der Bildschirm blitzt weiß auf, danach hüpft das Tier.
 - **Haufen:** Über den Haufen steigen Stinkewölkchen auf.
 - **Schlaf:** Schlafende Tiere liegen in einer eigenen **eingerollten Schlafpose** im Körbchen bzw. in der Höhle. Fuchs, Katze und Hund liegen mit dem Kopf auf den Pfoten und dem Schwanz vorne herum, der Fuchs mit weißer Schwanzspitze. Der Igel rollt sich zur Stachelkugel ein. Hunde haben die Ohren ihrer Rasse (Steh-, Schlapp- oder kleine Ohren), Fellfarbe und Muster bleiben erhalten. Die Tiere atmen ganz sanft (ein halber Pixel, langsam), darüber schweben kleine „Zzz“. In der Tier-Leiste oben erscheint ebenfalls die Schlafpose.
