@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev            # Vite dev server, --host (reachable from a phone on the LAN)
 npm test               # vitest run (engine, species, weather tests)
 npx vitest run src/engine/sim.test.ts         # single file
-npx vitest run -t 'schlüpft nach 1 Minute'    # single test by name
+npx vitest run -t 'Tierarzt'                   # single test by name
 npm run build          # tsc --noEmit (strict, noUnusedLocals/Parameters) + vite build -> dist/
 npm run preview        # serve dist/ on :4173
 npm run icons          # regenerate public/icons from the fox sprite
@@ -33,8 +33,9 @@ Layers, strictly one-directional: `engine` (pure logic) ← `species` (data) ←
 - **`src/engine/`** — UI-free, deterministic game logic.
   - `state.ts`: `GameState` (up to `MAX_PETS` pets, `activeId`, memorials, settings) and `Pet`. Hunger/happy are float hearts 0..4 (display rounded via `hearts()`).
   - `sim.ts`: `advance(state, realNow, rng)` replays game time **minute by minute** from `state.lastReal` to now (capped at 60 days of catch-up), so the pet keeps living while the app is closed. Returns `SimEvent[]` that the UI turns into sounds/notifications/messages. All randomness goes through an injectable `rng` — tests pass fixed rngs (`() => 0.5`, `() => 0.999` for "no random events").
-  - `actions.ts`: player actions (`feedMeal`, `clean`, `scold`, `finishGame`, …) mutate state and return `ActionResult { ok, msg, events }`.
+  - `actions.ts`: player actions (`feedMeal`, `clean`, `tapEgg`, `finishGame`, …) mutate state and return `ActionResult { ok, msg, events }`.
   - `config.ts`: **all balancing values** (`RULES`), times in game minutes.
+  - Never use the word "sterben"/death in user-facing text (user decision): severe neglect ends with the pet being picked up by the *Tierpflegestation* (`Ending.reason = 'station'`), the natural end is moving to the forest. Every consequence (sickness, care mistake, ending) must tell the player **why** — events/endings carry a „weil …“ text, and the diary log gets the same reason.
   - `texts.ts`: randomized message pools (`T`, `pick`, `pickFor` per species; never repeats the same line twice in a row).
   - `debug.ts`: URL cheat codes (`?pet=…&max=1&stage=erwachsen…`, documented in SPEC.md §7a). Applied once in `main.ts`, then stripped from the URL.
 - **`src/species/`** — each animal is a pure-data `SpeciesDef` (`types.ts`): palettes, sprites or a `rig`, coats/patterns, optional `breeds` (dog, chicken) and `sexes` (chicken), stage/variant names, room scene, minigame themes. Register new species in `species/index.ts` `SPECIES`; no engine changes needed. `randomLook()` picks a per-pet `Look` (breed/coat/pattern/seed/sex) that stays fixed for life. Internal weight is abstract units; `weightGrams()` converts for display.

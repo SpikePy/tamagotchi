@@ -68,7 +68,7 @@ export interface Pet {
 
 export interface Ending {
   at: number;
-  reason: 'forest' | 'death';
+  reason: 'forest' | 'station' | 'death'; // 'death' nur in alten Spielständen (wird wie 'station' gezeigt)
   cause: string;
   ageDays: number;
 }

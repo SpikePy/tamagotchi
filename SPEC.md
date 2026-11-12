@@ -11,7 +11,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 - **Echtzeit:** Die Zeit im Spiel läuft genauso schnell wie die echte Zeit. Ein Tag im Spiel ist ein echter Tag.
 - **Läuft weiter, wenn die App zu ist** (ergänzt): Ist die App geschlossen, läuft die Zeit trotzdem weiter. Beim nächsten Öffnen wird alles nachberechnet, was in der Zwischenzeit passiert ist (Hunger, Häufchen, Krankheit usw.).
 - **Alles über die UI:** Jede Pflegeaktion löst der Spieler selbst über die Oberfläche aus. Nichts passiert automatisch zugunsten des Tiers.
-- **Mehrere Tiere:** Man kann bis zu **5 Tiere** gleichzeitig haben. Alle leben parallel in Echtzeit, auch wenn sie gerade nicht angezeigt werden. Über eine **Leiste oben** schaltet man zwischen ihnen um. Jedes Tier hat dort ein Mini-Bild und seinen Namen; ein roter Punkt zeigt, dass es ruft, ein „z“, dass es schläft. Mit „+“ legt man ein neues Ei an. Die Tiere lassen sich in der Leiste per **Drag & Drop umsortieren** (mit Maus oder Finger ziehen). Ein normaler Tipp schaltet weiter um. Ruft ein Tier, das gerade nicht angezeigt wird, piept es, und unten erscheint eine Meldung mit seinem Namen. Stirbt ein Tier oder zieht in den Wald, geht es mit den übrigen weiter.
+- **Mehrere Tiere:** Man kann bis zu **5 Tiere** gleichzeitig haben. Alle leben parallel in Echtzeit, auch wenn sie gerade nicht angezeigt werden. Über eine **Leiste oben** schaltet man zwischen ihnen um. Jedes Tier hat dort ein Mini-Bild und seinen Namen; ein roter Punkt zeigt, dass es ruft, ein „z“, dass es schläft. Mit „+“ legt man ein neues Ei an. Die Tiere lassen sich in der Leiste per **Drag & Drop umsortieren** (mit Maus oder Finger ziehen). Ein normaler Tipp schaltet weiter um. Ruft ein Tier, das gerade nicht angezeigt wird, piept es, und unten erscheint eine Meldung mit seinem Namen. Zieht ein Tier in den Wald, geht es mit den übrigen weiter.
 
 ## 2a. Plattform
 
@@ -61,9 +61,9 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 | Erwachsen | bis zum Lebensende | |
 
 - **Entwicklung hängt von der Pflege ab** (ergänzt): Bei jedem Phasenwechsel entscheiden die Pflegefehler in dieser Phase, welche Variante das Tier wird. Gute Pflege ergibt eine schöne, zufriedene Form. Schlechte Pflege ergibt eine verwahrloste oder freche Form. Vorschlag: zwei Varianten für das Kind, zwei für den Teenager und drei für den Erwachsenen.
-- **Lebensende** (ergänzt): Ein erwachsenes Tier lebt nicht ewig. Wie lange es lebt, hängt von der Pflege ab (Vorschlag: 10–25 Tage als Erwachsener). Danach "zieht in den Wald zurück".
+- **Lebensende** (ergänzt): Ein erwachsenes Tier lebt nicht ewig. Wie lange es lebt, hängt von der Pflege ab (Vorschlag: 10–25 Tage als Erwachsener). Danach „zieht es in den Wald zurück“ und lebt dort glücklich weiter. Der Abschiedsbildschirm sagt, **warum**: nach wie vielen Tagen als erwachsenes Tier und um wie viele Tage die Pflegefehler das Leben verkürzt haben (je Pflegefehler ein halber Tag).
 - **Name:** Direkt nach dem Schlüpfen fragt die App nach einem Namen. Dazu gibt es ein paar Vorschläge passend zur Tierart, maximal 14 Zeichen. Im Statusbildschirm kann man das Tier jederzeit umbenennen. Der Name steht im HUD, in den Meldungen, im Tagebuch und in der Liste der früheren Tiere.
-- Nach dem Lebensende oder dem Tod kann man ein neues Ei starten.
+- Nach dem Lebensende kann man ein neues Ei starten.
 
 ## 5. Tierarten
 
@@ -199,7 +199,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 - Ein Rufsymbol zeigt das in der App an. Ist die App geschlossen, kommt eine Push-Benachrichtigung.
 - Kümmert man sich nicht innerhalb von **15 Minuten** um einen Ruf (Vorschlag), zählt das als **Pflegefehler**.
 
-## 7. Krankheit und Tod (ergänzt)
+## 7. Krankheit und Abschied (ergänzt)
 
 **Das Tier wird krank, wenn:**
 - es zu lange hungrig ist (6.1),
@@ -207,13 +207,18 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 - es dauerhaft zu wenig Schlaf bekommt (6.2),
 - es übergewichtig ist (Zufallschance).
 
-**Das Tier stirbt, wenn** (Vorschlag):
-- es länger als 12 Stunden krank ist, ohne Medizin zu bekommen,
-- der Hunger länger als 12 Stunden auf 0 steht,
-- sich zu viele Pflegefehler angesammelt haben (zum Beispiel 20 in einer Lebensphase),
-- seine natürliche Lebenszeit abgelaufen ist (siehe 4).
+Wird es krank, sagt die Meldung immer, **warum** (z. B. „Oh nein, Rudi ist krank geworden, weil ein Häufchen über 4 Stunden liegen geblieben ist. Gib Rudi Medizin!“). Der Grund steht auch im Tagebuch.
 
-Stirbt das Tier, sieht man einen Abschiedsbildschirm mit Alter und Lebenslauf. Danach kann man ein neues Ei starten.
+**Grobe Vernachlässigung: Die Tierpflegestation holt das Tier ab.** Das Wort „sterben“ kommt in der App nicht vor. Das Tier verlässt die App, wenn:
+- es länger als **12 Stunden krank** ist, ohne Medizin zu bekommen,
+- die Sättigung länger als **12 Stunden** (im Wachzustand) auf 0 steht,
+- sich in einer Lebensphase **20 Pflegefehler** angesammelt haben.
+
+Der Abschiedsbildschirm (🏡) sagt immer, **warum**, zum Beispiel: „Rudi wurde von der Tierpflegestation abgeholt – weil Rudi 12 Stunden krank war und keine Medizin bekommen hat. Dort wird Rudi liebevoll gepflegt und findet ein neues Zuhause.“ Der Grund steht auch im Tagebuch. Alte Spielstände, in denen ein Tier noch „gestorben“ war, werden genauso harmlos angezeigt.
+
+**Pflegefehler mit Grund:** Auch jeder Pflegefehler wird erklärt, unten in der Meldung und im Tagebuch, z. B. „Pflegefehler: Auf den Hunger wurde 15 Minuten lang nicht reagiert.“
+
+Das **natürliche Lebensende** (siehe 4): Das Tier zieht in den Wald (🌲), ebenfalls mit Grund. In beiden Fällen sieht man Alter, Grund und Lebenslauf und kann danach ein neues Ei starten.
 
 ## 7a. Cheat-Codes per URL-Parameter
 
@@ -418,8 +423,7 @@ Gesperrte Aktionen, zum Beispiel Füttern während des Schlafs, sind ausgegraut.
 
 ## 9. Offene Fragen
 
-1. **Tod oder sanfter Abschied?** Soll das Tier wirklich sterben, oder lieber kinderfreundlich „in den Wald zurückziehen“?
-2. **Pause-Funktion?** Das Original hatte keine. Soll man das Tier zum Beispiel in den Urlaub oder zu den Großeltern schicken können, damit die Zeit stillsteht?
-3. **Sound:** Piep-Töne im Retro-Stil, ja oder nein? Vorläufig sind sie eingebaut und lassen sich in den Einstellungen abschalten.
+1. **Pause-Funktion?** Das Original hatte keine. Soll man das Tier zum Beispiel in den Urlaub oder zu den Großeltern schicken können, damit die Zeit stillsteht?
+2. **Sound:** Piep-Töne im Retro-Stil, ja oder nein? Vorläufig sind sie eingebaut und lassen sich in den Einstellungen abschalten.
 
-Entschieden: Das Tier schläft nach Müdigkeit statt zu einer festen Uhrzeit (siehe 6.2). Die Plattform ist eine Web-App bzw. PWA (siehe 2a). Einen Zeitraffer gibt es nicht.
+Entschieden: Statt „sterben“ holt bei grober Vernachlässigung die Tierpflegestation das Tier ab, am Lebensende zieht es in den Wald – immer mit Grund (siehe 7). Das Tier schläft nach Müdigkeit statt zu einer festen Uhrzeit (siehe 6.2). Die Plattform ist eine Web-App bzw. PWA (siehe 2a). Einen Zeitraffer gibt es nicht.

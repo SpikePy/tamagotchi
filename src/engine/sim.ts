@@ -7,8 +7,9 @@ export type SimEvent = (
   | { kind: 'hatched' }
   | { kind: 'evolved'; stage: Stage; variant: Variant }
   | { kind: 'pooped' }
-  | { kind: 'sick'; cause: string }
+  | { kind: 'sick'; cause: string; why: string }
   | { kind: 'call'; call: CallType }
+  | { kind: 'mistake'; why: string }
   | { kind: 'fellAsleep' }
   | { kind: 'woke' }
   | { kind: 'ended'; name: string | null }
@@ -35,6 +36,12 @@ export function advance(s: GameState, realNow: number, rng: Rng = Math.random): 
   s.lastReal = realNow - (target - s.clock);
   return events;
 }
+
+const num1 = (d: number) => d.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+/** „nach 1 Tag“ / „nach 19 Tagen“ (Dativ) */
+const fmtDays = (d: number) => `${num1(d)} ${d === 1 ? 'Tag' : 'Tagen'}`;
+/** „um 1 Tag“ / „um 6 Tage“ (Akkusativ) */
+const fmtDaysAcc = (d: number) => `${num1(d)} ${d === 1 ? 'Tag' : 'Tage'}`;
 
 export function randBetween(rng: Rng, [a, b]: readonly [number, number]): number {
   return Math.round(a + rng() * (b - a));
@@ -67,11 +74,31 @@ export function sleptLast24h(p: Pet, clock: number): number {
   return p.sleepBuckets.reduce((sum, [h, m]) => (h + HOUR > from ? sum + m : sum), 0);
 }
 
+/** Warum das Tier krank geworden ist ({n} = Name) */
+export const SICK_WHY: Record<string, string> = {
+  Hunger: 'weil {n} über 2 Stunden lang nichts im Bauch hatte',
+  Dreck: 'weil ein Häufchen über 4 Stunden liegen geblieben ist',
+  Schlafmangel: 'weil {n} einen ganzen Tag lang zu wenig geschlafen hat (unter 6 Stunden)',
+  Übergewicht: 'weil {n} zu dick ist (zu viele Snacks)',
+  'per URL': 'per Cheat-Code',
+};
+
+/** Worauf nicht reagiert wurde (für den Pflegefehler) */
+const CALL_WHAT: Record<CallType, string> = {
+  hunger: 'den Hunger',
+  happy: 'die schlechte Laune',
+  poop: 'das Häufchen',
+  sick: 'die Krankheit',
+  sleepy: 'die Müdigkeit',
+  light: 'das Licht beim Schlafen',
+};
+
 export function makeSick(p: Pet, clock: number, cause: string, rng: Rng, events: SimEvent[]) {
   if (p.sick) return;
   p.sick = { since: clock, doses: rng() < 0.5 ? 1 : 2 };
-  addLog(p, clock, `Krank geworden (${cause}).`);
-  events.push({ kind: 'sick', cause });
+  const why = SICK_WHY[cause] ?? `(${cause})`;
+  addLog(p, clock, `Krank geworden, ${why.replaceAll('{n}', p.name ?? 'es')}.`);
+  events.push({ kind: 'sick', cause, why });
 }
 
 export function fallAsleep(p: Pet, lightOff: boolean, clock: number, events: SimEvent[]) {
@@ -113,9 +140,15 @@ export function wake(p: Pet, natural: boolean, clock: number, rng: Rng, events: 
   events.push({ kind: 'woke' });
 }
 
-export function endLife(s: GameState, p: Pet, reason: 'forest' | 'death', cause: string, events: SimEvent[]) {
+/**
+ * Ein Tier verlässt die App: am natürlichen Lebensende in den Wald ('forest') oder,
+ * wenn es grob vernachlässigt wurde, zur Tierpflegestation ('station').
+ * `cause` ist der Grund als „weil …“-Satz ({n} = Name) und wird immer angezeigt.
+ */
+export function endLife(s: GameState, p: Pet, reason: 'forest' | 'station', cause: string, events: SimEvent[]) {
   const ending = { at: s.clock, reason, cause, ageDays: ageDays(p, s.clock) };
-  addLog(p, s.clock, reason === 'forest' ? 'In den Wald zurückgezogen.' : `Gestorben (${cause}).`);
+  const why = cause.replaceAll('{n}', p.name ?? 'es');
+  addLog(p, s.clock, reason === 'forest' ? `In den Wald zurückgezogen, ${why}.` : `Von der Tierpflegestation abgeholt, ${why}.`);
   s.memorials.unshift({ species: p.species, name: p.name, look: p.look, stage: p.stage, variant: p.variant, ending, log: p.log });
   if (s.memorials.length > 20) s.memorials.length = 20;
   s.ending = ending;
@@ -199,6 +232,9 @@ function updateCalls(p: Pet, clock: number, events: SimEvent[]) {
     } else if (!call.penalized && clock - call.since >= RULES.callGraceMin * MIN) {
       call.penalized = true;
       careMistake(p);
+      const why = `Auf ${CALL_WHAT[type]} wurde ${RULES.callGraceMin} Minuten lang nicht reagiert.`;
+      addLog(p, clock, `Pflegefehler: ${why}`);
+      events.push({ kind: 'mistake', why });
     }
   }
 }
@@ -276,14 +312,15 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
     }
   }
 
-  if (p.sick && now - p.sick.since >= RULES.sickDeathAfterMin * MIN) {
-    return endLife(s, p, 'death', 'Krankheit', events);
+  // Grob vernachlässigt: Die Tierpflegestation holt das Tier ab – immer mit Grund
+  if (p.sick && now - p.sick.since >= RULES.sickAwayAfterMin * MIN) {
+    return endLife(s, p, 'station', `weil {n} ${RULES.sickAwayAfterMin / 60} Stunden krank war und keine Medizin bekommen hat`, events);
   }
-  if (p.hungerZeroSince !== null && now - p.hungerZeroSince >= RULES.hungerDeathAfterMin * MIN) {
-    return endLife(s, p, 'death', 'Hunger', events);
+  if (p.hungerZeroSince !== null && now - p.hungerZeroSince >= RULES.hungerAwayAfterMin * MIN) {
+    return endLife(s, p, 'station', `weil {n} ${RULES.hungerAwayAfterMin / 60} Stunden lang nichts zu essen bekommen hat`, events);
   }
-  if (p.careMistakesStage >= RULES.careMistakesDeathPerStage) {
-    return endLife(s, p, 'death', 'Vernachlässigung', events);
+  if (p.careMistakesStage >= RULES.careMistakesAwayPerStage) {
+    return endLife(s, p, 'station', `weil sich in dieser Lebensphase ${RULES.careMistakesAwayPerStage} Pflegefehler angesammelt haben`, events);
   }
 
   updateCalls(p, now, events);
@@ -293,6 +330,11 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
     const days = RULES.stageDays[p.stage as keyof typeof RULES.stageDays];
     if (now - p.stageStartedAt >= days * DAY) evolve(p, next, now, events);
   } else if (p.adultLifespanDays !== null && now - p.stageStartedAt >= p.adultLifespanDays * DAY) {
-    endLife(s, p, 'forest', 'Lebensende', events);
+    const d = p.adultLifespanDays;
+    const lost = RULES.adultLifespanDays.max - d;
+    const why = lost > 0
+      ? `weil die Lebenszeit nach ${fmtDays(d)} als erwachsenes Tier um war (${p.careMistakesTotal} Pflegefehler haben das Leben um ${fmtDaysAcc(lost)} verkürzt)`
+      : `weil die Lebenszeit nach ${fmtDays(d)} als erwachsenes Tier um war – das längste mögliche Leben`;
+    endLife(s, p, 'forest', why, events);
   }
 }

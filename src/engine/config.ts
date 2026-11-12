@@ -35,9 +35,10 @@ export const RULES = {
   poopSickAfterMin: 4 * 60,
 
   hungerSickAfterMin: 2 * 60,
-  hungerDeathAfterMin: 12 * 60,
-  sickDeathAfterMin: 12 * 60,
-  careMistakesDeathPerStage: 20,
+  // Grob vernachlässigt -> die Tierpflegestation holt das Tier ab (Wort „sterben“ gibt es nicht)
+  hungerAwayAfterMin: 12 * 60, // so lange Sättigung 0 (wach)
+  sickAwayAfterMin: 12 * 60, // so lange krank ohne Medizin
+  careMistakesAwayPerStage: 20,
 
   callGraceMin: 15, // nicht reagiert -> Pflegefehler
   strokeHappy: 1, // +25 % Laune beim Streicheln (in Viertel-Einheiten: 1 = ein Viertel der Leiste)

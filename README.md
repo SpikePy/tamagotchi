@@ -28,7 +28,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 
 ## Features
 
-- **Lebenszyklus:** Ei (schlüpft nach 20× Antippen) → Baby (1 Tag) → Kind (5 Tage) → Teenager (5 Tage) → Erwachsen. Welche Form das Tier annimmt, hängt von den Pflegefehlern ab. Am Lebensende zieht es sich in den Wald zurück.
+- **Lebenszyklus:** Ei (schlüpft nach 20× Antippen) → Baby (1 Tag) → Kind (5 Tage) → Teenager (5 Tage) → Erwachsen. Welche Form das Tier annimmt, hängt von den Pflegefehlern ab. Wird es grob vernachlässigt, holt es die Tierpflegestation ab; am Lebensende zieht es sich in den Wald zurück. Die App sagt immer, warum.
 - **Bedürfnisse:** Sättigung und Laune (HUD-Leisten mit je 4 Segmenten), Müdigkeit, Gewicht und Gesundheit.
 - **Schlafen:** Das Tier wacht nach insgesamt 8 Stunden Schlaf automatisch auf. Danach hat es Hunger und macht innerhalb einer Stunde ein Häufchen.
 - **Hygiene:** Es macht alle 1–3 Stunden ein Häufchen. Liegt ein Haufen länger als 4 Stunden, wird es krank.

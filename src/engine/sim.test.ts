@@ -53,12 +53,41 @@ describe('Lebenszyklus', () => {
     expect(activePet(s)!.stage).toBe('child');
   });
 
-  it('rechnet offline verpasste Zeit nach', () => {
+  it('rechnet offline verpasste Zeit nach – ohne Pflege holt die Tierpflegestation es ab, mit Grund', () => {
     const s = game();
-    run(s, 3 * DAY);
-    // ohne Pflege nach 3 Tagen tot
+    const ev = run(s, 3 * DAY);
     expect(activePet(s)).toBeNull();
-    expect(s.ending?.reason).toBe('death');
+    expect(s.ending?.reason).toBe('station');
+    expect(s.ending?.cause).toMatch(/^weil /);
+    expect(ev.some((e) => e.kind === 'ended')).toBe(true);
+    expect(s.memorials[0].log.at(-1)!.text).toMatch(/^Von der Tierpflegestation abgeholt, weil /);
+  });
+
+  it('12 h krank ohne Medizin: Tierpflegestation, Grund genannt', () => {
+    const s = game();
+    const p = activePet(s)!;
+    p.poopInMin = 99999;
+    p.tiredness = 0;
+    p.hunger = 4;
+    p.sick = { since: s.clock, doses: 2 };
+    run(s, 12 * HOUR - MIN);
+    expect(activePet(s)).not.toBeNull();
+    run(s, 2 * MIN);
+    expect(activePet(s)).toBeNull();
+    expect(s.ending?.cause).toBe('weil {n} 12 Stunden krank war und keine Medizin bekommen hat');
+  });
+
+  it('Krankheit und Pflegefehler nennen den Grund', () => {
+    const s = game();
+    const p = activePet(s)!;
+    p.poops = [s.clock];
+    p.poopInMin = 99999;
+    const ev = run(s, 4 * HOUR + MIN);
+    const sick = ev.find((e) => e.kind === 'sick');
+    expect(sick?.kind === 'sick' && sick.why).toMatch(/Häufchen über 4 Stunden/);
+    const mistake = ev.find((e) => e.kind === 'mistake');
+    expect(mistake?.kind === 'mistake' && mistake.why).toMatch(/15 Minuten lang nicht reagiert/);
+    expect(p.log.some((l) => l.text.startsWith('Pflegefehler: Auf'))).toBe(true);
   });
 });
 
@@ -200,23 +229,16 @@ describe('Mehrere Tiere', () => {
     hatchEgg(s);
     run(s, MIN);
     const [a, b] = s.pets;
-    a.hunger = 0;
-    a.poopInMin = 99999;
-    b.hunger = 4;
+    // a ist erwachsen und am Ende seiner Lebenszeit, b lebt weiter
+    a.stage = 'adult';
+    a.adultLifespanDays = 10;
+    a.stageStartedAt = s.clock - 10 * DAY;
     s.activeId = a.id;
-    // a verhungert (12 h), b wird währenddessen gefüttert
-    for (let h = 0; h < 13; h++) {
-      run(s, HOUR);
-      b.hunger = 4;
-      b.happy = 4;
-      b.poops = [];
-      b.sick = null;
-      b.tiredness = 10;
-      a.hunger = 0;
-    }
+    run(s, MIN);
     expect(s.pets.map((p) => p.id)).toEqual([b.id]);
     expect(s.activeId).toBe(b.id);
-    expect(s.ending?.reason).toBe('death');
+    expect(s.ending?.reason).toBe('forest');
+    expect(s.ending?.cause).toMatch(/^weil die Lebenszeit nach 10 Tagen/);
   });
 
   it('übernimmt alte Spielstände mit einem Tier', async () => {

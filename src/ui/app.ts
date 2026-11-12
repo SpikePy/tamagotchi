@@ -287,7 +287,10 @@ export class App {
           }
           break;
         case 'sick':
-          if (!quiet) this.say(`Oh nein, ${name} ist krank geworden!`);
+          if (!quiet) this.say(`Oh nein, ${name} ist krank geworden, ${e.why.replaceAll('{n}', name)}. Gib ${name} Medizin!`, 7000);
+          break;
+        case 'mistake':
+          if (!quiet && isActive) this.say(`Pflegefehler: ${e.why}`, 6000);
           break;
         case 'woke':
           if (!quiet && isActive) this.say(`Guten Morgen! ${name} ist aufgewacht und hat Hunger.`);
@@ -468,9 +471,9 @@ export class App {
     return text.replaceAll('{n}', p && p.stage !== 'egg' ? petName(p) : 'Es');
   }
 
-  private say(text: string) {
+  private say(text: string, ms = 3500) {
     this.msgEl.textContent = text;
-    this.msgUntil = performance.now() + 3500;
+    this.msgUntil = performance.now() + ms;
   }
 
   private act(r: ActionResult, fx?: Parameters<Scene['effect']>[0]) {
@@ -690,14 +693,8 @@ export class App {
     const body = h(
       'div',
       { class: 'goodbye' },
-      h('p', { class: 'result' }, e.reason === 'forest' ? '🌲' : '🪦'),
-      h(
-        'p',
-        {},
-        e.reason === 'forest'
-          ? `${name} hat sich nach einem langen, schönen Leben in den Wald zurückgezogen.`
-          : `${name} ist gestorben (${e.cause}).`,
-      ),
+      h('p', { class: 'result' }, e.reason === 'forest' ? '🌲' : '🏡'),
+      h('p', {}, endingText(e, name)),
       h('p', {}, `Alter: ${days(e.ageDays)}`),
       m ? h('details', {}, h('summary', {}, 'Lebenslauf'), logList(m.log)) : null,
       this.s.pets.length
@@ -798,7 +795,7 @@ export class App {
       const list = h('ul', { class: 'memorials' });
       for (const m of this.s.memorials) {
         list.append(
-          h('li', {}, `${m.ending.reason === 'forest' ? '🌲' : '🪦'} ${m.name ? `${m.name} (${stageName(m)})` : stageName(m)} – ${days(m.ending.ageDays)}`),
+          h('li', {}, `${m.ending.reason === 'forest' ? '🌲' : '🏡'} ${m.name ? `${m.name} (${stageName(m)})` : stageName(m)} – ${days(m.ending.ageDays)}`),
         );
       }
       body.append(h('details', {}, h('summary', {}, 'Frühere Tiere'), list));
@@ -854,6 +851,18 @@ function logList(log: { at: number; text: string }[]) {
     ul.append(h('li', {}, `${d.toLocaleDateString('de-DE')} ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} – ${l.text}`));
   }
   return ul;
+}
+
+/** Abschiedstext, immer mit Grund. Alte Spielstände ('death', kurze Gründe) werden harmlos umformuliert. */
+function endingText(e: { reason: string; cause: string }, name: string): string {
+  const why = e.cause.startsWith('weil') ? ` – ${e.cause.replaceAll('{n}', name)}` : '';
+  if (e.reason === 'forest') return `${name} hat sich in den Wald zurückgezogen und lebt dort glücklich weiter${why}.`;
+  const old: Record<string, string> = {
+    Krankheit: ' – weil es zu lange krank war und keine Medizin bekommen hat',
+    Hunger: ' – weil es zu lange nichts zu essen bekommen hat',
+    Vernachlässigung: ' – weil sich zu viele Pflegefehler angesammelt haben',
+  };
+  return `${name} wurde von der Tierpflegestation abgeholt${why || old[e.cause] || ''}. Dort wird ${name} liebevoll gepflegt und findet ein neues Zuhause.`;
 }
 
 /** Alter mit einer Nachkommastelle, abgerundet: „3,4 Tage“ */
