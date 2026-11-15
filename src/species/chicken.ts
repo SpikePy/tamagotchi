@@ -174,6 +174,7 @@ export const CHICKEN_BREEDS: Breed[] = [
     adultGrams: 1800,
   }, { comb: 'big' }),
   breed('Brahma', { teen: featherLegs(S.henTeen), adult: featherLegs(fluffy(HEN, 7)) }, { teen: featherLegs(ROOSTER_TEEN), adult: featherLegs(fluffy(ROO, 8)) }, {
+    size: 1.15, // große, schwere Rasse
     coats: [
       { name: 'Hell', colors: { a: '#f4f0e8', b: '#ffffff', d: '#2a2a2e', o: '#6a6a6a' } },
       { name: 'Dunkel', colors: { a: '#6a6a70', b: '#b8b8bc', d: '#2a2a2e' } },
@@ -182,6 +183,7 @@ export const CHICKEN_BREEDS: Breed[] = [
     adultGrams: 4500,
   }, { featherLegs: true, fluffy: 1.1 }),
   breed('Orpington', { teen: S.henTeen, adult: fluffy(fluffy(HEN, 7), 8) }, { teen: ROOSTER_TEEN, adult: fluffy(ROO, 9) }, {
+    size: 1.1, // große, schwere Rasse
     coats: [
       { name: 'Gelb', colors: { a: '#e8b878', b: '#f4d8a8', d: '#a87838' } },
       { name: 'Schwarz', colors: { a: '#2a2a2e', b: '#3e3e44', d: '#1e4a3a', ...BLACK } },

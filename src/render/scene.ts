@@ -57,6 +57,7 @@ const EGG_Y = FLOOR_Y - EGG_H - 2;
 const WIN = { x: 37, y: 3, w: 22, h: 16 };
 // Kratzbaum (Katze)
 const POST_X = 6; // links im Zimmer
+const POST_TOP = FLOOR_Y + 1 - 21; // Kratzbaum ist 21 Einheiten hoch
 const POST_COLORS: ColorMap = { o: '#4a3a30', m: '#b9a58a', r: '#d8c08e', R: '#b89a62', l: '#5a4a40', y: '#e2384d' };
 
 // Kauknochen und Socken (Hund), in voller Rasterauflösung
@@ -126,7 +127,9 @@ export class Scene {
   /** Streicheln: stehen bleiben, Augen zu, wiegen, Herzchen */
   stroke(sleeping = false) {
     const t = performance.now();
-    if (!sleeping) this.act = { kind: 'pet', start: t, until: t + 1800 };
+    // sitzt die Katze gerade oben auf dem Kratzbaum oder der Fensterbank, bleibt sie dort und genießt es
+    const perched = this.act.kind === 'visit' && (this.act.visit === 'perch' || this.act.visit === 'sill') && this.act.arrived !== undefined;
+    if (!sleeping && !perched) this.act = { kind: 'pet', start: t, until: t + 1800 };
     const b = this.petBox;
     if (!b) return;
     for (let i = 0; i < (sleeping ? 1 : 3); i++)
@@ -659,7 +662,8 @@ export class Scene {
         const dd = (a.targetDepth ?? this.depth) - this.depth;
         if (Math.abs(diff) < 0.3 && Math.abs(dd) < 0.1) {
           a.arrived = t;
-          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000, hop: 5000, scratch: 3600, play: 3400, scrape: 3000 } as const)[a.visit ?? 'sniff'];
+          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000, hop: 5000, scratch: 3600, play: 3400, scrape: 3000, perch: 12000 } as const)[a.visit ?? 'sniff'];
+          if (a.visit === 'perch') a.until += Math.random() * 8000; // oben auf dem Kratzbaum ein Weilchen bleiben
         } else {
           const dist = Math.hypot(diff, dd * 2);
           const step = Math.min(dist, (a.speed ?? 6) * dt);
@@ -746,10 +750,13 @@ export class Scene {
       ground = snapPx((ground - (STRAW_HEAP.h - 0.5) * up - arc));
     }
     const y = ground - h + 1 - bob;
-    // kleiner Schatten unter dem Tier
-    ctx.fillStyle = 'rgba(0,0,0,0.16)';
-    ctx.fillRect(snapPx((x + 2)), ground + 0.5, snapPx((w - 4)), 0.5);
-    ctx.fillRect(snapPx((x + 3)), ground + 1, snapPx((w - 6)), 0.5);
+    // kleiner Schatten unter dem Tier (nicht, wenn es oben auf dem Kratzbaum sitzt)
+    if (visiting !== 'perch') {
+      ctx.fillStyle = 'rgba(0,0,0,0.16)';
+      ctx.fillRect(snapPx((x + 2)), ground + 0.5, snapPx((w - 4)), 0.5);
+      ctx.fillRect(snapPx((x + 3)), ground + 1, snapPx((w - 6)), 0.5);
+    }
+    let box = { x, y, w, h };
     if (visiting === 'sill' || visiting === 'dustbath') {
       // Katze döst auf dem Fensterkissen / Huhn plustert sich im Sandbad
       const sl = petSprite(sp, p, { sleeping: true, sleepSmall: visiting === 'sill' });
@@ -780,6 +787,28 @@ export class Scene {
         for (let i = 0; i < 4; i++) ctx.fillRect(snapPx((sx + 2 + ((t / 60 + i * 5) % (sl.w - 3)))), snapPx((ground - 1 - (i % 2))), 0.5, 0.5);
       }
       if (!leap) drawMap(ctx, sl.map, sl.colors, sx, sy, false);
+    } else if (visiting === 'perch') {
+      // Katze springt auf die oberste Plattform des Kratzbaums, sitzt dort, schaut sich um und springt wieder herunter
+      const kk = (t - (a.arrived ?? t)) / Math.max(1, a.until - (a.arrived ?? t));
+      const jump = 900 / Math.max(1, a.until - (a.arrived ?? t)); // Sprung dauert knapp eine Sekunde
+      const up = kk < jump ? kk / jump : kk > 1 - jump ? (1 - kk) / jump : 1;
+      const topY = POST_TOP + 1.5; // Oberfläche der Plattform
+      const sitX = POST_X + 5.5 - w / 2;
+      if (up < 1) {
+        const lp = petSprite(sp, p, { pose: 'leap', mood: moodOf(p) });
+        const c0 = x + w / 2;
+        const c1 = sitX + w / 2;
+        const cx = c0 + (c1 - c0) * up;
+        const by = ground + (topY - ground) * up - Math.sin(Math.PI * up) * 6;
+        const movingRight = kk < 0.5 ? c1 > c0 : c0 > c1;
+        drawMap(ctx, lp.map, lp.colors, cx - lp.w / 2, by - lp.h + 1, movingRight);
+      } else {
+        // oben: in Ruhe sitzen und sich ab und zu nach links und rechts umschauen
+        const look = Math.floor((t - (a.arrived ?? t)) / 2500) % 3;
+        const sitImg = look === 0 ? img : petSprite(sp, p, { mood: moodOf(p), gaze: look === 1 ? -1 : 1, eyesClosed: Math.floor(t / 3100) % 9 === 0 });
+        drawMap(ctx, sitImg.map, sitImg.colors, sitX, topY - h + 1, look === 2);
+        box = { x: sitX, y: topY - h + 1, w, h };
+      }
     } else if (visiting === 'scratch' || visiting === 'play') {
       // Katze wetzt die Krallen am Kratzbaum bzw. schlägt nach der Kugel
       const fr = Math.floor(t / (visiting === 'scratch' ? 240 : 360)) % 2;
@@ -804,7 +833,7 @@ export class Scene {
       const sflip = face > 0; // Pose schaut von Haus aus nach links
       drawMap(ctx, st.map, st.colors, x + w / 2 - st.w / 2, ground - st.h + 1, sflip);
     } else drawMap(ctx, img.map, img.colors, x, y, flip);
-    this.petBox = { x, y, w, h };
+    this.petBox = box;
     if (birdPose === 'scrape1') {
       // aufgewirbeltes Stroh/Erde hinter dem Huhn
       ctx.fillStyle = 'rgba(190,150,80,0.9)';
@@ -849,7 +878,7 @@ export class Scene {
 /** wie weit vorne/hinten das Tier für einen Besuch steht */
 function visitDepth(v?: VisitKind): number {
   if (v === 'drink' || v === 'dustbath') return 2.5;
-  if (v === 'hop' || v === 'scratch' || v === 'play') return 0;
+  if (v === 'hop' || v === 'scratch' || v === 'play' || v === 'perch') return 0;
   return 1;
 }
 

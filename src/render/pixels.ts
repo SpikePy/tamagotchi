@@ -534,6 +534,14 @@ function rigSprite(
     w = size[0].length;
     h = size.length;
   }
+  // Größe je Art bzw. Rasse, damit Igel, Katze, Fuchs und die Hunde unterschiedlich groß sind
+  // (schlafend höchstens etwas größer, damit große Hunde noch ins Körbchen passen)
+  const scale = breed?.size ?? sp.size ?? 1;
+  const k = pose === 'sleep' ? Math.min(scale, 1.05) : scale;
+  if (k !== 1) {
+    w = Math.max(6, Math.round(w * k));
+    h = Math.max(6, Math.round(h * k));
+  }
   const map = renderRig(rig, stage, w, h, {
     eyesClosed: opts.eyesClosed,
     brows: pet.variant === 'cheeky',

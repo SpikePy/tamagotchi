@@ -39,6 +39,8 @@ export interface Breed {
   facesLeft?: boolean;
   /** Bauplan für die Grafik in voller Rasterdichte */
   rig?: RigDef;
+  /** Größe im Vergleich zu anderen Tieren (1 = normal, z. B. Igel 0,7, Schäferhund 1,2) */
+  size?: number;
   /** eigene Namen der Entwicklungsstufen (z. B. Hahn statt Huhn) */
   stageNames?: Partial<Record<Stage, Partial<Record<Variant, string>>>>;
 }
@@ -63,6 +65,8 @@ export interface SpeciesDef {
   weightGrams: Record<Exclude<Stage, 'egg'>, number>;
   /** Bauplan für die Grafik in voller Rasterdichte */
   rig?: RigDef;
+  /** Größe im Vergleich zu anderen Tieren (1 = normal, z. B. Igel 0,7, Schäferhund 1,2) */
+  size?: number;
   /** Schlafpose (eingerollt) */
   sleep: SleepShape;
   /** Deko im Raum passend zur Art */

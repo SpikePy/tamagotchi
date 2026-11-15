@@ -4,7 +4,22 @@
 // plus Licht-/Schattenstufen (Großbuchstaben = hell, Ziffern = dunkel) und 'h' = Glanzpunkt.
 import type { Stage } from '../engine/state';
 
-export type EarType = 'pointy' | 'big' | 'half' | 'small' | 'floppy' | 'floppyLong' | 'fluffy' | 'none';
+export type EarType = 'pointy' | 'fox' | 'cat' | 'tall' | 'big' | 'half' | 'small' | 'floppy' | 'floppyLong' | 'fluffy' | 'none';
+
+/**
+ * Stehohren je Art – damit sich Fuchs, Katze und die Hunde klar unterscheiden.
+ * h/w: Höhe/Breite relativ zum Kopf, x: Abstand von der Mitte, lean: Spitze nach außen (+) bzw. innen (−),
+ * tip: dunkle Spitze (Anteil der Höhe), round: abgerundete Spitze, inner: Farbe innen
+ */
+const UPRIGHT: Partial<Record<EarType, { h: number; w: number; x: number; lean: number; tip?: number; round?: boolean; inner: string }>> = {
+  fox: { h: 0.78, w: 0.21, x: 0.31, lean: 0.55, tip: 0.3, inner: 'b' }, // groß, schmal, weit nach außen, schwarze Spitzen, weißes Innenfell
+  cat: { h: 0.5, w: 0.25, x: 0.31, lean: -0.15, inner: 'c' }, // kurz, breit, an den Kopfecken, rosa innen
+  tall: { h: 0.8, w: 0.25, x: 0.25, lean: 0.05, inner: 'c' }, // Schäferhund: sehr hoch, aufrecht, dicht beieinander
+  pointy: { h: 0.58, w: 0.21, x: 0.24, lean: 0, inner: 'b' }, // Husky: klein, dick, oben am Kopf, hell innen
+  big: { h: 0.8, w: 0.33, x: 0.32, lean: 0.25, inner: 'c' }, // Corgi: riesig und breit
+  half: { h: 0.46, w: 0.2, x: 0.3, lean: 0, inner: 'c' }, // Border Collie: Spitze umgeklappt
+};
+export const isUpright = (e: EarType) => e in UPRIGHT;
 export type TailType = 'fluffy' | 'thin' | 'straight' | 'curly' | 'tipped' | 'none';
 
 /** sitzender Vierbeiner von vorn (Fuchs, Katze, die meisten Hunde) */
@@ -267,9 +282,11 @@ function quadSit(r: Raster, d: QuadRig, stage: Exclude<Stage, 'egg'>, o: RigOpts
   const k = STAGE_K[stage];
   const tail = stage === 'baby' ? 'none' : d.tail;
   const cx = tail !== 'none' ? Math.round(W * 0.36) + 0.5 : W / 2;
-  const pointy = d.ears === 'pointy' || d.ears === 'big' || d.ears === 'half';
-  const earSpace = pointy ? H * (0.16 - 0.03 * k) : d.tuft ? H * 0.06 : H * 0.03;
-  const headH = H * (0.56 - 0.18 * k);
+  const up = UPRIGHT[d.ears];
+  const headH0 = H * (0.56 - 0.18 * k);
+  // Platz über dem Kopf, damit auch hohe Ohren ganz ins Bild passen
+  const earSpace = up ? Math.max(H * 0.06, headH0 * (up.h - 0.3) * 0.82 + 1) : d.tuft ? H * 0.06 : H * 0.03;
+  const headH = up ? Math.min(headH0, (H - earSpace) * 0.62) : headH0;
   const headW = Math.min(W * 0.78, headH * 1.28 * (d.head ?? 1));
   const headTop = earSpace;
   const headCy = headTop + headH / 2;
@@ -313,25 +330,31 @@ function quadSit(r: Raster, d: QuadRig, stage: Exclude<Stage, 'egg'>, o: RigOpts
     r.seg(lx + legR * 0.35, bottom - legR * 0.5, lx + legR * 0.35, bottom - 1, 'o');
   }
   // Ohren hinter dem Kopf (Stehohren)
-  const earL = (s: number) => {
-    const ex = cx + s * headW * 0.3;
-    const eh = headH * (d.ears === 'big' ? 0.62 : 0.46);
-    const ew = headW * (d.ears === 'big' ? 0.24 : 0.2);
-    const outer = poly([
-      [ex - s * ew * 1.15, headTop + headH * 0.32],
-      [ex + s * ew * 0.95, headTop + headH * 0.18],
-      [ex - s * ew * 0.35, headTop + headH * 0.3 - eh],
+  const earL = (s: number, e: NonNullable<typeof up>) => {
+    const ex = cx + s * headW * e.x;
+    const eh = headH * e.h;
+    const ew = headW * e.w;
+    const base = headTop + headH * 0.3;
+    const tipX = ex + s * ew * e.lean;
+    const tipY = base - eh;
+    // Basis: innen etwas höher, außen tiefer im runden Kopf – so steht das Ohr auf und klappt nicht seitlich weg
+    let outer: Shape = poly([
+      [ex - s * ew * 1.1, base - headH * 0.02],
+      [ex + s * ew * 1.0, base + headH * 0.1],
+      [tipX, tipY],
     ]);
-    r.fill(outer, 'a');
+    if (e.round) outer = union(outer, ell(tipX - s * ew * 0.12, tipY + ew * 0.42, ew * 0.4, ew * 0.42));
+    const tipTo = e.tip ? tipY + eh * e.tip : -Infinity;
+    r.fill(outer, (_x, y) => (y < tipTo ? 'c' : 'a'));
     const inner = poly([
-      [ex - s * ew * 0.6, headTop + headH * 0.3],
-      [ex + s * ew * 0.45, headTop + headH * 0.22],
-      [ex - s * ew * 0.3, headTop + headH * 0.36 - eh * 0.75],
+      [ex - s * ew * 0.55, base],
+      [ex + s * ew * 0.5, base + headH * 0.04],
+      [ex + (tipX - ex) * 0.8, tipY + eh * (e.tip ? e.tip + 0.05 : 0.22)],
     ]);
-    r.fill(inner, 'c', { line: false });
-    if (d.ears === 'half') r.fill(poly([[ex - s * ew * 0.9, headTop + headH * 0.32 - eh * 0.45], [ex + s * ew * 0.3, headTop + headH * 0.32 - eh * 0.55], [ex - s * ew * 0.1, headTop + headH * 0.32 - eh * 0.15]]), 'c');
+    r.fill(inner, e.inner, { line: false });
+    if (d.ears === 'half') r.fill(poly([[ex - s * ew * 0.9, base - eh * 0.45], [ex + s * ew * 0.6, base - eh * 0.55], [ex - s * ew * 0.1, base - eh * 0.1]]), 'c');
   };
-  if (pointy) for (const s of [-1, 1]) earL(s);
+  if (up) for (const s of [-1, 1]) earL(s, up);
   // Kopf mit Wangenfell
   const headShape = d.muzzle === 'fox' || d.muzzle === 'cat'
     ? union(ell(cx, headCy, headW / 2, headH / 2), ell(cx - headW * 0.36, headCy + headH * 0.18, headW * 0.2, headH * 0.22), ell(cx + headW * 0.36, headCy + headH * 0.18, headW * 0.2, headH * 0.22))
@@ -587,7 +610,7 @@ function curlSleep(r: Raster, d: QuadRig | DachsRig, o: RigOpts) {
   const hx = W * 0.2;
   const hy = bottom - H * 0.38;
   const hr = H * 0.34;
-  if (q.ears === 'pointy' || q.ears === 'big' || q.ears === 'half') {
+  if (isUpright(q.ears)) {
     r.fill(poly([[hx - hr * 0.75, hy - hr * 0.4], [hx - hr * 0.25, hy - hr * 0.75], [hx - hr * 0.8, hy - hr * 1.4]]), 'a');
     r.fill(poly([[hx - hr * 0.6, hy - hr * 0.5], [hx - hr * 0.35, hy - hr * 0.7], [hx - hr * 0.72, hy - hr * 1.15]]), 'c', { line: false });
     r.fill(poly([[hx + hr * 0.1, hy - hr * 0.8], [hx + hr * 0.6, hy - hr * 0.6], [hx + hr * 0.45, hy - hr * 1.35]]), 'a');
@@ -692,7 +715,7 @@ function stretch(r: Raster, d: QuadRig | DachsRig, frame: 0 | 1, o: RigOpts) {
   const hx = front[0] - br * 0.9;
   const hy = front[1] - br * (frame === 0 ? 0.6 : 1.3);
   const hr = H * 0.22;
-  if (q.ears === 'pointy' || q.ears === 'big' || q.ears === 'half') {
+  if (isUpright(q.ears)) {
     r.fill(poly([[hx, hy - hr * 0.6], [hx + hr * 0.6, hy - hr * 0.5], [hx + hr * 0.35, hy - hr * 1.5]]), 'a');
     r.fill(poly([[hx + hr * 0.15, hy - hr * 0.6], [hx + hr * 0.45, hy - hr * 0.6], [hx + hr * 0.33, hy - hr * 1.2]]), 'c', { line: false });
   }
