@@ -55,7 +55,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 | Phase | Dauer | Hinweise |
 |---|---|---|
 | Ei | bis man es ausbrütet | Schlüpft **nicht von allein**: Man tippt bzw. klickt **20-mal auf das Ei**, dann schlüpft das Tier. Unten steht „Tippe 20× auf das Ei, dann schlüpft es!“, jeder Tipp zeigt den Stand (z. B. „Knack! Ein Riss! (6/20)“). |
-| Baby | 1 Tag | Braucht viel Pflege: wird schnell hungrig und macht oft ein Häufchen. |
+| Baby | 1 Tag | Braucht viel Pflege: wird schnell hungrig und macht öfter ein Häufchen. |
 | Kind | 5 Tage | |
 | Teenager | 5 Tage | |
 | Erwachsen | bis zum Lebensende | |
@@ -142,12 +142,14 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.3 Hygiene
 
-- Das Tier **macht alle 1–3 Stunden ein Häufchen**. Der Abstand wird zufällig gewählt.
+- Das Tier **macht zweimal am Tag ein Häufchen** (Nutzerwunsch): **morgens innerhalb einer Stunde nach dem Aufwachen** und **abends** (11–14 Stunden nach dem Aufwachen, also etwa 18–21 Uhr, wenn es um 7 Uhr aufsteht).
+- Das **Baby** macht zusätzlich **zweimal zu zufälligen Zeiten** im Lauf des Tages ein Häufchen, also viermal am Tag. Ab dem Kind sind es nur noch zwei.
+- Beim Schlüpfen mitten am Tag gelten nur die Termine, die noch vor ihm liegen.
 - Die Haufen sieht man im Zuhause des Tiers, mehrere können sich ansammeln.
 - Man muss das **Zuhause über die UI sauber machen**. Das entfernt alle Haufen auf einmal.
 - **Liegt ein Haufen länger als 4 Stunden, wird das Tier krank.**
 - Im Schlaf macht es keins.
-- Nach dem Aufwachen am Morgen macht es auf jeden Fall innerhalb der ersten Stunde ein Häufchen. Erst danach gilt wieder der normale Abstand von 1–3 Stunden.
+- **Ein Häufchen darf bis zu 2 Stunden liegen.** Erst danach zählt es als Pflegefehler (statt der sonst üblichen 15 Minuten, siehe 7).
 
 ### 6.4 Spielen
 
@@ -197,7 +199,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 - Das Tier ruft, sobald es etwas braucht: Hunger oder Laune auf 0, Müdigkeit, Krankheit oder ein Häufchen.
 - Ein Rufsymbol zeigt das in der App an. Ist die App geschlossen, kommt eine Push-Benachrichtigung.
-- Kümmert man sich nicht innerhalb von **15 Minuten** um einen Ruf (Vorschlag), zählt das als **Pflegefehler**.
+- Kümmert man sich nicht innerhalb von **15 Minuten** um einen Ruf (Vorschlag), zählt das als **Pflegefehler**. Ausnahme Häufchen: dafür hat man **2 Stunden** Zeit.
 
 ## 7. Krankheit und Abschied (ergänzt)
 
@@ -258,6 +260,11 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
   - **Fuchs, Katze, Hunde** sitzen von vorn: großer Kopf mit Wangenfell, Steh-, Kipp- oder Schlappohren, Brustlatz, zwei Vorderbeine mit Zehen, Hinterbacken, Schwanz zur Seite (Fuchs buschig mit weißer Spitze, Katze dünn geschwungen, Hund je Rasse gerade, geringelt oder mit heller Spitze). Katzen haben Schnurrhaare und rosa Wangen, der Mops eine dunkle Maske, der Pudel einen Haarschopf und lockige Ohren.
   - **Ohren je Art** (damit sich die Tiere klar unterscheiden): **Fuchs** große, schmale Ohren, weit nach außen gestellt, mit **schwarzen Spitzen** und weißem Innenfell; **Katze** kurze, breite Dreiecke an den Kopfecken, rosa innen; **Schäferhund** sehr hohe, aufrechte Ohren dicht beieinander; **Husky** kleine, dicke Ohren oben auf dem Kopf, hell innen; **Corgi** riesige, breite Ohren; **Border Collie** Kippohren mit umgeklappter Spitze; dazu Schlappohren (Labrador, Dalmatiner), lange Schlappohren (Beagle, Dackel), Lockenohren (Pudel) und kleine Knickohren (Mops).
   - **Größe je Art und Rasse** (in allen Phasen): Igel 68 %, Mops 78 %, Katze 82 %, Corgi 85 %, Beagle und Dackel 90 %, Border Collie 102 %, Fuchs und Pudel 105 %, Husky 110 %, Dalmatiner 112 %, Labrador 115 %, Schäferhund 120 %; Brahma 115 % und Orpington 110 % der normalen Hühnergröße. Schlafend werden große Tiere höchstens 105 % groß, damit sie ins Körbchen passen.
+  - **Lebensphasen deutlich unterscheidbar** (Nutzerwunsch): Die Tiere **wachsen sichtbar** (Fuchs, Katze, Igel als Baby etwa drei Viertel, als Kind knapp 90 %, als Teenager 95 % der Erwachsenengröße; Hunde, deren Sprites schon mit dem Alter höher werden, zusätzlich etwas; Küken als Baby 82 %).
+    - **Baby:** sehr großer Kopf, große, weit auseinanderstehende Augen, rosa Wangen, eine kleine Flaumlocke auf dem Kopf, kurze, breite Ohren, noch kein Schwanz. Igelbabys haben wenige, kurze, helle Stacheln; Küken einen besonders großen Kopf mit Flaumspitzen.
+    - **Kind:** Ohren schon größer, ein kurzer Schwanz, Augen etwas kleiner. Das Junghuhn bekommt den ersten kleinen Kamm und einen schlankeren Kopf.
+    - **Teenager:** schlaksig mit schmalerem Körper und **zu großen Ohren**, der Schwanz fast ausgewachsen.
+    - **Erwachsen:** volle Größe, normale Ohren, voller Schwanz; Igel mit dichtem, langem Stachelkleid.
   - **Dackel** in Seitenansicht mit langem Körper, kurzen Beinen, langer Schnauze und langem Schlappohr.
   - **Igel** von vorn mit Stachelkleid (gezackter Rand, helle und dunkle Stacheln), rundem Gesicht, Öhrchen, Wangen und Knopfnase.
   - **Hühner** in Seitenansicht: Küken rund und flauschig; Hennen mit Kamm, Kehllappen, Schnabel, Flügel mit Federlinien, aufgestelltem Schwanz; Hähne mit großem Kamm, langen Kehllappen, hellem Halsgefieder und geschwungenen Sichelfedern. Rassen: großer Kamm (Leghorn), Haube (Appenzeller), Seidenhuhn mit Puschel und befiederten Beinen, befiederte Beine (Brahma), fülliger Körper (Orpington, Brahma), klein (Zwerghuhn).

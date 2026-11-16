@@ -29,7 +29,7 @@ function pet(species, stage, variant, extra = {}) {
     settings: { sound: false, notifications: false },
     pet: {
       species, stage, variant, createdAt: t - 9 * 864e5, hatchedAt: t - 9 * 864e5, stageStartedAt: t - 3600e3,
-      hunger: 3, happy: 4, tiredness: 40, weight: 32, sick: null, poops: [], poopInMin: 999,
+      hunger: 3, happy: 4, tiredness: 40, weight: 32, sick: null, poops: [], poopPlan: [],
       asleep: false, lightOn: true, sleptInCycleMin: 0, sleepBuckets: [], sleepDeficitSince: null,
       hungerZeroSince: null, happyZeroSince: null, calls: {}, snacksToday: 1,
       dayKey: '', careMistakesStage: 1, careMistakesTotal: 3, adultLifespanDays: 22,

@@ -30,8 +30,13 @@ export const RULES = {
   sleepDeficitMin: 6 * 60, // weniger als 6 h in 24 h = Schlafmangel
   sleepDeficitSickAfterMin: 24 * 60,
 
-  poopIntervalMin: { baby: [40, 90], other: [60, 180] } as Record<string, [number, number]>,
+  // Häufchen nach festem Tagesplan (in Wach-Minuten seit dem Aufwachen):
+  // morgens innerhalb einer Stunde, abends; das Baby zusätzlich zweimal zu zufälligen Zeiten
   morningPoopMin: [5, 60] as [number, number],
+  eveningPoopMin: [11 * 60, 14 * 60] as [number, number], // nach 7 Uhr Aufstehen: 18–21 Uhr
+  youngExtraPoops: 2,
+  youngExtraPoopMin: [90, 15 * 60] as [number, number],
+  poopGraceMin: 2 * 60, // so lange darf ein Häufchen liegen, bevor es ein Pflegefehler ist
   poopSickAfterMin: 4 * 60,
 
   hungerSickAfterMin: 2 * 60,
@@ -40,7 +45,7 @@ export const RULES = {
   sickAwayAfterMin: 12 * 60, // so lange krank ohne Medizin
   careMistakesAwayPerStage: 20,
 
-  callGraceMin: 15, // nicht reagiert -> Pflegefehler
+  callGraceMin: 15, // nicht reagiert -> Pflegefehler (Häufchen: poopGraceMin)
   strokeHappy: 1, // +25 % Laune beim Streicheln (in Viertel-Einheiten: 1 = ein Viertel der Leiste)
 
   baseWeight: { egg: 0, baby: 5, child: 10, teen: 20, adult: 30, gone: 0 } as Record<string, number>,

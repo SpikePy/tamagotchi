@@ -497,7 +497,11 @@ export function eggMap(): string[] {
 }
 
 const POSE_SIZE: Record<string, [number, number]> = { scratch0: [14, 22], scratch1: [14, 22], bat0: [20, 14], bat1: [20, 14], leap: [24, 13] };
-const STAGE_SCALE: Record<string, number> = { baby: 0.7, child: 0.8, teen: 0.9, adult: 1, egg: 0.7 };
+const STAGE_SCALE: Record<string, number> = { baby: 0.6, child: 0.72, teen: 0.87, adult: 1, egg: 0.6 };
+/** Vierbeiner wachsen sichtbar: zusätzlich zu den Maßen der alten Sprites (die bei Baby und Kind fast gleich sind) */
+const STAGE_GROW: Record<string, number> = { baby: 0.74, child: 0.87, teen: 0.95, adult: 1 };
+/** Hunde: ihre alten Sprites werden schon mit der Lebensphase höher, daher nur ein wenig zusätzlich */
+const DOG_GROW: Record<string, number> = { baby: 0.88, child: 0.94, teen: 0.98, adult: 1 };
 
 /** neues Aussehen: in voller Rasterdichte aus dem Bauplan gezeichnet (gleiche Maße wie die alten Sprites) */
 function rigSprite(
@@ -537,7 +541,8 @@ function rigSprite(
   // Größe je Art bzw. Rasse, damit Igel, Katze, Fuchs und die Hunde unterschiedlich groß sind
   // (schlafend höchstens etwas größer, damit große Hunde noch ins Körbchen passen)
   const scale = breed?.size ?? sp.size ?? 1;
-  const k = pose === 'sleep' ? Math.min(scale, 1.05) : scale;
+  const grow = opts.pose && POSE_SIZE[opts.pose] ? 1 : rig.kind === 'chicken' ? (stage === 'baby' ? 0.82 : 1) : (sp.breeds ? DOG_GROW : STAGE_GROW)[stage];
+  const k = (pose === 'sleep' ? Math.min(scale, 1.05) : scale) * grow;
   if (k !== 1) {
     w = Math.max(6, Math.round(w * k));
     h = Math.max(6, Math.round(h * k));

@@ -1,4 +1,5 @@
 import { GameState, newGame } from './engine/state';
+import { awakeMinutes, poopPlan } from './engine/sim';
 
 const KEY = 'tamagotchi.v1';
 
@@ -43,6 +44,11 @@ export function migrate(raw: any): GameState | null {
     delete p.discipline;
     delete p.fakeCallsToday;
     if (p.calls) delete p.calls.fake;
+    // Häufchen nach Tagesplan statt im festen Abstand
+    if (!Array.isArray(p.poopPlan)) {
+      delete p.poopInMin;
+      p.poopPlan = p.stage === 'egg' || p.stage === 'gone' ? [] : poopPlan(p, Math.random, awakeMinutes(p));
+    }
   }
   return raw;
 }

@@ -40,7 +40,7 @@ export interface Pet {
 
   sick: { since: number; doses: number } | null;
   poops: number[]; // Zeitpunkte
-  poopInMin: number; // Wach-Minuten bis zum nächsten Haufen
+  poopPlan: number[]; // Wach-Minuten bis zu den nächsten Häufchen des Tages (aufsteigend)
 
   asleep: boolean;
   lightOn: boolean;
@@ -136,7 +136,7 @@ export function newPet(species: string, clock: number, look: Look | null = null,
     weight: 0,
     sick: null,
     poops: [],
-    poopInMin: 0,
+    poopPlan: [],
     asleep: false,
     lightOn: true,
     sleptInCycleMin: 0,

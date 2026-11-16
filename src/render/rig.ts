@@ -275,14 +275,20 @@ function mouth(r: Raster, x: number, y: number, w: number, mood: Mood = 'ok', si
 // ------------------------------------------------------------------ Vierbeiner von vorn
 
 const STAGE_K: Record<Exclude<Stage, 'egg'>, number> = { baby: 0, child: 0.33, teen: 0.66, adult: 1 };
+// Lebensphasen deutlich unterscheidbar: Babys mit kurzen, runden Ohren, Teenager mit (zu) großen Ohren und schlaksig,
+// der Schwanz wächst erst nach und nach
+const EAR_K: Record<Exclude<Stage, 'egg'>, number> = { baby: 0.6, child: 0.8, teen: 1.12, adult: 1 };
+const TAIL_K: Record<Exclude<Stage, 'egg'>, number> = { baby: 0, child: 0.55, teen: 0.85, adult: 1 };
 
 function quadSit(r: Raster, d: QuadRig, stage: Exclude<Stage, 'egg'>, o: RigOpts) {
   const W = r.w;
   const H = r.h;
   const k = STAGE_K[stage];
   const tail = stage === 'baby' ? 'none' : d.tail;
-  const cx = tail !== 'none' ? Math.round(W * 0.36) + 0.5 : W / 2;
-  const up = UPRIGHT[d.ears];
+  const tk = TAIL_K[stage];
+  const cx = tail !== 'none' ? Math.round(W * (0.36 + 0.14 * (1 - tk))) + 0.5 : W / 2;
+  const up0 = UPRIGHT[d.ears];
+  const up = up0 && { ...up0, h: up0.h * EAR_K[stage], w: up0.w * (stage === 'baby' ? 1.15 : 1) };
   const headH0 = H * (0.56 - 0.18 * k);
   // Platz über dem Kopf, damit auch hohe Ohren ganz ins Bild passen
   const earSpace = up ? Math.max(H * 0.06, headH0 * (up.h - 0.3) * 0.82 + 1) : d.tuft ? H * 0.06 : H * 0.03;
@@ -294,22 +300,24 @@ function quadSit(r: Raster, d: QuadRig, stage: Exclude<Stage, 'egg'>, o: RigOpts
   const bottom = H - 1;
   const bodyRy = (bottom - bodyTop) / 2 + 1;
   const bodyCy = (bodyTop + bottom) / 2 + 1;
-  const bodyRx = headW * (0.42 + 0.06 * k);
+  const bodyRx = headW * (0.42 + 0.06 * k) * (stage === 'teen' ? 0.88 : 1);
   const legR = Math.max(3, bodyRx * 0.27);
 
   // Schwanz (hinter dem Körper)
   if (tail !== 'none') {
     const bx = cx + bodyRx * 0.55;
     const by = bottom - 3;
+    // kürzerer Schwanz bei jungen Tieren: alle Punkte zur Wurzel hin ziehen
+    const T = (x: number, y: number): [number, number] => [bx + (x - bx) * tk, by + (y - by) * tk];
     let t: ReturnType<typeof tube>;
-    if (tail === 'fluffy') t = tube([bx, by], [W - 3, by + 1], [W - 2, by - bodyRy * 0.9], [W - 7, by - bodyRy * 1.45], (u) => 2 + Math.sin(Math.PI * (0.15 + u * 0.75)) * W * 0.1);
-    else if (tail === 'thin') t = tube([bx, by], [W - 2, by], [W - 1, by - bodyRy * 1.3], [W - 8, by - bodyRy * 1.55], () => Math.max(2, W * 0.035));
+    if (tail === 'fluffy') t = tube([bx, by], T(W - 3, by + 1), T(W - 2, by - bodyRy * 0.9), T(W - 7, by - bodyRy * 1.45), (u) => 2 + Math.sin(Math.PI * (0.15 + u * 0.75)) * W * 0.1 * (0.5 + 0.5 * tk));
+    else if (tail === 'thin') t = tube([bx, by], T(W - 2, by), T(W - 1, by - bodyRy * 1.3), T(W - 8, by - bodyRy * 1.55), () => Math.max(2, W * 0.035));
     else if (tail === 'curly') {
       const ccx = cx + bodyRx * 1.05;
       const ccy = bodyCy - bodyRy * 0.15;
       const rr = bodyRx * 0.38;
       t = tube([cx + bodyRx * 0.7, bodyCy + 2], [ccx + rr * 1.6, ccy + rr], [ccx + rr * 1.4, ccy - rr * 1.6], [ccx - rr * 0.2, ccy - rr * 0.6], () => Math.max(2, W * 0.04));
-    } else t = tube([bx, by], [bx + W * 0.15, by - 2], [W - 4, by - bodyRy * 0.6], [W - 3, by - bodyRy * 1.05], (u) => Math.max(1.6, W * 0.045 * (1 - u * 0.4)));
+    } else t = tube([bx, by], T(bx + W * 0.15, by - 2), T(W - 4, by - bodyRy * 0.6), T(W - 3, by - bodyRy * 1.05), (u) => Math.max(1.6, W * 0.045 * (1 - u * 0.4)));
     const tipped = d.tailTip || tail === 'tipped';
     r.fill(t, (x, y) => (tipped && t.at(x, y) > 0.72 ? 'b' : 'a'));
   }
@@ -360,10 +368,13 @@ function quadSit(r: Raster, d: QuadRig, stage: Exclude<Stage, 'egg'>, o: RigOpts
     ? union(ell(cx, headCy, headW / 2, headH / 2), ell(cx - headW * 0.36, headCy + headH * 0.18, headW * 0.2, headH * 0.22), ell(cx + headW * 0.36, headCy + headH * 0.18, headW * 0.2, headH * 0.22))
     : ell(cx, headCy, headW / 2, headH / 2);
   r.fill(headShape, 'a');
+  // Babyflaum: kleine Haarlocke oben auf dem Kopf
+  if (stage === 'baby' && !d.tuft) r.fill(union(ell(cx - headW * 0.03, headTop + headH * 0.04, headW * 0.07, headH * 0.1), ell(cx + headW * 0.07, headTop + headH * 0.07, headW * 0.06, headH * 0.08)), 'a');
   if (d.tuft) r.fill(union(ell(cx, headTop + 1, headW * 0.2, headH * 0.16), ell(cx - headW * 0.17, headTop + 3, headW * 0.15, headH * 0.13), ell(cx + headW * 0.17, headTop + 3, headW * 0.15, headH * 0.13)), 'a');
   // Gesicht
   const eyeY = headCy + headH * (0.02 + 0.06 * (1 - k));
-  const eyeRy = headH * (0.1 + 0.05 * (1 - k));
+  const eyeRy = headH * (0.1 + 0.08 * (1 - k));
+  const eyeX = headW * (0.21 + 0.03 * (1 - k));
   const noseY = headCy + headH * 0.26;
   if (d.muzzle === 'fox') {
     r.fill(inter(union(ell(cx, headCy + headH * 0.36, headW * 0.44, headH * 0.3), ell(cx, noseY, headW * 0.14, headH * 0.2)), headShape), 'b', { line: false });
@@ -384,7 +395,7 @@ function quadSit(r: Raster, d: QuadRig, stage: Exclude<Stage, 'egg'>, o: RigOpts
         r.fill(poly([[x0 - s * headW * 0.08, y0 + 1], [x0 + s * headW * 0.16, y0 - headH * 0.08], [x0 + s * headW * 0.12, y0 + headH * 0.16]]), 'c');
         continue;
       }
-      const len = d.ears === 'floppyLong' ? 0.72 : d.ears === 'fluffy' ? 0.62 : 0.5;
+      const len = (d.ears === 'floppyLong' ? 0.72 : d.ears === 'fluffy' ? 0.62 : 0.5) * Math.min(1.08, EAR_K[stage] + 0.15);
       const ear =
         d.ears === 'fluffy'
           ? union(ell(x0 + s * headW * 0.12, y0 + headH * 0.12, headW * 0.15, headH * 0.16), ell(x0 + s * headW * 0.16, y0 + headH * 0.32, headW * 0.15, headH * 0.16), ell(x0 + s * headW * 0.13, y0 + headH * 0.5, headW * 0.13, headH * 0.13))
@@ -393,8 +404,8 @@ function quadSit(r: Raster, d: QuadRig, stage: Exclude<Stage, 'egg'>, o: RigOpts
     }
   }
   // Augen, Wangen, Nase, Mund
-  for (const s of [-1, 1]) eye(r, cx + s * headW * 0.21, eyeY, eyeRy, o, d.iris, s > 0);
-  if (d.cheeks || o.mood === 'joy') for (const s of [-1, 1]) r.fill(ell(cx + s * headW * 0.32, eyeY + eyeRy * 1.7, headW * 0.07, headH * 0.04 + 0.6), 'p', { line: false, flat: true });
+  for (const s of [-1, 1]) eye(r, cx + s * eyeX, eyeY, eyeRy, o, d.iris, s > 0);
+  if (d.cheeks || o.mood === 'joy' || stage === 'baby') for (const s of [-1, 1]) r.fill(ell(cx + s * headW * 0.32, eyeY + eyeRy * 1.7, headW * 0.07, headH * 0.04 + 0.6), 'p', { line: false, flat: true });
   const nw = Math.max(1.5, headW * (d.muzzle === 'cat' ? 0.06 : 0.085));
   r.fill(ell(cx, noseY - 0.5, nw, nw * 0.7), 'n', { line: false, flat: true });
   if (d.muzzle !== 'cat') r.dot(cx - nw * 0.4, noseY - nw * 0.4, 'h');
@@ -432,7 +443,7 @@ function dachs(r: Raster, stage: Exclude<Stage, 'egg'>, o: RigOpts) {
   // Kopf und Schnauze
   const hx = W * (0.22 - 0.02 * k);
   const hy = by - bodyR * (1.1 - 0.15 * k);
-  const hr = H * (0.26 - 0.04 * k);
+  const hr = H * (0.3 - 0.08 * k);
   r.fill(line2(hx + hr * 0.3, hy + hr * 0.3, bx0 + 2, by - 1, hr * 0.62), 'a'); // Hals
   r.fill(ell(hx, hy, hr, hr * 0.9), 'a');
   const snout = ell(hx - hr * 0.85, hy + hr * 0.38, hr * 0.62, hr * 0.38);
@@ -459,11 +470,12 @@ function hog(r: Raster, stage: Exclude<Stage, 'egg'>, o: RigOpts) {
   // Füße
   for (const s of [-1, 1]) r.fill(ell(cx + s * rx * 0.45, cy + ry * 0.92, rx * 0.2, H * 0.07), 'a');
   // Stachelkleid: Ellipse mit Stachelspitzen am Rand
-  const n = 14;
+  // Igelbabys haben wenige, weiche, kurze Stacheln; erwachsene ein dichtes, langes Stachelkleid
+  const n = Math.round(8 + 8 * k);
   const spikes: [number, number][] = [];
   for (let i = 0; i <= n * 2; i++) {
     const a = Math.PI * (1.05 + (i / (n * 2)) * 0.9 + 0) - Math.PI * 0.05;
-    const rr = i % 2 === 0 ? 1.12 : 0.9;
+    const rr = i % 2 === 0 ? 1.03 + 0.13 * k : 0.94 - 0.04 * k;
     spikes.push([cx + Math.cos(a) * rx * rr, cy + Math.sin(a) * ry * rr * 1.02]);
   }
   const lower: [number, number][] = [];
@@ -480,17 +492,17 @@ function hog(r: Raster, stage: Exclude<Stage, 'egg'>, o: RigOpts) {
       const ang = Math.atan2(y - cy, x - cx);
       const t = Math.round((ang * 9 + Math.hypot(x - cx, y - cy) * 0.0) * 1) + (Math.floor(Math.hypot(x - cx, (y - cy) * 1.1) / 3) % 2);
       const q = hash(Math.round(ang * 14), Math.floor(Math.hypot(x - cx, y - cy) / 2.5), 3);
-      if (q > 0.62) r.set(x, y, 'c', 1);
+      if (q > 0.62 - 0.3 * (1 - k)) r.set(x, y, 'c', 1);
       else if (q < 0.25 || t % 5 === 0) r.set(x, y, 'c', -1);
     }
   // Gesicht
-  const fh = H * (0.5 + 0.06 * (1 - k));
-  const fw = W * 0.6;
+  const fh = H * (0.5 + 0.12 * (1 - k));
+  const fw = W * (0.6 + 0.08 * (1 - k));
   const fy = cy + ry * 0.2;
   const face = union(ell(cx, fy, fw / 2, fh / 2), ell(cx, fy + fh * 0.25, fw * 0.3, fh * 0.32));
   r.fill(face, 'b');
   for (const s of [-1, 1]) r.fill(ell(cx + s * fw * 0.48, fy - fh * 0.38, 2.4, 2.2), 'b'); // Öhrchen
-  const eyeRy = H * (0.07 + 0.03 * (1 - k));
+  const eyeRy = H * (0.07 + 0.05 * (1 - k));
   for (const s of [-1, 1]) eye(r, cx + s * fw * 0.22, fy - fh * 0.05, eyeRy, o, false, s > 0);
   for (const s of [-1, 1]) r.fill(ell(cx + s * fw * 0.36, fy + fh * 0.14, 2.4, 1.3), 'p', { line: false, flat: true });
   r.fill(ell(cx, fy + fh * 0.16, 2.6, 1.8), 'n', { line: false, flat: true });
@@ -534,13 +546,16 @@ function chicken(r: Raster, d: ChickenRig, stage: Exclude<Stage, 'egg'>, o: RigO
     r.fill(ell(bx + brx * 0.12, by + bry * 0.05, brx * 0.48, bry * 0.4), 'a');
     const hx = W * 0.34;
     const hy = H * 0.3;
-    const hr = W * 0.22;
+    const hr = W * (big ? 0.19 : 0.24); // Küken: großer Kopf, Junghuhn schon schlanker
     r.fill(ell(hx, hy, hr, hr * 0.92), 'b');
     r.fill(poly([[hx - hr * 0.85, hy - 1], [hx - hr * 1.45, hy + 1], [hx - hr * 0.8, hy + 3]]), 'p');
     eye(r, hx - hr * 0.3, hy - hr * 0.12, hr * 0.26, o, false, false, 1);
-    // Flaum-Spitzen oben auf dem Kopf
-    r.dot(hx - 1, hy - hr - 1, 'o');
-    r.dot(hx + 1, hy - hr - 2, 'o');
+    if (big && !d.silkie) r.fill(union(ell(hx - hr * 0.2, hy - hr * 0.95, hr * 0.22, hr * 0.2), ell(hx + hr * 0.2, hy - hr * 1.0, hr * 0.22, hr * 0.22)), 'c'); // erster Kamm
+    else {
+      // Flaum-Spitzen oben auf dem Kopf
+      r.dot(hx - 1, hy - hr - 1, 'o');
+      r.dot(hx + 1, hy - hr - 2, 'o');
+    }
     return;
   }
   const male = !!o.male;

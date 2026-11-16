@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DAY, HOUR, MIN, RULES } from './config';
 import { activePet, newGame } from './state';
-import { advance, layEgg, tirednessAtHatch } from './sim';
+import { advance, layEgg, poopPlan, tirednessAtHatch } from './sim';
 import { clean, collectEggs, feedMeal, finishGame, giveMedicine, lightButton, startEgg, stroke, tapEgg, wakeUp } from './actions';
 
 const T0 = new Date(2026, 0, 1, 8, 0).getTime();
@@ -66,7 +66,7 @@ describe('Lebenszyklus', () => {
   it('12 h krank ohne Medizin: Tierpflegestation, Grund genannt', () => {
     const s = game();
     const p = activePet(s)!;
-    p.poopInMin = 99999;
+    p.poopPlan = [];
     p.tiredness = 0;
     p.hunger = 4;
     p.sick = { since: s.clock, doses: 2 };
@@ -81,12 +81,12 @@ describe('Lebenszyklus', () => {
     const s = game();
     const p = activePet(s)!;
     p.poops = [s.clock];
-    p.poopInMin = 99999;
+    p.poopPlan = [];
     const ev = run(s, 4 * HOUR + MIN);
     const sick = ev.find((e) => e.kind === 'sick');
     expect(sick?.kind === 'sick' && sick.why).toMatch(/Häufchen über 4 Stunden/);
     const mistake = ev.find((e) => e.kind === 'mistake');
-    expect(mistake?.kind === 'mistake' && mistake.why).toMatch(/15 Minuten lang nicht reagiert/);
+    expect(mistake?.kind === 'mistake' && mistake.why).toMatch(/Häufchen wurde 2 Stunden lang nicht reagiert/);
     expect(p.log.some((l) => l.text.startsWith('Pflegefehler: Auf'))).toBe(true);
   });
 });
@@ -129,7 +129,7 @@ describe('Krankheit', () => {
     run(s, MIN);
     const p = activePet(s)!;
     p.poops = [s.clock];
-    p.poopInMin = 99999;
+    p.poopPlan = [];
     run(s, 4 * HOUR);
     expect(p.sick).not.toBeNull();
     clean(s);
@@ -146,7 +146,7 @@ describe('Krankheit', () => {
     run(s, MIN);
     const p = activePet(s)!;
     p.hunger = 0;
-    p.poopInMin = 99999;
+    p.poopPlan = [];
     run(s, 2 * HOUR + MIN);
     expect(p.sick).not.toBeNull();
   });
@@ -347,7 +347,7 @@ describe('Umsortieren', () => {
     p.sick = null;
     p.calls = {};
     p.poops = [];
-    p.poopInMin = 9999;
+    p.poopPlan = [];
     p.asleep = true;
     p.sleptInCycleMin = 0;
     p.hunger = 2;
@@ -363,5 +363,41 @@ describe('Umsortieren', () => {
     expect(p.asleep).toBe(true);
     expect(p.sick).toBeNull();
     expect(p.hungerZeroSince).toBeNull();
+  });
+});
+
+describe('Häufchen-Plan', () => {
+  const plan = (stage: 'baby' | 'child' | 'teen' | 'adult', r = rng) => {
+    const p = { ...activePet(game())!, stage };
+    return poopPlan(p, r);
+  };
+  it('Erwachsene: zweimal am Tag, morgens innerhalb 1 h und abends', () => {
+    for (const r of [() => 0, () => 0.5, () => 0.999]) {
+      const pl = plan('adult', r);
+      expect(pl).toHaveLength(2);
+      expect(pl[0]).toBeLessThanOrEqual(60);
+      expect(pl[1]).toBeGreaterThanOrEqual(11 * 60);
+    }
+    expect(plan('teen')).toHaveLength(2);
+  });
+  it('nur das Baby: zweimal zusätzlich', () => {
+    expect(plan('baby')).toHaveLength(4);
+    expect(plan('child')).toHaveLength(2);
+  });
+  it('schon vergangene Termine fallen weg (z. B. Schlüpfen mittags)', () => {
+    const p = { ...activePet(game())!, stage: 'adult' as const };
+    expect(poopPlan(p, rng, 3 * 60)).toHaveLength(1);
+  });
+  it('Häufchen ist erst nach 2 h ein Pflegefehler', () => {
+    const s = game();
+    const p = activePet(s)!;
+    p.poopPlan = [];
+    p.tiredness = 0;
+    p.hunger = p.happy = 4;
+    p.poops = [s.clock];
+    run(s, 2 * HOUR - MIN);
+    expect(p.careMistakesStage).toBe(0);
+    run(s, 2 * MIN);
+    expect(p.careMistakesStage).toBe(1);
   });
 });

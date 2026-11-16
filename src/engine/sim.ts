@@ -47,9 +47,23 @@ export function randBetween(rng: Rng, [a, b]: readonly [number, number]): number
   return Math.round(a + rng() * (b - a));
 }
 
-export function poopInterval(p: Pet, rng: Rng): number {
-  return randBetween(rng, RULES.poopIntervalMin[p.stage === 'baby' ? 'baby' : 'other']);
+/**
+ * Häufchen-Plan für einen Tag: morgens (innerhalb einer Stunde nach dem Aufwachen) und abends,
+ * das Baby zusätzlich zu zufälligen Zeiten. `awakeSoFar` = schon wach verbrachte Minuten
+ * (z. B. beim Schlüpfen mitten am Tag); Termine, die schon vorbei wären, fallen weg.
+ */
+export function poopPlan(p: Pet, rng: Rng, awakeSoFar = 0): number[] {
+  const at = [randBetween(rng, RULES.morningPoopMin), randBetween(rng, RULES.eveningPoopMin)];
+  if (p.stage === 'baby')
+    for (let i = 0; i < RULES.youngExtraPoops; i++) at.push(randBetween(rng, RULES.youngExtraPoopMin));
+  return at.filter((m) => m > awakeSoFar).map((m) => Math.round(m - awakeSoFar)).sort((a, b) => a - b);
 }
+
+/** Wach-Minuten seit dem (gedachten) Aufwachen, aus der Müdigkeit geschätzt */
+export const awakeMinutes = (p: Pet) => (p.tiredness / 100) * RULES.awakeMinUntilTired;
+
+const graceMin = (type: CallType) => (type === 'poop' ? RULES.poopGraceMin : RULES.callGraceMin);
+const fmtMin = (m: number) => (m % 60 === 0 ? (m === 60 ? '1 Stunde' : `${m / 60} Stunden`) : `${m} Minuten`);
 
 export function addLog(p: Pet, at: number, text: string) {
   p.log.push({ at, text });
@@ -129,7 +143,7 @@ export function wake(p: Pet, natural: boolean, clock: number, rng: Rng, events: 
     // ausgeschlafen: hat Hunger
     p.hunger = Math.min(p.hunger, RULES.hungryAfterWake);
     p.sleptInCycleMin = 0;
-    p.poopInMin = randBetween(rng, RULES.morningPoopMin);
+    p.poopPlan = poopPlan(p, rng);
     addLog(p, clock, 'Ausgeschlafen aufgewacht.');
     layEgg(p, clock);
   } else {
@@ -203,7 +217,7 @@ export function hatch(p: Pet, clock: number, rng: Rng, events: SimEvent[]) {
   p.hunger = 2;
   p.happy = 2;
   p.tiredness = tirednessAtHatch(clock);
-  p.poopInMin = poopInterval(p, rng);
+  p.poopPlan = poopPlan(p, rng, awakeMinutes(p));
   addLog(p, clock, 'Geschlüpft!');
   events.push({ kind: 'hatched' });
 }
@@ -229,10 +243,10 @@ function updateCalls(p: Pet, clock: number, events: SimEvent[]) {
     } else if (!call) {
       p.calls[type] = { since: clock, penalized: false };
       events.push({ kind: 'call', call: type });
-    } else if (!call.penalized && clock - call.since >= RULES.callGraceMin * MIN) {
+    } else if (!call.penalized && clock - call.since >= graceMin(type) * MIN) {
       call.penalized = true;
       careMistake(p);
-      const why = `Auf ${CALL_WHAT[type]} wurde ${RULES.callGraceMin} Minuten lang nicht reagiert.`;
+      const why = `Auf ${CALL_WHAT[type]} wurde ${fmtMin(graceMin(type))} lang nicht reagiert.`;
       addLog(p, clock, `Pflegefehler: ${why}`);
       events.push({ kind: 'mistake', why });
     }
@@ -280,10 +294,10 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
     p.hunger = Math.max(0, p.hunger - 1 / RULES.hungerMinPerHeart[rateKey]);
     p.happy = Math.max(0, p.happy - (deficit ? 2 : 1) / RULES.happyMinPerHeart[rateKey]);
 
-    p.poopInMin--;
-    if (p.poopInMin <= 0) {
+    p.poopPlan = p.poopPlan.map((m) => m - 1);
+    if (p.poopPlan.length && p.poopPlan[0] <= 0) {
+      p.poopPlan = p.poopPlan.filter((m) => m > 0);
       p.poops.push(now);
-      p.poopInMin = poopInterval(p, rng);
       events.push({ kind: 'pooped' });
     }
 
