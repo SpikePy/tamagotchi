@@ -60,7 +60,9 @@ export interface RigOpts {
   /** Mimik nach Laune: strahlend, zufrieden, traurig, sehr traurig, krank */
   mood?: Mood;
   gaze?: number;
-  pose?: 'stand' | 'sleep' | 'stretch0' | 'stretch1' | 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1';
+  pose?: 'stand' | 'sleep' | 'stretch0' | 'stretch1' | 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1' | 'roll';
+  /** Igel rollt: Drehstellung 0..7 (je 45°) */
+  spin?: number;
   male?: boolean;
   pattern?: string;
   seed?: number;
@@ -677,6 +679,41 @@ function ballSleep(r: Raster, o: RigOpts) {
   r.fill(ell(fx + 2, fy + 2, 1.6, 1), 'p', { line: false, flat: true });
 }
 
+/** Igel als Stachelkugel zum Kullern: rund, Stacheln und Musterung drehen sich mit, das eingerollte Schnäuzchen wandert ringsum */
+function rollBall(r: Raster, stage: Exclude<Stage, 'egg'>, o: RigOpts) {
+  const W = r.w;
+  const H = r.h;
+  const k = STAGE_K[stage];
+  const cx = W / 2;
+  const cy = H / 2;
+  const R = Math.min(W, H) / 2 - 0.5;
+  const a0 = ((o.spin ?? 0) % 8) * (Math.PI / 4);
+  const n = Math.round(10 + 8 * k); // Babys: wenige weiche Stacheln
+  const inner = 0.88 - 0.06 * k;
+  const pts: [number, number][] = [];
+  for (let i = 0; i < n * 2; i++) {
+    const a = a0 + (i / (n * 2)) * Math.PI * 2;
+    const rr = i % 2 ? 1 : inner;
+    pts.push([cx + Math.cos(a) * R * rr, cy + Math.sin(a) * R * rr]);
+  }
+  r.fill(poly(pts), 'c');
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      if (r.get(x, y) !== 'c') continue;
+      const ang = Math.atan2(y - cy, x - cx) - a0;
+      const q = hash(Math.round(((ang % (Math.PI * 2)) + Math.PI * 2) * 14), Math.floor(Math.hypot(x - cx, y - cy) / 2.5), 3);
+      if (q > 0.62) r.set(x, y, 'c', 1);
+      else if (q < 0.28) r.set(x, y, 'c', -1);
+    }
+  // eingerolltes Bäuchlein mit Schnäuzchen: dreht sich mit
+  const fa = a0 + Math.PI * 0.6;
+  const fx = cx + Math.cos(fa) * R * 0.5;
+  const fy = cy + Math.sin(fa) * R * 0.5;
+  r.fill(ell(fx, fy, R * 0.36, R * 0.32), 'b');
+  r.fill(ell(cx + Math.cos(fa) * R * 0.72, cy + Math.sin(fa) * R * 0.72, 1.6, 1.4), 'n', { line: false, flat: true });
+  eye(r, cx + Math.cos(fa - 0.5) * R * 0.45, cy + Math.sin(fa - 0.5) * R * 0.45, 2.2, { ...o, eyesClosed: true });
+}
+
 function roostSleep(r: Raster, d: ChickenRig, o: RigOpts) {
   const W = r.w;
   const H = r.h;
@@ -917,6 +954,7 @@ export function renderRig(def: RigDef, stage: Exclude<Stage, 'egg'>, wUnits: num
   } else if ((pose === 'scratch0' || pose === 'scratch1') && def.kind === 'quad') catScratch(r, def, pose === 'scratch0' ? 0 : 1, o);
   else if ((pose === 'bat0' || pose === 'bat1') && def.kind === 'quad') catBat(r, def, pose === 'bat0' ? 0 : 1, o);
   else if (pose === 'leap' && def.kind === 'quad') catLeap(r, def, o);
+  else if (pose === 'roll' && def.kind === 'hog') rollBall(r, stage, o);
   else if (def.kind === 'quad') quadSit(r, def, stage, o);
   else if (def.kind === 'dachs') dachs(r, stage, o);
   else if (def.kind === 'hog') hog(r, stage, o);

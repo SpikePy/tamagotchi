@@ -58,6 +58,15 @@ const WIN = { x: 37, y: 3, w: 22, h: 16 };
 // Kratzbaum (Katze)
 const POST_X = 6; // links im Zimmer
 // Socken-Spiel des Hundes (Anteile der Besuchsdauer): Maul packen, wegschleudern, Landung
+// Igel kullert: Einrollen, Tempo, Liegenbleiben am Ziel
+const ROLL_CURL_MS = 450;
+const ROLL_SPEED = 15;
+const ROLL_REST_MS = 600;
+// Huhn und Wurm: Anteile der Gesamtdauer (rausgucken → zuschnappen → ziehen → frei → geschluckt)
+const WORM_MS = 5200;
+const WORM_STRIKE = 0.32;
+const WORM_FREE = 0.62;
+const WORM_GONE = 0.9;
 const SOCK_W = 8.5;
 const SOCK_GRAB = 0.16;
 const SOCK_TOSS = 0.7;
@@ -97,7 +106,7 @@ export class Scene {
   /** rote Socke des Hundes: linke Kante (Spiel-Einheiten); der Hund schleudert sie beim Spielen woanders hin */
   private sockX = 46;
   private depth = 1; // 0 = hinten, 3.5 = vorne im Raum
-  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase' | 'scrape'; visit?: VisitKind; arrived?: number; sockTo?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase' | 'scrape' | 'roll' | 'worm'; visit?: VisitKind; arrived?: number; sockTo?: number; wormX?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
     kind: 'idle',
     start: 0,
     until: 0,
@@ -119,10 +128,10 @@ export class Scene {
     this.critters.debugSpawn(kind as never, lane, dir);
   }
 
-  debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle', visit?: VisitKind, target?: number) {
+  debugAct(kind: 'visit' | 'groom' | 'stretch' | 'look' | 'idle' | 'roll' | 'worm', visit?: VisitKind, target?: number) {
     const t = performance.now();
-    this.act = { kind, visit, start: t, until: t + 30000, target, targetDepth: visitDepth(visit), speed: 12 };
-    if (kind !== 'visit') this.act.until = t + 2600;
+    this.act = { kind, visit, start: t, until: t + 30000, target, targetDepth: visitDepth(visit), speed: kind === 'roll' ? ROLL_SPEED : 12 };
+    if (kind !== 'visit' && kind !== 'roll') this.act.until = t + (kind === 'worm' ? WORM_MS : 2600);
   }
 
   /** Liegt der Punkt (in Spiel-Einheiten) auf dem Tier? */
@@ -470,6 +479,75 @@ export class Scene {
     PR.drawProp(this.ctx, sock, snapPx(sx), snapPx(Math.min(sy, ground + 3)), Math.floor(t / 90) % 2 === 0);
   }
 
+  /** Schnabelspitze des Huhns im Bild (Zeichen p/P/5 ganz vorne), in Spiel-Einheiten */
+  private beakTip(img: { map: string[] }, x: number, y: number, w: number, flip: boolean): [number, number] {
+    const sc = img.map[0].length / w;
+    let bi = Infinity;
+    let bj = 0;
+    img.map.forEach((row, j) => {
+      for (let i = 0; i < Math.min(row.length, bi); i++)
+        if (row[i] === 'p' || row[i] === 'P' || row[i] === '5') {
+          bi = i;
+          bj = j;
+          break;
+        }
+    });
+    if (!Number.isFinite(bi)) return [x + (flip ? w : 0), y + 2];
+    const ux = bi / sc;
+    return [x + (flip ? w - ux : ux), y + (bj + 0.5) / sc];
+  }
+
+  /** Wurm schaut aus der Erde, wird gepackt, herausgezogen und verschluckt */
+  private drawWormAct(img: { map: string[] }, x: number, y: number, w: number, flip: boolean, k: number, ground: number, t: number, small: boolean) {
+    const ctx = this.ctx;
+    const a = this.act;
+    const [tx, ty] = this.beakTip(img, x, y, w, flip);
+    // Stelle vor dem Schnabel merken (das Huhn bleibt stehen, schaut nur)
+    if (a.wormX === undefined) a.wormX = tx + (flip ? 1.5 : -1.5);
+    const wx = a.wormX;
+    const gy = ground + 0.5;
+    const len = small ? 3 : 4;
+    const pts: [number, number][] = [];
+    if (k < WORM_GONE) {
+      // Erdloch
+      ctx.fillStyle = 'rgba(70,45,25,0.85)';
+      ctx.fillRect(snapPx(wx - 1), snapPx(gy), PX * 8, PX * 2);
+    }
+    if (k < WORM_STRIKE) {
+      // herausschauen und sich winden
+      const up = Math.min(1, k / 0.12) * (len * 0.6);
+      for (let i = 0; i <= 8; i++) {
+        const q = i / 8;
+        pts.push([wx + Math.sin(t / 180 + q * 3) * 0.7 * q, gy - up * q]);
+      }
+    } else if (k < WORM_FREE) {
+      // im Schnabel, gespannt zwischen Erde und Schnabel
+      for (let i = 0; i <= 10; i++) {
+        const q = i / 10;
+        const sag = Math.sin(q * Math.PI) * (0.4 + (Math.floor(t / 120) % 2) * 0.25);
+        pts.push([wx + (tx - wx) * q + sag, gy + (ty - gy) * q]);
+      }
+    } else if (k < WORM_GONE) {
+      // baumelt aus dem Schnabel und wird Stück für Stück verschluckt
+      const rest = len * (1 - (k - WORM_FREE) / (WORM_GONE - WORM_FREE));
+      for (let i = 0; i <= 8; i++) {
+        const q = i / 8;
+        pts.push([tx + Math.sin(t / 110 + q * 4) * 0.6 * q, ty + rest * q]);
+      }
+    }
+    if (pts.length < 2) return;
+    ctx.fillStyle = '#d87a82';
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = pts[i - 1];
+      const [x1, y1] = pts[i];
+      const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / PX));
+      for (let s = 0; s <= n; s++) ctx.fillRect(snapPx(x0 + ((x1 - x0) * s) / n - PX / 2), snapPx(y0 + ((y1 - y0) * s) / n - PX / 2), PX * 2, PX * 2);
+    }
+    // Ringel
+    ctx.fillStyle = '#b85a64';
+    for (let i = 2; i < pts.length; i += 3) ctx.fillRect(snapPx(pts[i][0] - PX / 2), snapPx(pts[i][1]), PX * 2, PX);
+  }
+
   /** Spielball am Kratzbaum pendelt an einer Schnur */
   private drawPostToy(t: number) {
     const ctx = this.ctx;
@@ -619,6 +697,14 @@ export class Scene {
       const tx = tg.kind === 'sock' ? this.sockX + SOCK_W / 2 : tg.x;
       return { kind: 'visit' as const, visit: tg.kind, start: t, until: t + 30000, target: tx - 8, targetDepth: visitDepth(tg.kind), speed: 7 };
     }
+    // Igel: ab und zu zur Kugel einrollen und quer durchs Bild kullern
+    if (p.species === 'hedgehog' && !p.sick && Math.random() < 0.08) {
+      const far = this.walkX - from > to - this.walkX ? from : to;
+      const target = far + (this.walkX - far) * Math.random() * 0.3;
+      return { kind: 'roll' as const, start: t, until: t + 20000, target, speed: ROLL_SPEED };
+    }
+    // Huhn: ab und zu schaut ein Wurm aus der Erde, das Huhn zieht ihn heraus und frisst ihn
+    if (p.species === 'chicken' && !p.sick && Math.random() < 0.07) return { kind: 'worm' as const, start: t, until: t + WORM_MS };
     if (r < 0.42) {
       let target = from + Math.random() * (to - from);
       if (Math.abs(target - this.walkX) < 4) target = this.walkX < (from + to) / 2 ? to : from;
@@ -710,6 +796,21 @@ export class Scene {
           this.depth += ((dd * 2) / dist) * step * 0.5;
         }
         face = this.walkDir;
+      } else if (a.kind === 'roll') {
+        // erst einrollen, dann kullern, am Ziel kurz liegen bleiben und wieder aufrollen
+        const diff = (a.target ?? this.walkX) - this.walkX;
+        if (a.arrived === undefined && t - a.start > ROLL_CURL_MS) {
+          if (Math.abs(diff) < 0.3) {
+            a.arrived = t;
+            a.until = t + ROLL_REST_MS + 900;
+          } else {
+            this.walkDir = Math.sign(diff);
+            this.walkX += this.walkDir * Math.min(Math.abs(diff), (a.speed ?? ROLL_SPEED) * dt);
+          }
+        }
+        face = this.walkDir;
+        // danach etwas benommen hin und her schauen
+        if (a.arrived !== undefined && t - a.arrived > ROLL_REST_MS) gaze = Math.sin((t - a.arrived) / 160) > 0 ? 1 : -1;
       } else if (a.kind === 'walk') {
         const diff = (a.target ?? this.walkX) - this.walkX;
         const dd = (a.targetDepth ?? this.depth) - this.depth;
@@ -763,15 +864,31 @@ export class Scene {
     const scraping = !m && a.kind === 'scrape';
     let birdPose: 'peck' | 'scrape0' | 'scrape1' | undefined;
     if (bigBird && scraping) birdPose = k < 0.7 ? (Math.floor(t / 170) % 2 ? 'scrape1' : 'scrape0') : Math.floor(t / 220) % 2 ? 'peck' : undefined;
+    // Wurm: zuschnappen und herausziehen mit gesenktem Kopf, danach schlucken
+    const wormK = !m && a.kind === 'worm' ? k : -1;
+    if (bigBird && wormK >= WORM_STRIKE && wormK < WORM_FREE) birdPose = 'peck';
+    else if (bigBird && wormK >= WORM_FREE && wormK < WORM_GONE) birdPose = Math.floor(t / 200) % 2 ? 'peck' : undefined;
     else if (bigBird && (grooming || eating)) birdPose = Math.floor(t / 220) % 2 ? 'peck' : undefined;
     const mood: Mood = petted ? 'joy' : moodOf(p);
     const img = petSprite(sp, p, { eyesClosed: !birdPose && (blink || grooming || stretching || petted), mood, gaze: flip ? -gaze : gaze, pose: birdPose });
+
+    // Igel als Kugel: Drehstellung folgt dem zurückgelegten Weg (rollt also richtig herum)
+    const balled = !m && a.kind === 'roll' && t - a.start > 150 && (a.arrived === undefined || t - a.arrived < ROLL_REST_MS);
+    let ball: ReturnType<typeof petSprite> | null = null;
+    if (balled) {
+      const bw = petSprite(sp, p, { pose: 'roll', spin: 0 }).w;
+      const spin = ((Math.round(this.walkX / (bw / 2) / (Math.PI / 4)) % 8) + 8) % 8;
+      ball = petSprite(sp, p, { pose: 'roll', spin });
+    }
 
     let x = this.walkX;
     let bob = 0;
     if (!m && a.kind === 'walk' && !p.sick) bob = (Math.floor(t / 220) % 2) * 0.5;
     if ((eating || grooming) && !bigBird) bob = -(Math.floor(t / (p.species === 'chicken' ? 160 : 280)) % 2) * (p.species === 'chicken' ? 1 : 0.5); // Kopf runter (Napf / Putzen / Picken)
     if (scraping && !bigBird) bob = -(Math.floor(t / 160) % 2); // Küken: nur nicken
+    if (balled && a.arrived === undefined && t - a.start > ROLL_CURL_MS) bob = (Math.floor(t / 140) % 3 === 0 ? 0.5 : 0); // hoppelt über kleine Unebenheiten
+    if (wormK >= 0 && !bigBird && ((wormK >= WORM_STRIKE && wormK < WORM_FREE) || (wormK >= WORM_FREE && wormK < WORM_GONE && Math.floor(t / 200) % 2))) bob = -1; // Küken: Kopf runter
+    if (wormK >= WORM_STRIKE + 0.06 && wormK < WORM_FREE) bob += Math.min(1.5, (wormK - WORM_STRIKE - 0.06) / (WORM_FREE - WORM_STRIKE - 0.06) * 1.5) + (Math.floor(t / 120) % 2 ? 0.25 : 0); // ziehen und zerren
     if (visiting === 'sniff' || visiting === 'nudge' || visiting === 'drink') bob = -(Math.floor(t / (visiting === 'nudge' ? 200 : 320)) % 2) * 0.5;
     // Hund spielt mit der Socke: erst Spielaufforderung (vorne runter), dann Kopfschütteln, Wegschleudern, Freudensprung
     const sockK = visiting === 'sock' ? (t - (a.arrived ?? t)) / Math.max(1, a.until - (a.arrived ?? t)) : -1;
@@ -875,7 +992,19 @@ export class Scene {
       const st = petSprite(sp, p, { stretch: frame });
       const sflip = face > 0; // Pose schaut von Haus aus nach links
       drawMap(ctx, st.map, st.colors, x + w / 2 - st.w / 2, ground - st.h + 1, sflip);
+    } else if (ball) {
+      const bx = x + w / 2 - ball.w / 2;
+      const by = ground - ball.h + 1 - bob;
+      drawMap(ctx, ball.map, ball.colors, bx, by, false);
+      box = { x: bx, y: by, w: ball.w, h: ball.h };
+      if (a.arrived === undefined && t - a.start > ROLL_CURL_MS) {
+        // Staubwölkchen hinter der Kugel
+        ctx.fillStyle = 'rgba(170,150,120,0.55)';
+        const back = this.walkDir > 0 ? bx - 0.5 : bx + ball.w;
+        for (let i = 0; i < 3; i++) ctx.fillRect(snapPx(back - this.walkDir * ((t / 80 + i * 1.3) % 3)), snapPx(ground - (i % 2) * 0.75), PX * 2, PX * 2);
+      }
     } else drawMap(ctx, img.map, img.colors, x, y, flip);
+    if (wormK >= 0) this.drawWormAct(img, x, y, w, flip, wormK, ground, t, p.stage === 'baby' || p.stage === 'child');
     if (sockK >= SOCK_GRAB && sockK < SOCK_LAND) this.drawHeldSock(img, x, y, w, flip, sockK, a.sockTo ?? this.sockX, ground, t);
     if (sockK >= SOCK_LAND && a.sockTo !== undefined) {
       this.sockX = a.sockTo;

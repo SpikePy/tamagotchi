@@ -384,7 +384,7 @@ export function petMap(sprite: Sprite, look: PetLook): string[] {
 export function petSprite(
   sp: SpeciesDef,
   pet: { stage: Stage; variant: Variant; look?: Look | null },
-  opts: { eyesClosed?: boolean; mood?: Mood; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1; pose?: 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1' } = {},
+  opts: { eyesClosed?: boolean; mood?: Mood; sleeping?: boolean; sleepSmall?: boolean; gaze?: number; stretch?: 0 | 1; pose?: 'scratch0' | 'scratch1' | 'bat0' | 'bat1' | 'leap' | 'peck' | 'scrape0' | 'scrape1' | 'roll'; spin?: number } = {},
 ) {
   const look = pet.look ?? null;
   const breed = look?.breed !== undefined ? sp.breeds?.[look.breed] : undefined;
@@ -547,12 +547,14 @@ function rigSprite(
     w = Math.max(6, Math.round(w * k));
     h = Math.max(6, Math.round(h * k));
   }
+  if (pose === 'roll') w = h = Math.max(6, Math.round(Math.min(w, h) * 0.92)); // Kugel: rund
   const map = renderRig(rig, stage, w, h, {
     eyesClosed: opts.eyesClosed,
     brows: pet.variant === 'cheeky',
     mood: opts.sleeping || !opts.mood || opts.mood === 'ok' ? undefined : opts.mood,
     gaze: opts.sleeping ? 0 : (opts.gaze ?? 0) * 2,
     pose,
+    spin: pose === 'roll' ? opts.spin ?? 0 : undefined,
     male,
     pattern: look?.pattern,
     seed: look?.seed,
