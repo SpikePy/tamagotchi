@@ -33,6 +33,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 - **Bedürfnisse:** Sättigung und Laune (HUD-Leisten mit je 4 Segmenten), Müdigkeit, Gewicht und Gesundheit.
 - **Schlafen:** Das Tier wacht nach insgesamt 8 Stunden Schlaf automatisch auf. Danach hat es Hunger und macht innerhalb einer Stunde ein Häufchen.
 - **Hygiene:** Es macht zweimal am Tag ein Häufchen, morgens kurz nach dem Aufstehen und abends; das Baby zusätzlich zweimal zwischendurch. Wegmachen muss man es innerhalb von 2 Stunden, sonst ist es ein Pflegefehler. Liegt ein Haufen länger als 4 Stunden, wird es krank.
+- **Regeln 📖:** eigener Knopf mit allen Regeln (was zu tun ist, worauf man achten muss, was Pflegefehler sind), immer aus den aktuellen Spielwerten erzeugt
 - **Mehrere Tiere:** bis zu 5 gleichzeitig, Umschalter oben
 - **Umgebung:** Fuchs am Waldrand mit Baumhöhle, Igel im Garten mit Laubhaufen, Katze im Zimmer mit Körbchen und Kratzbaum
 - **Hühner:** Legehuhn, Seidenhuhn, Hahn, Sperberhuhn in mehreren Farben, mit Hühnerhof und Stall

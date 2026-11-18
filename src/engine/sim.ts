@@ -109,7 +109,7 @@ const CALL_WHAT: Record<CallType, string> = {
 
 export function makeSick(p: Pet, clock: number, cause: string, rng: Rng, events: SimEvent[]) {
   if (p.sick) return;
-  p.sick = { since: clock, doses: rng() < 0.5 ? 1 : 2 };
+  p.sick = { since: clock, doses: rng() < 0.5 ? RULES.medicineDoses[0] : RULES.medicineDoses[1] };
   const why = SICK_WHY[cause] ?? `(${cause})`;
   addLog(p, clock, `Krank geworden, ${why.replaceAll('{n}', p.name ?? 'es')}.`);
   events.push({ kind: 'sick', cause, why });
@@ -178,10 +178,11 @@ const NEXT_STAGE: Partial<Record<Stage, Stage>> = { baby: 'child', child: 'teen'
 
 export function chooseVariant(p: Pet, next: Stage): Variant {
   const m = p.careMistakesStage;
-  if (next === 'child') return m <= 2 ? 'good' : 'bad';
-  if (next === 'teen') return m <= 3 ? 'good' : 'bad';
-  if (m <= 2) return 'great';
-  if (m <= 6) return 'normal';
+  const v = RULES.variantMaxMistakes;
+  if (next === 'child') return m <= v.childGood ? 'good' : 'bad';
+  if (next === 'teen') return m <= v.teenGood ? 'good' : 'bad';
+  if (m <= v.adultGreat) return 'great';
+  if (m <= v.adultNormal) return 'normal';
   return 'cheeky';
 }
 

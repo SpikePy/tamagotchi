@@ -39,6 +39,10 @@ export const RULES = {
   poopSickAfterMin: 4 * 60,
 
   hungerSickAfterMin: 2 * 60,
+  medicineDoses: [1, 2] as [number, number], // so viele Dosen braucht ein krankes Tier (zufällig eine davon)
+
+  // Form bei der Entwicklung: höchstens so viele Pflegefehler in der Phase davor
+  variantMaxMistakes: { childGood: 2, teenGood: 3, adultGreat: 2, adultNormal: 6 },
 
   strokeHappy: 1, // +25 % Laune beim Streicheln (in Viertel-Einheiten: 1 = ein Viertel der Leiste)
 

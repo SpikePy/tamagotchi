@@ -271,6 +271,8 @@ Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 
 ## 8. UI
 
+**Regeln 📖** (Nutzerwunsch): Ein eigener Knopf neben Status zeigt die Spielregeln: was man tun muss, worauf man achten muss, was Pflegefehler sind, was sie bewirken, wann das Tier krank wird, die Lebensphasen und eine Tabelle aller Schwierigkeitsgrade. Der Text wird **aus den echten Spielwerten erzeugt** (`RULES`, `DIFFICULTIES` in config.ts) und ist damit immer aktuell. Die Zahlen gelten für den Grad des angezeigten Tiers, der in der Tabelle hervorgehoben ist. Der Knopf geht auch ohne Tier.
+
 **Status auf dem Handy:** Die Status-Tabelle hat zwei Spalten mit fester Aufteilung, lange Werte brechen um. So muss man auf dem Smartphone nicht seitlich scrollen.
 
 **Größe:** Das Gerät nutzt den Bildschirm aus: Die Breite richtet sich nach der Bildschirmhöhe (bis 1000 px), und Schrift, Knöpfe und Tier-Leiste wachsen mit. Das Gerät ist nur **so hoch wie nötig** und wird nicht auf die Bildschirmhöhe gestreckt. Am Handy nutzt es die volle Breite.

@@ -807,3 +807,47 @@ summary {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
   transition: none;
 }
+
+/* ---------- Regeln ---------- */
+.rules {
+  font-size: 14px;
+  line-height: 1.45;
+}
+.rules-intro {
+  margin-top: 0;
+  color: var(--muted);
+}
+.rules-sec h3 {
+  font-size: 15px;
+  margin: 16px 0 4px;
+}
+.rules ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.rules li {
+  margin: 4px 0;
+}
+.rules-scroll {
+  overflow-x: auto;
+}
+.rules-diff {
+  border-collapse: collapse;
+  font-size: 12px;
+  width: 100%;
+}
+.rules-diff th,
+.rules-diff td {
+  padding: 4px 3px;
+  text-align: center;
+  border-bottom: 1px solid var(--btn-border);
+}
+.rules-diff tr > th:first-child {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+}
+.rules-diff .cur {
+  background: var(--btn);
+  font-weight: 700;
+}

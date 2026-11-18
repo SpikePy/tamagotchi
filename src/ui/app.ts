@@ -29,6 +29,7 @@ import { SPECIES, lookName, randomLook, species, weightLabel } from '../species'
 import { save, wipe } from '../storage';
 import { h } from './dom';
 import { GAME_IDS, GameId, runGame } from './games';
+import { rulesView } from './rules';
 
 const STAGE_LABEL = { egg: 'Ei', baby: 'Baby', child: 'Kind', teen: 'Teenager', adult: 'Erwachsen' } as const;
 
@@ -212,6 +213,7 @@ export class App {
       this.act(r, 'sparkle');
     });
     add('status', '📊', 'Status', () => this.statusSheet());
+    add('rules', '📖', 'Regeln', () => this.rulesSheet());
     add('settings', '⚙️', 'Mehr', () => this.settingsSheet());
 
     this.dialog = h('dialog', { class: 'sheet' });
@@ -408,7 +410,7 @@ export class App {
     const p = activePet(s);
     const can = canAct(s);
     for (const [id, b] of Object.entries(this.buttons)) {
-      const enabled = id === 'settings' || (can as Record<string, boolean>)[id];
+      const enabled = id === 'settings' || id === 'rules' || (can as Record<string, boolean>)[id];
       b.disabled = !enabled;
     }
     this.renderTabs();
@@ -732,6 +734,12 @@ export class App {
         : null,
     );
     this.openSheet('Abschied', body, true);
+  }
+
+  /** Regeln, immer aus den aktuellen Spielwerten erzeugt (für den Grad des angezeigten Tiers) */
+  private rulesSheet() {
+    const p = this.pet;
+    this.openSheet('Regeln', rulesView(p?.difficulty ?? this.s.settings.difficulty ?? 'normal'));
   }
 
   private statusSheet() {
