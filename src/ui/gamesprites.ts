@@ -77,7 +77,8 @@ export const ITEMS: Record<string, Item> = {
     map: ['.oo.', 'owWo', 'owwo', '.oo.'],
     colors: { o: '#8aa0c0', w: '#e8f2ff', W: '#ffffff' },
   },
-  // Beute zum Anschleichen (schaut nach links, also zum Tier)
+  // Beute zum Anschleichen (schaut nach links, also zum Tier).
+  // Der Vogel wird im Spiel in voller Rasterdichte gezeichnet (render/birds.ts); diese Grafik gibt nur die Größe vor.
   bird: {
     map: ['...ooo....', '..obbko...', '.oobbbopp.', 'oobbbbbo..', '.obwwwbo..', '..ooooo...', '...p.p....'],
     colors: { o: '#2a2a3a', b: '#6a7ab0', w: '#e8e0d0', k: '#000000', p: '#e0a040' },

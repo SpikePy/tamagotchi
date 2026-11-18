@@ -3,7 +3,8 @@
 //  Garten (Igel):         Maus, Vogel; bunte Herbstblätter
 //  Zimmer (Katze, Hund):  Vogel fliegt am Fenster vorbei
 // Alle Grafiken sind im feinen Pixelraster gezeichnet (1 Zeichen = 1 Bildpixel).
-import { RES, drawPixels, type ColorMap } from './pixels';
+import { RES, drawMap, drawPixels, type ColorMap } from './pixels';
+import { BIRD_KINDS, birdSprite, type BirdKind, type BirdPose } from './birds';
 import type { SceneKind } from './outdoor';
 import type { Season } from './season';
 
@@ -91,23 +92,9 @@ export const SPRITES: Record<Kind, { frames: string[][]; colors: ColorMap }> = {
     ],
     colors: { a: '#b07840', b: '#e8d0a8', w: '#f4ecdc', o: '#5a3820', e: '#111111', n: '#222222' },
   },
-  bird: {
-    frames: [
-      ['o.......o..', 'wo.....ow..', '.wo...ow...', '..obbbbbo..', '..obbbbeyy.', '...ooooo...'],
-      ['...........', '...........', '..obbbbbo..', '.wobbbbeyy.', 'wo.ooooo...', 'o..........'],
-    ],
-    colors: { o: '#3a2a20', b: '#8a6040', w: '#c8a070', e: '#111111', y: '#f0a020' },
-  },
-  // Vogel, der auf dem Aststummel landet: Flug-Frames wie oben, dazu Sitzen und Picken/Umschauen
-  perch: {
-    frames: [
-      ['o.......o..', 'wo.....ow..', '.wo...ow...', '..obbbbbo..', '..obbbbeyy.', '...ooooo...'],
-      ['...........', '...........', '..obbbbbo..', '.wobbbbeyy.', 'wo.ooooo...', 'o..........'],
-      ['...........', '....obbo...', '...obbbeyy.', '..wwbbbbo..', '.wwwbbbo...', '....o.o....'],
-      ['...........', '...........', '....obbbo..', '..wwbbbbeyy', '.wwwbbbbo..', '....o.o....'],
-    ],
-    colors: { o: '#3a2a20', b: '#8a6040', w: '#c8a070', e: '#111111', y: '#f0a020' },
-  },
+  // Vögel zeichnet birds.ts in voller Rasterdichte (siehe BIRD_POSE), hier nur Platzhalter
+  bird: { frames: [['.']], colors: {} },
+  perch: { frames: [['.']], colors: {} },
 };
 
 const KINDS: Record<SceneKind, Kind[]> = {
@@ -153,7 +140,14 @@ interface Active {
   dir: 1 | -1;
   y: number;
   sit?: number; // Vogel auf dem Ast: Sitzdauer in ms
+  bird?: BirdKind; // welcher Singvogel (Rotkehlchen, Blaumeise, Spatz)
 }
+
+// Vögel werden in voller Rasterdichte gezeichnet (birds.ts): Größe in Bildpixeln
+const BIRD_W = 28;
+const BIRD_H = 19;
+// alte Frame-Nummern -> Pose (0/1 Flügelschlag, 2 sitzen, 3 picken)
+const BIRD_POSE: BirdPose[] = ['fly0', 'fly1', 'stand', 'peck'];
 
 interface Leaf {
   x: number;
@@ -183,7 +177,7 @@ export class Critters {
 
   /** zum Testen: ein bestimmtes Tier auf einer bestimmten Bodenlinie vorbeischicken */
   debugSpawn(kind: Kind, lane: number, dir: 1 | -1 = 1) {
-    this.active = { env: this.env, kind, start: performance.now(), dir, y: lane, sit: kind === 'perch' ? 6000 : undefined };
+    this.active = { env: this.env, kind, start: performance.now(), dir, y: lane, sit: kind === 'perch' ? 6000 : undefined, bird: BIRD_KINDS[Math.floor(Math.random() * BIRD_KINDS.length)] };
   }
 
   /** Bodenlinie des Tiers, das gerade am Boden vorbeiläuft (für die Tiefensortierung), sonst null */
@@ -192,7 +186,7 @@ export class Critters {
     return f && f.layer === 'foreground' ? f.ground : null;
   }
 
-  private frame: { layer: CritterLayer; rows: string[]; colors: ColorMap; x: number; y: number; ground: number; clip?: { x: number; y: number; w: number; h: number } } | null = null;
+  private frame: { layer: CritterLayer; rows: string[]; colors: ColorMap; x: number; y: number; ground: number; clip?: { x: number; y: number; w: number; h: number }; hires?: boolean; flip?: boolean } | null = null;
   private dt = 0;
   private env: SceneKind = 'room';
 
@@ -228,7 +222,8 @@ export class Critters {
       ctx.rect(f.clip.x, f.clip.y, f.clip.w, f.clip.h);
       ctx.clip();
     }
-    drawPixels(ctx, f.rows, f.colors, snap(f.x), snap(f.y));
+    if (f.hires) drawMap(ctx, f.rows, f.colors, f.x, f.y, f.flip);
+    else drawPixels(ctx, f.rows, f.colors, snap(f.x), snap(f.y));
     ctx.restore();
   }
 
@@ -245,6 +240,7 @@ export class Critters {
         start: t,
         dir: Math.random() < 0.5 ? 1 : -1,
         sit: kind === 'perch' ? 5000 + Math.random() * 15000 : undefined,
+        bird: BIRD_KINDS[Math.floor(Math.random() * BIRD_KINDS.length)],
         // Vögel: Flughöhe; Maus und Igel: eigene Bodenlinie (Tiefe), damit sie mal vor, mal hinter dem Haustier laufen
         y:
           kind === 'bird' || kind === 'perch'
@@ -264,8 +260,9 @@ export class Critters {
       return;
     }
     const sp = SPRITES[a.kind];
-    const hPx = sp.frames[0].length;
-    const w = sp.frames[0][0].length * PX;
+    const isBird = a.kind === 'bird' || a.kind === 'perch';
+    const hPx = isBird ? BIRD_H : sp.frames[0].length;
+    const w = (isBird ? BIRD_W : sp.frames[0][0].length) * PX;
     const [x0, span] = inRoom ? [win!.x, win!.w] : [0, W];
     const across = (p: number) => x0 + (a.dir > 0 ? -w + p * (span + w * 2) : span + w - p * (span + w * 2));
     let frame = 0;
@@ -337,7 +334,18 @@ export class Critters {
         break;
       }
     }
-    const rows = (a.dir < 0) !== flipNow ? flipRows(sp.frames[frame]) : sp.frames[frame];
+    const flip = (a.dir < 0) !== flipNow;
+    if (isBird) {
+      const b = birdSprite(a.bird ?? 'robin', BIRD_POSE[frame], BIRD_W, BIRD_H);
+      const layer: CritterLayer = inRoom ? 'window' : a.kind === 'bird' ? 'sky' : 'near';
+      this.flyY = y;
+      this.frame = { layer, rows: b.map, colors: b.colors, x, y, ground: y + hPx * PX, clip: inRoom ? win : undefined, hires: true, flip };
+      const cx = x + w / 2;
+      const visible = inRoom ? cx > win!.x && cx < win!.x + win!.w : cx > 0 && cx < W;
+      if (visible) this.seen = { id: a.start, x: cx, kind: a.kind };
+      return;
+    }
+    const rows = flip ? flipRows(sp.frames[frame]) : sp.frames[frame];
     const layer: CritterLayer = inRoom ? 'window' : a.kind === 'bird' ? 'sky' : a.kind === 'perch' ? 'near' : a.kind === 'deer' ? 'background' : 'foreground';
     this.flyY = y;
     this.frame = { layer, rows, colors: sp.colors, x, y, ground: y + hPx * PX, clip: inRoom ? win : undefined };

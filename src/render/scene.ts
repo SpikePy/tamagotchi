@@ -57,6 +57,11 @@ const EGG_Y = FLOOR_Y - EGG_H - 2;
 const WIN = { x: 37, y: 3, w: 22, h: 16 };
 // Kratzbaum (Katze)
 const POST_X = 6; // links im Zimmer
+// Socken-Spiel des Hundes (Anteile der Besuchsdauer): Maul packen, wegschleudern, Landung
+const SOCK_W = 8.5;
+const SOCK_GRAB = 0.16;
+const SOCK_TOSS = 0.7;
+const SOCK_LAND = 0.82;
 const POST_TOP = FLOOR_Y + 1 - 21; // Kratzbaum ist 21 Einheiten hoch
 const POST_COLORS: ColorMap = { o: '#4a3a30', m: '#b9a58a', r: '#d8c08e', R: '#b89a62', l: '#5a4a40', y: '#e2384d' };
 
@@ -89,8 +94,10 @@ export class Scene {
   private walkX = 30;
   private walkDir = 1;
   private ballKick = -1e9;
+  /** rote Socke des Hundes: linke Kante (Spiel-Einheiten); der Hund schleudert sie beim Spielen woanders hin */
+  private sockX = 46;
   private depth = 1; // 0 = hinten, 3.5 = vorne im Raum
-  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase' | 'scrape'; visit?: VisitKind; arrived?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
+  private act: { kind: 'walk' | 'idle' | 'look' | 'groom' | 'stretch' | 'watch' | 'pet' | 'visit' | 'chase' | 'scrape'; visit?: VisitKind; arrived?: number; sockTo?: number; sillY?: number; start: number; until: number; target?: number; targetDepth?: number; speed?: number } = {
     kind: 'idle',
     start: 0,
     until: 0,
@@ -434,9 +441,33 @@ export class Scene {
   private drawFrontDecor(sp: SpeciesDef) {
     drawFrontDecorFor(this.ctx, sp.id);
     if (sp.room?.socks) {
-      PR.drawProp(this.ctx, PR.sock(true), 46, FLOOR_Y + 3);
+      // die rote Socke fehlt hier, solange der Hund sie im Maul hat oder sie durch die Luft fliegt
+      const a = this.act;
+      const held = a.kind === 'visit' && a.visit === 'sock' && a.arrived !== undefined && a.sockTo !== undefined && (performance.now() - a.arrived) / Math.max(1, a.until - a.arrived) >= SOCK_GRAB;
+      if (!held) PR.drawProp(this.ctx, PR.sock(true), this.sockX, FLOOR_Y + 3);
       PR.drawProp(this.ctx, PR.sock(false), 54, FLOOR_Y + 4.5, true);
     }
+  }
+
+  /** Socke im Maul (flattert beim Kopfschütteln hin und her) bzw. im Flug zur neuen Stelle */
+  private drawHeldSock(img: { map: string[]; w: number }, x: number, y: number, w: number, flip: boolean, k: number, toX: number, ground: number, t: number) {
+    const sock = PR.sock(true);
+    // Maul = unter der Nase (Zeichen 'n' im Sprite)
+    const sc = img.map[0].length / w;
+    const ny = img.map.findIndex((r) => r.includes('n'));
+    const nx = ny >= 0 ? (img.map[ny].indexOf('n') + 1) / sc : w / 2;
+    const mx = x + (flip ? w - nx : nx);
+    const my = y + (ny >= 0 ? (ny + 1) / sc + 1 : 4);
+    if (k < SOCK_TOSS) {
+      const side = Math.floor(t / 110) % 2 ? 1 : -1;
+      PR.drawProp(this.ctx, sock, snapPx(mx - sock.w / 2 + side * 2.5), snapPx(my - sock.h / 2 + 0.5), side < 0);
+      return;
+    }
+    // im Bogen zur neuen Stelle, dreht sich dabei
+    const q = Math.min(1, (k - SOCK_TOSS) / (SOCK_LAND - SOCK_TOSS));
+    const sx = mx - sock.w / 2 + (toX - (mx - sock.w / 2)) * q;
+    const sy = my + (FLOOR_Y + 3 - my) * q - Math.sin(q * Math.PI) * 9;
+    PR.drawProp(this.ctx, sock, snapPx(sx), snapPx(Math.min(sy, ground + 3)), Math.floor(t / 90) % 2 === 0);
   }
 
   /** Spielball am Kratzbaum pendelt an einer Schnur */
@@ -585,7 +616,8 @@ export class Scene {
     const targets = decorTargets(p.species);
     if (targets.length && !p.sick && Math.random() < 0.14) {
       const tg = targets[Math.floor(Math.random() * targets.length)];
-      return { kind: 'visit' as const, visit: tg.kind, start: t, until: t + 30000, target: tg.x - 8, targetDepth: visitDepth(tg.kind), speed: 7 };
+      const tx = tg.kind === 'sock' ? this.sockX + SOCK_W / 2 : tg.x;
+      return { kind: 'visit' as const, visit: tg.kind, start: t, until: t + 30000, target: tx - 8, targetDepth: visitDepth(tg.kind), speed: 7 };
     }
     if (r < 0.42) {
       let target = from + Math.random() * (to - from);
@@ -662,7 +694,13 @@ export class Scene {
         const dd = (a.targetDepth ?? this.depth) - this.depth;
         if (Math.abs(diff) < 0.3 && Math.abs(dd) < 0.1) {
           a.arrived = t;
-          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000, hop: 5000, scratch: 3600, play: 3400, scrape: 3000, perch: 12000 } as const)[a.visit ?? 'sniff'];
+          a.until = t + ({ sniff: 2200, nudge: 1600, drink: 2600, dustbath: 3500, sill: 9000, hop: 5000, scratch: 3600, play: 3400, scrape: 3000, perch: 12000, sock: 5600 } as const)[a.visit ?? 'sniff'];
+          // Socke: wohin sie am Ende fliegt (nicht wieder an dieselbe Stelle)
+          if (a.visit === 'sock') {
+            let to = 36 + Math.random() * 16;
+            if (Math.abs(to - this.sockX) < 5) to = this.sockX < 44 ? 48 + Math.random() * 4 : 36 + Math.random() * 4;
+            a.sockTo = to;
+          }
           if (a.visit === 'perch') a.until += Math.random() * 8000; // oben auf dem Kratzbaum ein Weilchen bleiben
         } else {
           const dist = Math.hypot(diff, dd * 2);
@@ -735,6 +773,11 @@ export class Scene {
     if ((eating || grooming) && !bigBird) bob = -(Math.floor(t / (p.species === 'chicken' ? 160 : 280)) % 2) * (p.species === 'chicken' ? 1 : 0.5); // Kopf runter (Napf / Putzen / Picken)
     if (scraping && !bigBird) bob = -(Math.floor(t / 160) % 2); // Küken: nur nicken
     if (visiting === 'sniff' || visiting === 'nudge' || visiting === 'drink') bob = -(Math.floor(t / (visiting === 'nudge' ? 200 : 320)) % 2) * 0.5;
+    // Hund spielt mit der Socke: erst Spielaufforderung (vorne runter), dann Kopfschütteln, Wegschleudern, Freudensprung
+    const sockK = visiting === 'sock' ? (t - (a.arrived ?? t)) / Math.max(1, a.until - (a.arrived ?? t)) : -1;
+    if (sockK >= 0 && sockK < SOCK_GRAB) bob = -(Math.floor(t / 260) % 2) * 0.75;
+    if (sockK >= SOCK_GRAB && sockK < SOCK_TOSS) x += Math.floor(t / 110) % 2 ? 0.75 : -0.75;
+    if (sockK >= SOCK_LAND && this.jumpStart < (a.arrived ?? t)) this.jumpStart = t;
     const j = t - this.jumpStart;
     if (j >= 0 && j < 900) bob = Math.round(Math.abs(Math.sin((j / 900) * Math.PI * 2)) * 5);
     const s = t - this.shakeStart;
@@ -833,6 +876,11 @@ export class Scene {
       const sflip = face > 0; // Pose schaut von Haus aus nach links
       drawMap(ctx, st.map, st.colors, x + w / 2 - st.w / 2, ground - st.h + 1, sflip);
     } else drawMap(ctx, img.map, img.colors, x, y, flip);
+    if (sockK >= SOCK_GRAB && sockK < SOCK_LAND) this.drawHeldSock(img, x, y, w, flip, sockK, a.sockTo ?? this.sockX, ground, t);
+    if (sockK >= SOCK_LAND && a.sockTo !== undefined) {
+      this.sockX = a.sockTo;
+      a.sockTo = undefined;
+    }
     this.petBox = box;
     if (birdPose === 'scrape1') {
       // aufgewirbeltes Stroh/Erde hinter dem Huhn

@@ -16,7 +16,7 @@ const rect = (ctx: CanvasRenderingContext2D, c: string, x: number, y: number, w:
 };
 
 // ---------- Platzierungen ----------
-export type VisitKind = 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop' | 'scratch' | 'play' | 'scrape' | 'perch';
+export type VisitKind = 'sniff' | 'nudge' | 'drink' | 'dustbath' | 'sill' | 'hop' | 'scratch' | 'play' | 'scrape' | 'perch' | 'sock';
 export interface DecorTarget {
   x: number; // wo das Tier hinläuft (Mitte)
   kind: VisitKind;
@@ -32,7 +32,8 @@ export function decorTargets(species: string): DecorTarget[] {
     case 'cat':
       return [{ x: 49.5, kind: 'nudge' }, { x: 43, kind: 'sill' }, { x: 19, kind: 'scratch' }, { x: 22, kind: 'play' }, { x: 25, kind: 'perch' }];
     case 'dog':
-      return [];
+      // Mitte der roten Socke (wandert mit, wenn der Hund sie wegschleudert, siehe Scene.sockX)
+      return [{ x: 50.25, kind: 'sock' }];
     case 'chicken':
       return [{ x: 8, kind: 'dustbath' }, { x: STRAW_HEAP.cx, kind: 'hop' }];
   }

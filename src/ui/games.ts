@@ -1,6 +1,7 @@
 import { beep } from '../audio';
 import { Pet } from '../engine/state';
-import { drawMap, drawPixels, hiResCanvas, petSprite } from '../render/pixels';
+import { RES, drawMap, drawPixels, hiResCanvas, petSprite } from '../render/pixels';
+import { birdSprite, type BirdPose } from '../render/birds';
 import { ITEMS, itemSize, type Item } from './gamesprites';
 import type { SpeciesDef } from '../species/types';
 import { h } from './dom';
@@ -634,7 +635,13 @@ function sneakGame(el: HTMLElement, sp: SpeciesDef, pet: Pet, done: Done): Clean
     // Beute
     const looking = state === 'look' && won < 0;
     const hop = won >= 0 ? -Math.min(6, (now - won) / 60) : state === 'warn' ? Math.sin(now / 40) * 0.3 : 0;
-    drawItem(ctx, prey, preyX, groundY - qh + hop, !looking, QK);
+    if (theme.preyItem === 'bird') {
+      // Vogel in voller Rasterdichte; schaut er weg, pickt er (Schnabel nach rechts), sonst blickt er zur Katze
+      const pose: BirdPose = won >= 0 ? (Math.floor(now / 90) % 2 ? 'fly0' : 'fly1') : looking ? 'alert' : state === 'warn' ? 'stand' : Math.floor(now / 450) % 3 ? 'peck' : 'stand';
+      const b = birdSprite('robin', pose, Math.round(qw * RES), Math.round(qh * RES));
+      const flyOff = won >= 0 ? Math.min(30, (now - won) / 25) : 0;
+      drawMap(ctx, b.map, b.colors, preyX + flyOff, groundY - qh + hop, looking);
+    } else drawItem(ctx, prey, preyX, groundY - qh + hop, !looking, QK);
     if (state === 'warn' && won < 0) bubble(ctx, preyX + qw / 2, groundY - qh - 1.5, '?', '#ffe08a');
     if (looking && now - caughtAt >= 900) bubble(ctx, preyX + qw / 2, groundY - qh - 1.5, '!', '#fff');
     // Tier
