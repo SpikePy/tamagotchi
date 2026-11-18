@@ -1,4 +1,4 @@
-import { DAY, HOUR, MIN, RULES } from './config';
+import { DAY, HOUR, MIN, RULES, rulesFor } from './config';
 import { CallType, GameState, Pet, Stage, Variant, dayKeyOf, hearts } from './state';
 
 export type Rng = () => number;
@@ -62,7 +62,7 @@ export function poopPlan(p: Pet, rng: Rng, awakeSoFar = 0): number[] {
 /** Wach-Minuten seit dem (gedachten) Aufwachen, aus der Müdigkeit geschätzt */
 export const awakeMinutes = (p: Pet) => (p.tiredness / 100) * RULES.awakeMinUntilTired;
 
-const graceMin = (type: CallType) => (type === 'poop' ? RULES.poopGraceMin : RULES.callGraceMin);
+const graceMin = (p: Pet, type: CallType) => (type === 'poop' ? rulesFor(p).poopGraceMin : rulesFor(p).graceMin);
 const fmtMin = (m: number) => (m % 60 === 0 ? (m === 60 ? '1 Stunde' : `${m / 60} Stunden`) : `${m} Minuten`);
 
 export function addLog(p: Pet, at: number, text: string) {
@@ -194,7 +194,8 @@ export function evolve(p: Pet, next: Stage, clock: number, events: SimEvent[], v
   p.careMistakesStage = 0;
   if (next === 'adult') {
     const l = RULES.adultLifespanDays;
-    p.adultLifespanDays = Math.max(l.min, Math.min(l.max, l.max - p.careMistakesTotal * l.perCareMistake));
+    // Cozy: bleibt für immer, sonst kürzt jeder Pflegefehler die Lebenszeit (je nach Schwierigkeit)
+    p.adultLifespanDays = rulesFor(p).endless ? null : Math.max(l.min, Math.min(l.max, l.max - p.careMistakesTotal * rulesFor(p).lifespanPerMistake));
   }
   addLog(p, clock, `Entwickelt zum ${STAGE_DE[next]} (${VARIANT_DE[variant]}).`);
   events.push({ kind: 'evolved', stage: next, variant });
@@ -243,10 +244,10 @@ function updateCalls(p: Pet, clock: number, events: SimEvent[]) {
     } else if (!call) {
       p.calls[type] = { since: clock, penalized: false };
       events.push({ kind: 'call', call: type });
-    } else if (!call.penalized && clock - call.since >= graceMin(type) * MIN) {
+    } else if (!call.penalized && clock - call.since >= graceMin(p, type) * MIN) {
       call.penalized = true;
       careMistake(p);
-      const why = `Auf ${CALL_WHAT[type]} wurde ${fmtMin(graceMin(type))} lang nicht reagiert.`;
+      const why = `Auf ${CALL_WHAT[type]} wurde ${fmtMin(graceMin(p, type))} lang nicht reagiert.`;
       addLog(p, clock, `Pflegefehler: ${why}`);
       events.push({ kind: 'mistake', why });
     }
@@ -327,14 +328,16 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
   }
 
   // Grob vernachlässigt: Die Tierpflegestation holt das Tier ab – immer mit Grund
-  if (p.sick && now - p.sick.since >= RULES.sickAwayAfterMin * MIN) {
-    return endLife(s, p, 'station', `weil {n} ${RULES.sickAwayAfterMin / 60} Stunden krank war und keine Medizin bekommen hat`, events);
+  // (Schwierigkeit Cozy: nie)
+  const dr = rulesFor(p);
+  if (dr.sickAwayMin !== null && p.sick && now - p.sick.since >= dr.sickAwayMin * MIN) {
+    return endLife(s, p, 'station', `weil {n} ${dr.sickAwayMin / 60} Stunden krank war und keine Medizin bekommen hat`, events);
   }
-  if (p.hungerZeroSince !== null && now - p.hungerZeroSince >= RULES.hungerAwayAfterMin * MIN) {
-    return endLife(s, p, 'station', `weil {n} ${RULES.hungerAwayAfterMin / 60} Stunden lang nichts zu essen bekommen hat`, events);
+  if (dr.hungerAwayMin !== null && p.hungerZeroSince !== null && now - p.hungerZeroSince >= dr.hungerAwayMin * MIN) {
+    return endLife(s, p, 'station', `weil {n} ${dr.hungerAwayMin / 60} Stunden lang nichts zu essen bekommen hat`, events);
   }
-  if (p.careMistakesStage >= RULES.careMistakesAwayPerStage) {
-    return endLife(s, p, 'station', `weil sich in dieser Lebensphase ${RULES.careMistakesAwayPerStage} Pflegefehler angesammelt haben`, events);
+  if (dr.awayMistakes !== null && p.careMistakesStage >= dr.awayMistakes) {
+    return endLife(s, p, 'station', `weil sich in dieser Lebensphase ${dr.awayMistakes} Pflegefehler angesammelt haben`, events);
   }
 
   updateCalls(p, now, events);

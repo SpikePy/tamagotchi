@@ -61,7 +61,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 | Erwachsen | bis zum Lebensende | |
 
 - **Entwicklung hängt von der Pflege ab** (ergänzt): Bei jedem Phasenwechsel entscheiden die Pflegefehler in dieser Phase, welche Variante das Tier wird. Gute Pflege ergibt eine schöne, zufriedene Form. Schlechte Pflege ergibt eine verwahrloste oder freche Form. Vorschlag: zwei Varianten für das Kind, zwei für den Teenager und drei für den Erwachsenen.
-- **Lebensende** (ergänzt): Ein erwachsenes Tier lebt nicht ewig. Wie lange es lebt, hängt von der Pflege ab (Vorschlag: 10–25 Tage als Erwachsener). Danach „zieht es in den Wald zurück“ und lebt dort glücklich weiter. Der Abschiedsbildschirm sagt, **warum**: nach wie vielen Tagen als erwachsenes Tier und um wie viele Tage die Pflegefehler das Leben verkürzt haben (je Pflegefehler ein halber Tag).
+- **Lebensende** (ergänzt): Ein erwachsenes Tier lebt nicht ewig. Wie lange es lebt, hängt von der Pflege ab (Vorschlag: 10–25 Tage als Erwachsener). Danach „zieht es in den Wald zurück“ und lebt dort glücklich weiter. Der Abschiedsbildschirm sagt, **warum**: nach wie vielen Tagen als erwachsenes Tier und um wie viele Tage die Pflegefehler das Leben verkürzt haben (je Pflegefehler ein halber Tag, je nach Schwierigkeit mehr oder weniger, siehe 7b). Auf **Cozy** zieht es nie aus.
 - **Name:** Direkt nach dem Schlüpfen fragt die App nach einem Namen. Dazu gibt es ein paar Vorschläge passend zur Tierart, maximal 14 Zeichen. Im Statusbildschirm kann man das Tier jederzeit umbenennen. Der Name steht im HUD, in den Meldungen, im Tagebuch und in der Liste der früheren Tiere.
 - Nach dem Lebensende kann man ein neues Ei starten.
 
@@ -149,7 +149,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 - Man muss das **Zuhause über die UI sauber machen**. Das entfernt alle Haufen auf einmal.
 - **Liegt ein Haufen länger als 4 Stunden, wird das Tier krank.**
 - Im Schlaf macht es keins.
-- **Ein Häufchen darf bis zu 2 Stunden liegen.** Erst danach zählt es als Pflegefehler (statt der sonst üblichen 15 Minuten, siehe 7).
+- **Ein Häufchen darf bis zu 2 Stunden liegen.** Erst danach zählt es als Pflegefehler (statt der sonst üblichen 15 Minuten). Das gilt für **Normal**; die Fristen je Schwierigkeit stehen in 7b.
 
 ### 6.4 Spielen
 
@@ -199,7 +199,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 
 - Das Tier ruft, sobald es etwas braucht: Hunger oder Laune auf 0, Müdigkeit, Krankheit oder ein Häufchen.
 - Ein Rufsymbol zeigt das in der App an. Ist die App geschlossen, kommt eine Push-Benachrichtigung.
-- Kümmert man sich nicht innerhalb von **15 Minuten** um einen Ruf (Vorschlag), zählt das als **Pflegefehler**. Ausnahme Häufchen: dafür hat man **2 Stunden** Zeit.
+- Kümmert man sich nicht innerhalb von **15 Minuten** um einen Ruf (Vorschlag), zählt das als **Pflegefehler**. Ausnahme Häufchen: dafür hat man **2 Stunden** Zeit. (Werte für Normal, siehe 7b.)
 
 ## 7. Krankheit und Abschied (ergänzt)
 
@@ -216,11 +216,29 @@ Wird es krank, sagt die Meldung immer, **warum** (z. B. „Oh nein, Rudi ist kra
 - die Sättigung länger als **12 Stunden** (im Wachzustand) auf 0 steht,
 - sich in einer Lebensphase **20 Pflegefehler** angesammelt haben.
 
+(Werte für Normal; je Schwierigkeit verschieden, auf Cozy nie, siehe 7b.)
+
 Der Abschiedsbildschirm (🏡) sagt immer, **warum**, zum Beispiel: „Rudi wurde von der Tierpflegestation abgeholt – weil Rudi 12 Stunden krank war und keine Medizin bekommen hat. Dort wird Rudi liebevoll gepflegt und findet ein neues Zuhause.“ Der Grund steht auch im Tagebuch. Alte Spielstände, in denen ein Tier noch „gestorben“ war, werden genauso harmlos angezeigt.
 
 **Pflegefehler mit Grund:** Auch jeder Pflegefehler wird erklärt, unten in der Meldung und im Tagebuch, z. B. „Pflegefehler: Auf den Hunger wurde 15 Minuten lang nicht reagiert.“
 
 Das **natürliche Lebensende** (siehe 4): Das Tier zieht in den Wald (🌲), ebenfalls mit Grund. In beiden Fällen sieht man Alter, Grund und Lebenslauf und kann danach ein neues Ei starten.
+
+## 7b. Schwierigkeitsgrade (Nutzerwunsch)
+
+Vor **jedem neuen Ei** wählt man oben im Auswahlbildschirm den Schwierigkeitsgrad (vorausgewählt ist der zuletzt benutzte, beim ersten Mal Normal). Darunter steht kurz, was er bedeutet. Der Grad gilt für das ganze Leben dieses Tiers und steht im Status; mehrere Tiere können verschiedene Grade haben. Alte Spielstände spielen auf Normal.
+
+| | 🧸 Cozy | 🌱 Leicht | 🌳 Normal | 🔥 Schwer |
+|---|---|---|---|---|
+| Zeit für einen Ruf bis zum Pflegefehler | 1 h | 30 min | 15 min | 5 min |
+| Zeit fürs Häufchen bis zum Pflegefehler | 4 h | 3 h | 2 h | 1 h |
+| Tierpflegestation nach … Pflegefehlern in einer Phase | nie | 30 | 20 | 10 |
+| … Stunden krank ohne Medizin | nie | 24 | 12 | 6 |
+| … Stunden Sättigung 0 | nie | 24 | 12 | 6 |
+| Lebenszeit als Erwachsener je Pflegefehler kürzer um | – | ¼ Tag | ½ Tag | 1 Tag |
+| Natürliches Lebensende (Wald) | **nie**, bleibt für immer | 10–25 Tage | 10–25 Tage | 10–25 Tage |
+
+Auf **Cozy** verlässt das Tier die App also nie. Krank werden und Pflegefehler sammeln kann es trotzdem; die Pflegefehler bestimmen weiter, welche Form es bei der Entwicklung annimmt.
 
 ## 7a. Cheat-Codes per URL-Parameter
 
@@ -252,6 +270,8 @@ Nach dem Anwenden verschwinden die Parameter aus der Adresse. Unten erscheint ei
 Mehrere Parameter lassen sich kombinieren. Bei einem Ei wirkt nur `hatch=1`.
 
 ## 8. UI
+
+**Status auf dem Handy:** Die Status-Tabelle hat zwei Spalten mit fester Aufteilung, lange Werte brechen um. So muss man auf dem Smartphone nicht seitlich scrollen.
 
 **Größe:** Das Gerät nutzt den Bildschirm aus: Die Breite richtet sich nach der Bildschirmhöhe (bis 1000 px), und Schrift, Knöpfe und Tier-Leiste wachsen mit. Das Gerät ist nur **so hoch wie nötig** und wird nicht auf die Bildschirmhöhe gestreckt. Am Handy nutzt es die volle Breite.
 

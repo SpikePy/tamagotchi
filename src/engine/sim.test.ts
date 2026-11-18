@@ -401,3 +401,51 @@ describe('Häufchen-Plan', () => {
     expect(p.careMistakesStage).toBe(1);
   });
 });
+
+describe('Schwierigkeitsgrade', () => {
+  const withDiff = (d: 'cozy' | 'easy' | 'normal' | 'hard') => {
+    const s = newGame(T0);
+    startEgg(s, 'fox', null, d);
+    hatchEgg(s);
+    return s;
+  };
+  it('Ei merkt sich den Grad, die Auswahl wird vorbelegt', () => {
+    const s = withDiff('hard');
+    expect(activePet(s)!.difficulty).toBe('hard');
+    expect(s.settings.difficulty).toBe('hard');
+  });
+  it('schwer: Pflegefehler schon nach 5 Minuten, Tierpflegestation nach 10 Fehlern', () => {
+    const s = withDiff('hard');
+    const p = activePet(s)!;
+    p.poopPlan = [];
+    p.tiredness = 0;
+    p.hunger = 0;
+    run(s, 6 * MIN);
+    expect(p.careMistakesStage).toBe(1);
+    p.careMistakesStage = 10;
+    run(s, MIN);
+    expect(activePet(s)).toBeNull();
+    expect(s.ending?.cause).toMatch(/10 Pflegefehler/);
+  });
+  it('leicht: 30 Minuten Zeit', () => {
+    const s = withDiff('easy');
+    const p = activePet(s)!;
+    p.poopPlan = [];
+    p.tiredness = 0;
+    p.hunger = 0;
+    run(s, 25 * MIN);
+    expect(p.careMistakesStage).toBe(0);
+    run(s, 10 * MIN);
+    expect(p.careMistakesStage).toBe(1);
+  });
+  it('cozy: wird nie abgeholt und zieht nie in den Wald', () => {
+    const s = withDiff('cozy');
+    const p = activePet(s)!;
+    p.careMistakesStage = 50;
+    run(s, 40 * DAY);
+    expect(activePet(s)).not.toBeNull();
+    expect(p.stage).toBe('adult');
+    expect(p.adultLifespanDays).toBeNull();
+    expect(s.ending).toBeNull();
+  });
+});

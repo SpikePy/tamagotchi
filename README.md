@@ -29,6 +29,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 ## Features
 
 - **Lebenszyklus:** Ei (schlüpft nach 20× Antippen) → Baby (1 Tag) → Kind (5 Tage) → Teenager (5 Tage) → Erwachsen. Welche Form das Tier annimmt, hängt von den Pflegefehlern ab. Wird es grob vernachlässigt, holt es die Tierpflegestation ab; am Lebensende zieht es sich in den Wald zurück. Die App sagt immer, warum.
+- **Schwierigkeitsgrade:** Vor jedem Ei wählbar: 🧸 Cozy (das Tier bleibt für immer), 🌱 Leicht, 🌳 Normal, 🔥 Schwer (Pflegefehler schon nach 5 Minuten, die Tierpflegestation kommt nach 10 Fehlern).
 - **Bedürfnisse:** Sättigung und Laune (HUD-Leisten mit je 4 Segmenten), Müdigkeit, Gewicht und Gesundheit.
 - **Schlafen:** Das Tier wacht nach insgesamt 8 Stunden Schlaf automatisch auf. Danach hat es Hunger und macht innerhalb einer Stunde ein Häufchen.
 - **Hygiene:** Es macht zweimal am Tag ein Häufchen, morgens kurz nach dem Aufstehen und abends; das Baby zusätzlich zweimal zwischendurch. Wegmachen muss man es innerhalb von 2 Stunden, sonst ist es ein Pflegefehler. Liegt ein Haufen länger als 4 Stunden, wird es krank.
@@ -40,7 +41,7 @@ Ein virtuelles Haustier im Stil der 90er-Jahre-Taschenspiele, als Web-App, die s
 - **Wetter und Jahreszeiten:** ziehende Wolken, Regen mit Pfützen, Schnee, Frühlingsblüten, Herbstlaub, Winterlandschaft – nach echtem Datum
 - **Katzen-Fell:** 6 Fellfarben × 4 Muster (einfarbig, getigert, gefleckt, weiße Pfoten), zufällig pro Tier.
 - **5 Minispiele pro Tier:** zum Beispiel Mäusesprung, Links oder rechts?, Beeren fangen, Stöckchen holen und Spuren lesen.
-- **Rufen:** Braucht das Tier etwas, ruft es mit Ton und Benachrichtigung. Reagiert man nicht innerhalb von 15 Minuten (beim Häufchen 2 Stunden), zählt das als Pflegefehler.
+- **Rufen:** Braucht das Tier etwas, ruft es mit Ton und Benachrichtigung. Reagiert man nicht innerhalb von 15 Minuten (beim Häufchen 2 Stunden; auf Normal), zählt das als Pflegefehler.
 - **Offline und installierbar (PWA):** Der Spielstand liegt nur lokal im Browser (localStorage).
 
 Alle Regeln stehen in der **[SPEC.md](SPEC.md)**.

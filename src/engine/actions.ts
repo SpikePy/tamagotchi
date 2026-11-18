@@ -1,4 +1,4 @@
-import { RULES } from './config';
+import { RULES, type Difficulty } from './config';
 import { GameState, Look, MAX_PETS, Pet, activePet, newPet } from './state';
 import { Rng, SimEvent, addLog, careMistake, fallAsleep, hatch, wake } from './sim';
 import { T, pick, pickFor } from './texts';
@@ -18,9 +18,11 @@ function hatchedPet(s: GameState): Pet | null {
 }
 
 /** Legt ein neues Ei an und zeigt es an. false, wenn schon MAX_PETS Tiere da sind. */
-export function startEgg(s: GameState, species: string, look: Look | null = null): boolean {
+export function startEgg(s: GameState, species: string, look: Look | null = null, difficulty: Difficulty = 'normal'): boolean {
   if (s.pets.length >= MAX_PETS) return false;
   const p = newPet(species, s.clock, look);
+  p.difficulty = difficulty;
+  s.settings.difficulty = difficulty;
   s.pets.push(p);
   s.activeId = p.id;
   s.ending = null;

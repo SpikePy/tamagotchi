@@ -1,3 +1,4 @@
+import type { Difficulty } from './config';
 export type Stage = 'egg' | 'baby' | 'child' | 'teen' | 'adult';
 export type Variant = 'normal' | 'good' | 'bad' | 'great' | 'cheeky';
 export type CallType = 'hunger' | 'happy' | 'poop' | 'sick' | 'sleepy' | 'light';
@@ -32,6 +33,7 @@ export interface Pet {
   hatchedAt: number | null;
   stageStartedAt: number;
   eggTaps?: number; // wie oft schon aufs Ei getippt wurde
+  difficulty?: Difficulty; // fehlt bei alten Spielständen = normal
 
   hunger: number; // 0..4 (Kommazahl, Anzeige gerundet)
   happy: number; // 0..4
@@ -86,6 +88,7 @@ export interface Memorial {
 export interface Settings {
   sound: boolean;
   notifications: boolean;
+  difficulty?: Difficulty; // zuletzt gewählter Schwierigkeitsgrad (Vorauswahl beim nächsten Ei)
 }
 
 export const MAX_PETS = 5;

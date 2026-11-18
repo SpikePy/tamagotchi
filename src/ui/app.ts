@@ -19,7 +19,7 @@ import {
   switchPet,
   wakeUp,
 } from '../engine/actions';
-import { DAY, MIN, RULES } from '../engine/config';
+import { DAY, DIFFICULTIES, DIFFICULTY_ORDER, MIN, RULES, rulesFor, type Difficulty } from '../engine/config';
 import { advance, ageDays, isOverweight, SimEvent, sleptLast24h } from '../engine/sim';
 import { CallType, GameState, MAX_PETS, Pet, activePet, hearts } from '../engine/state';
 import { notify, requestNotifications } from '../notify';
@@ -655,6 +655,21 @@ export class App {
   }
 
   private chooseSheet() {
+    // Schwierigkeitsgrad: vor jedem Ei wählbar, vorausgewählt ist der zuletzt benutzte
+    let diff: Difficulty = this.s.settings.difficulty ?? 'normal';
+    const desc = h('p', { class: 'diff-desc' });
+    const seg = h('div', { class: 'diff-seg', role: 'radiogroup', 'aria-label': 'Schwierigkeit' });
+    const pick = (d: Difficulty) => {
+      diff = d;
+      desc.textContent = DIFFICULTIES[d].desc;
+      for (const b of seg.children) b.setAttribute('aria-checked', String((b as HTMLElement).dataset.d === d));
+    };
+    for (const d of DIFFICULTY_ORDER) {
+      const b = h('button', { class: 'diff', role: 'radio', 'data-d': d }, h('span', {}, DIFFICULTIES[d].emoji), DIFFICULTIES[d].label);
+      b.onclick = () => pick(d);
+      seg.append(b);
+    }
+    pick(diff);
     const body = h('div', { class: 'choice-grid species-grid' });
     for (const sp of Object.values(SPECIES)) {
       const c = hiResCanvas(20, 20, 'species-pic');
@@ -668,11 +683,11 @@ export class App {
         sp.breeds ? h('small', {}, 'Rasse & Fell: Überraschung!') : sp.coats ? h('small', {}, 'Fell & Muster: Überraschung!') : null,
       );
       b.onclick = () => {
-        if (!startEgg(this.s, sp.id, randomLook(sp))) return this.act({ ok: false, msg: `Mehr als ${MAX_PETS} Tiere gehen nicht.` });
+        if (!startEgg(this.s, sp.id, randomLook(sp), diff)) return this.act({ ok: false, msg: `Mehr als ${MAX_PETS} Tiere gehen nicht.` });
         this.scene.reset();
         save(this.s);
         this.closeSheet(true);
-        this.say(`Ein ${sp.name}-Ei! Es schlüpft in einer Minute.`);
+        this.say(`Ein ${sp.name}-Ei (${DIFFICULTIES[diff].label})! Tippe ${RULES.eggTaps}× darauf, dann schlüpft es.`);
         this.refresh();
       };
       body.append(b);
@@ -680,7 +695,7 @@ export class App {
     const first = this.s.pets.length === 0;
     this.openSheet(
       first ? 'Welches Tier möchtest du?' : 'Noch ein Tier?',
-      h('div', {}, h('p', {}, first ? 'Wähle ein Ei:' : `Wähle ein Ei (${this.s.pets.length}/${MAX_PETS} Tiere):`), body),
+      h('div', {}, h('p', { class: 'diff-title' }, 'Schwierigkeit:'), seg, desc, h('p', {}, first ? 'Wähle ein Ei:' : `Wähle ein Ei (${this.s.pets.length}/${MAX_PETS} Tiere):`), body),
       first,
     );
   }
@@ -728,6 +743,7 @@ export class App {
       ['Tier', `${stageName(p)} (${sp.name})`],
       ...(lookName(sp, p.look) ? [[sp.breeds ? 'Rasse & Fell' : 'Fell', lookName(sp, p.look)!] as [string, string]] : []),
       ['Phase', STAGE_LABEL[p.stage]],
+      ['Schwierigkeit', `${rulesFor(p).emoji} ${rulesFor(p).label}`],
       ['Alter', days(ageDays(p, this.s.clock))],
     ];
     if (p.stage !== 'egg') {
@@ -748,10 +764,10 @@ export class App {
           ? [['Eier', `${p.eggsInNest ?? 0} im Nest · ${p.eggsCollected ?? 0} gesammelt`] as [string, string]]
           : []),
         ['Snacks heute', `${p.snacksToday} / ${RULES.snackLimitPerDay}`],
-        ['Pflegefehler', `${p.careMistakesStage} (Phase) · ${p.careMistakesTotal} (gesamt)`],
+        ['Pflegefehler', `${p.careMistakesStage}${rulesFor(p).awayMistakes ? ` von ${rulesFor(p).awayMistakes}` : ''} in dieser Phase · ${p.careMistakesTotal} insgesamt`],
       );
     }
-    const table = h('table', { class: 'stats' });
+    const table = h('table', { class: 'stat-table' });
     for (const [k, v] of rows) table.append(h('tr', {}, h('th', {}, k), h('td', {}, v)));
     const rename = p.stage !== 'egg' ? btn('✏️ Umbenennen', () => this.askName(true)) : null;
     this.openSheet('Status', h('div', {}, table, rename, h('details', {}, h('summary', {}, 'Tagebuch'), logList(p.log))));
