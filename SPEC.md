@@ -47,6 +47,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
   - **Krank:** halb geschlossene Augen und ein welliger Mund.
   - Bei Seitenansichten (Dackel, Huhn) wirken Augen, Brauen und, wo vorhanden, Mund genauso; im Schlaf bleibt das Gesicht ruhig.
 - Die Leisten sind durchgehend und füllen sich sanft. Sättigung und Laune **blinken rot** bei höchstens 25 %, die Müdigkeit ab 80 %.
+- **Gewichtsskala** (Nutzerwunsch): Unter der Sättigungsleiste liegt eine schmale Skala mit Strich in der Mitte. **Mitte = Normalgewicht**, links dünner, rechts dicker. Ein weißer Zeiger zeigt das aktuelle Gewicht. Die Skala ist links blau (zu dünn, unter 75 %), in der Mitte grün und rechts rot (zu dick, über dem 1,6-Fachen); links endet sie beim Mindestgewicht (50 %), rechts beim Doppelten. Ist das Tier zu dünn oder zu dick, blinkt der Zeiger rot. Antippen bzw. Darüberfahren zeigt „Gewicht: zu dünn / etwas dünn / genau richtig / etwas dick / zu dick“. Die anderen Leisten sind auf gleicher Höhe ausgerichtet.
 - In der Zeile darüber stehen links **Hinweis-Abzeichen**: „🤒 krank“ und ein pulsierendes „❗ ruft“. Rechts stehen Name und Entwicklungsstufe.
 - Im Statusbildschirm stehen Sättigung und Laune zusätzlich als Balken mit Prozentangabe.
 

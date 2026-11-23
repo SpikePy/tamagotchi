@@ -126,6 +126,14 @@ window.addEventListener('beforeinstallprompt', (e) => {
   deferredInstall = e as typeof deferredInstall;
 });
 
+/** Lage auf der Gewichtsskala (0..1): Mitte = Normalgewicht, links bis zum Mindestgewicht, rechts bis zum Doppelten */
+function weightPos(ratio: number): number {
+  const lo = RULES.minWeightFactor;
+  const hi = 2;
+  const v = ratio <= 1 ? 0.5 * ((ratio - lo) / (1 - lo)) : 0.5 + 0.5 * ((ratio - 1) / (hi - 1));
+  return Math.max(0, Math.min(1, v));
+}
+
 export class App {
   private scene: Scene;
   private msgEl: HTMLElement;
@@ -138,6 +146,8 @@ export class App {
   private hud: HTMLElement;
   private tabs: HTMLElement;
   private stats: HTMLElement;
+  private weightScale!: HTMLElement;
+  private weightMark!: HTMLElement;
   private statEls: Record<'food' | 'tired' | 'mood', { root: HTMLElement; fill: HTMLElement; ico: HTMLElement }>;
   private badges: HTMLElement;
   private sleepPokes: number[] = [];
@@ -190,6 +200,12 @@ export class App {
       return { root, fill, ico: icoEl };
     };
     this.statEls = { food: mk('food', '🍽️', 'Sättigung'), tired: mk('tired', '💤', 'Müdigkeit'), mood: mk('mood', '🙂', 'Laune') };
+    // Gewichtsskala unter der Sättigung: Mitte = Normalgewicht, links dünner, rechts dicker
+    this.weightMark = h('div', { class: 'wmark' });
+    this.weightScale = h('div', { class: 'wscale', role: 'meter', 'aria-label': 'Gewicht' }, this.weightMark);
+    this.weightScale.style.setProperty('--thin', `${weightPos(RULES.underweightFactor) * 100}%`);
+    this.weightScale.style.setProperty('--fat', `${weightPos(RULES.overweightFactor) * 100}%`);
+    this.statEls.food.root.querySelector('.bar')!.after(this.weightScale);
     this.badges = h('div', { class: 'badges' });
     this.msgEl = h('div', { class: 'msg', role: 'status' });
 
@@ -442,6 +458,14 @@ export class App {
         el.root.classList.toggle('alert', alert);
       };
       set('food', p.hunger / 4, p.hunger / 4 <= 0.25);
+      const ratio = p.weight / RULES.baseWeight[p.stage];
+      const thin = isUnderweight(p);
+      const fat = isOverweight(p);
+      this.weightMark.style.left = `${weightPos(ratio) * 100}%`;
+      this.weightScale.classList.toggle('off', thin || fat);
+      const wtxt = thin ? 'zu dünn' : fat ? 'zu dick' : ratio < 0.95 ? 'etwas dünn' : ratio > 1.15 ? 'etwas dick' : 'genau richtig';
+      this.weightScale.title = `Gewicht: ${wtxt}`;
+      this.weightScale.setAttribute('aria-valuetext', wtxt);
       set('tired', p.tiredness / 100, p.tiredness >= 80);
       set('mood', p.happy / 4, p.happy / 4 <= 0.25);
       const m = hearts(p.happy);
