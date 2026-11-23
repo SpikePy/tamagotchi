@@ -83,7 +83,8 @@ export function feedMeal(s: GameState, rng: Rng = Math.random): ActionResult {
   if (p.hunger >= RULES.hearts - FULL_EPS) return no(pick(T.full));
   if (p.sick && rng() < 0.5) return no(pick(T.noAppetite));
   p.hunger = Math.min(RULES.hearts, p.hunger + 1);
-  p.weight += 1;
+  // abgemagert nimmt es schneller wieder zu
+  p.weight += p.weight < RULES.baseWeight[p.stage] ? RULES.underweightMealGain : 1;
   return yes(pickFor(p.species, T.mealBy, T.meal));
 }
 
@@ -163,7 +164,8 @@ export function canPlay(s: GameState): ActionResult {
 export function finishGame(s: GameState, won: boolean): ActionResult {
   const p = hatchedPet(s);
   if (!p) return no('');
-  p.weight = Math.max(Math.ceil(RULES.baseWeight[p.stage] * 0.5), p.weight - 1);
+  // Spielen macht schlanker, aber nicht dünner als das Normalgewicht
+  if (p.weight > RULES.baseWeight[p.stage]) p.weight = Math.max(RULES.baseWeight[p.stage], p.weight - 1);
   p.tiredness = Math.min(100, p.tiredness + 3);
   // Spielen macht immer Spaß: +1 Laune, egal ob gewonnen oder verloren
   p.happy = Math.min(RULES.hearts, p.happy + 1);

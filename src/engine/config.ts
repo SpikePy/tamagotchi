@@ -21,6 +21,12 @@ export const RULES = {
   snackLimitPerDay: 3,
   overweightFactor: 1.6, // Gewicht > Basis * Faktor = übergewichtig
   overweightSickChancePerMin: 0.03 / 60,
+  // Hungern: bei leerer Sättigung (wach) nimmt es ab, zu dünn macht krank
+  starveWeightLossPerHour: 0.1, // Anteil vom Normalgewicht der Lebensphase pro Stunde
+  minWeightFactor: 0.5, // dünner wird es nie
+  underweightFactor: 0.75, // Gewicht < Basis * Faktor = zu dünn
+  underweightSickChancePerMin: 1 / 60, // zu dünn: im Schnitt nach etwa einer Stunde krank
+  underweightMealGain: 2, // unter dem Normalgewicht bringt eine Mahlzeit so viel statt 1
 
   sleepNeedMin: 8 * 60, // nach 8 h Schlaf (insgesamt) wacht es auf
   dayStartHour: 7, // beim Schlüpfen: Müdigkeit so, als wäre es um 7 Uhr aufgewacht

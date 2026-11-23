@@ -83,6 +83,10 @@ export function isOverweight(p: Pet): boolean {
   return p.weight > RULES.baseWeight[p.stage] * RULES.overweightFactor;
 }
 
+export function isUnderweight(p: Pet): boolean {
+  return p.weight < RULES.baseWeight[p.stage] * RULES.underweightFactor;
+}
+
 export function sleptLast24h(p: Pet, clock: number): number {
   const from = clock - DAY;
   return p.sleepBuckets.reduce((sum, [h, m]) => (h + HOUR > from ? sum + m : sum), 0);
@@ -94,6 +98,7 @@ export const SICK_WHY: Record<string, string> = {
   Dreck: 'weil ein Häufchen über 4 Stunden liegen geblieben ist',
   Schlafmangel: 'weil {n} einen ganzen Tag lang zu wenig geschlafen hat (unter 6 Stunden)',
   Übergewicht: 'weil {n} zu dick ist (zu viele Snacks)',
+  Untergewicht: 'weil {n} zu dünn ist (hat bei leerem Bauch abgenommen)',
   'per URL': 'per Cheat-Code',
 };
 
@@ -295,6 +300,11 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
     p.tiredness = Math.min(100, p.tiredness + 100 / RULES.awakeMinUntilTired);
     p.hunger = Math.max(0, p.hunger - 1 / RULES.hungerMinPerHeart[rateKey]);
     p.happy = Math.max(0, p.happy - (deficit ? 2 : 1) / RULES.happyMinPerHeart[rateKey]);
+    // leerer Bauch: es nimmt ab (bis höchstens auf die Hälfte des Normalgewichts)
+    if (p.hunger <= 0) {
+      const base = RULES.baseWeight[p.stage];
+      p.weight = Math.max(base * RULES.minWeightFactor, p.weight - (base * RULES.starveWeightLossPerHour) / 60);
+    }
 
     p.poopPlan = p.poopPlan.map((m) => m - 1);
     if (p.poopPlan.length && p.poopPlan[0] <= 0) {
@@ -323,6 +333,8 @@ function stepPet(s: GameState, p: Pet, rng: Rng, events: SimEvent[]) {
       makeSick(p, now, 'Dreck', rng, events);
     } else if (p.sleepDeficitSince !== null && now - p.sleepDeficitSince >= RULES.sleepDeficitSickAfterMin * MIN) {
       makeSick(p, now, 'Schlafmangel', rng, events);
+    } else if (isUnderweight(p) && rng() < RULES.underweightSickChancePerMin) {
+      makeSick(p, now, 'Untergewicht', rng, events);
     } else if (isOverweight(p) && rng() < RULES.overweightSickChancePerMin) {
       makeSick(p, now, 'Übergewicht', rng, events);
     }

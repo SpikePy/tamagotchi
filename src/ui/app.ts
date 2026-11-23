@@ -20,7 +20,7 @@ import {
   wakeUp,
 } from '../engine/actions';
 import { DAY, DIFFICULTIES, DIFFICULTY_ORDER, MIN, RULES, rulesFor, type Difficulty } from '../engine/config';
-import { advance, ageDays, isOverweight, SimEvent, sleptLast24h } from '../engine/sim';
+import { advance, ageDays, isOverweight, isUnderweight, SimEvent, sleptLast24h } from '../engine/sim';
 import { CallType, GameState, MAX_PETS, Pet, activePet, hearts } from '../engine/state';
 import { notify, requestNotifications } from '../notify';
 import { drawMap, eggColors, eggMap, hiResCanvas, petSprite } from '../render/pixels';
@@ -766,7 +766,7 @@ export class App {
         ['Müdigkeit', `${Math.round(p.tiredness)} %`],
         ['Schlaf (24 h)', duration(sleptLast24h(p, this.s.clock) * MIN)],
         ['Schlaf bis ausgeschlafen', duration((RULES.sleepNeedMin - p.sleptInCycleMin) * MIN)],
-        ['Gewicht', `${weightLabel(sp, p)}${isOverweight(p) ? ' (zu dick!)' : ''}`],
+        ['Gewicht', `${weightLabel(sp, p)}${isOverweight(p) ? ' (zu dick!)' : isUnderweight(p) ? ' (zu dünn!)' : ''}`],
         ['Gesundheit', p.sick ? `krank (noch ${p.sick.doses}× Medizin)` : 'gesund'],
         ...(p.species === 'chicken' && p.look?.sex === 'f'
           ? [['Eier', `${p.eggsInNest ?? 0} im Nest · ${p.eggsCollected ?? 0} gesammelt`] as [string, string]]

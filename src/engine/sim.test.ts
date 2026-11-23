@@ -150,6 +150,39 @@ describe('Krankheit', () => {
     run(s, 2 * HOUR + MIN);
     expect(p.sick).not.toBeNull();
   });
+
+  it('leerer Bauch: es nimmt ab, aber nicht unter die Hälfte', () => {
+    const s = game();
+    run(s, MIN);
+    const p = activePet(s)!;
+    const base = RULES.baseWeight[p.stage];
+    p.weight = base;
+    p.hunger = 0;
+    p.poopPlan = [];
+    p.tiredness = 0;
+    run(s, HOUR);
+    expect(p.weight).toBeCloseTo(base * (1 - RULES.starveWeightLossPerHour), 5);
+    run(s, 10 * HOUR);
+    expect(p.weight).toBeGreaterThanOrEqual(base * RULES.minWeightFactor);
+  });
+
+  it('zu dünn macht krank, mit Grund; Mahlzeiten bringen das Gewicht schneller zurück', () => {
+    const s = game();
+    run(s, MIN);
+    const p = activePet(s)!;
+    const base = RULES.baseWeight[p.stage];
+    p.weight = base * (RULES.underweightFactor - 0.1);
+    p.hunger = 2;
+    p.poopPlan = [];
+    p.tiredness = 0;
+    const ev = run(s, 5 * MIN, () => 0.001);
+    expect(p.sick).not.toBeNull();
+    expect(ev).toContainEqual(expect.objectContaining({ kind: 'sick', cause: 'Untergewicht', why: expect.stringContaining('zu dünn') }));
+    p.sick = null;
+    const w = p.weight;
+    feedMeal(s, never);
+    expect(p.weight).toBe(w + RULES.underweightMealGain);
+  });
 });
 
 describe('Name', () => {
@@ -174,6 +207,17 @@ describe('Spielen', () => {
     expect(p.happy).toBe(2);
     finishGame(s, true);
     expect(p.happy).toBe(3);
+  });
+
+  it('macht schlanker, aber nicht dünner als das Normalgewicht', () => {
+    const s = game();
+    run(s, MIN);
+    const p = activePet(s)!;
+    const base = RULES.baseWeight[p.stage];
+    p.weight = base + 1;
+    finishGame(s, true);
+    finishGame(s, true);
+    expect(p.weight).toBe(base);
   });
 });
 

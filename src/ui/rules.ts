@@ -11,6 +11,7 @@ export function fmtMin(m: number): string {
   return hrs === 1 ? '1 Stunde' : `${t} Stunden`;
 }
 const fmtDays = (d: number) => (d === 1 ? '1 Tag' : `${String(d).replace('.', ',')} Tage`);
+const pct = (f: number) => `${Math.round(f * 100)} %`;
 const frac = (d: number) => (d === 0.25 ? '¼ Tag' : d === 0.5 ? '½ Tag' : d === 0.75 ? '¾ Tag' : fmtDays(d));
 const clock = (awakeMin: number) => (RULES.dayStartHour + awakeMin / 60) % 24;
 
@@ -56,6 +57,7 @@ export function rulesView(current: Difficulty): HTMLElement {
     list(
       `**Wenn es ruft, schnell reagieren.** Es ruft bei leerer Sättigung, leerer Laune, einem Häufchen, Krankheit, Müdigkeit und wenn beim Schlafen das Licht noch an ist.`,
       `**Höchstens ${R.snackLimitPerDay} Snacks am Tag.** Snacks und viele Mahlzeiten machen dick. Wer zu dick ist (mehr als das ${String(R.overweightFactor).replace('.', ',')}-Fache des normalen Gewichts), wird leichter krank. Spielen macht wieder schlanker.`,
+      `**Nicht hungern lassen.** Bei leerer Sättigung nimmt es ab: pro Stunde ${pct(R.starveWeightLossPerHour)} seines Normalgewichts. Wiegt es weniger als ${pct(R.underweightFactor)} davon, ist es zu dünn und wird leicht krank. Unter dem Normalgewicht bringt jede Mahlzeit ${R.underweightMealGain === 2 ? 'doppelt' : `${R.underweightMealGain}-mal`} so viel Gewicht zurück.`,
       `**Licht aus beim Schlafen** und **nicht wecken:** Zu früh geweckt ist es richtig schlecht gelaunt.`,
       `**Genug Schlaf:** Weniger als ${fmtMin(R.sleepDeficitMin)} Schlaf in 24 Stunden drückt die Laune.`,
       `**Medizin nur, wenn es krank ist.**`,
@@ -91,6 +93,7 @@ export function rulesView(current: Difficulty): HTMLElement {
       `Sättigung länger als **${fmtMin(R.hungerSickAfterMin)}** leer.`,
       `Ein Häufchen liegt länger als **${fmtMin(R.poopSickAfterMin)}**.`,
       `Länger als **${fmtMin(R.sleepDeficitSickAfterMin)}** zu wenig Schlaf.`,
+      `Zu dünn: unter ${pct(R.underweightFactor)} des Normalgewichts (zufällig, im Schnitt nach etwa ${fmtMin(Math.round(1 / R.underweightSickChancePerMin))}).`,
       `Übergewicht (zufällig).`,
     ),
   );

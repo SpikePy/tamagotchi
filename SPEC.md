@@ -29,7 +29,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 | Sättigung (Hunger) | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit, **im Schlaf nur mit einem Viertel des Tempos**. Mahlzeiten füllen sie wieder auf. |
 | Laune | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit, solange es wach ist. **Im Schlaf erholt sie sich langsam** (+25 % über eine volle Nacht). Spielen und Snacks heben sie. (ergänzt) |
 | Müdigkeit | 0–100 % | Steigt, solange es wach ist, und sinkt im Schlaf. |
-| Gewicht | in g/kg | Steigt durch Essen und sinkt durch Spielen. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
+| Gewicht | in g/kg | Steigt durch Essen und sinkt durch Spielen (aber nicht unter das Normalgewicht). **Bei leerer Sättigung nimmt es ab** (Nutzerwunsch): wach 10 % des Normalgewichts der Lebensphase pro Stunde, höchstens bis auf 50 %. Unter 75 % ist es **zu dünn** (Status: „zu dünn!“) und wird leicht krank. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
 | Alter | in Tagen, mit einer Nachkommastelle (z. B. „3,4 Tage“) | Zählt ab dem Schlüpfen. |
 | Gesundheit | gesund / krank | Siehe Abschnitt 6. |
 | Pflegefehler | Zähler | Zählt verpasste Bedürfnisse. Beeinflusst Entwicklung und Lebensdauer. (ergänzt) |
@@ -117,7 +117,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.1 Füttern
 
-- **Mahlzeit:** +25 % Sättigung, +1 g Gewicht.
+- **Mahlzeit:** +25 % Sättigung, +1 g Gewicht (unter dem Normalgewicht +2, damit ein abgemagertes Tier schneller wieder zunimmt).
 - **Snack** (ergänzt): +25 % Laune, +2 g Gewicht. Zu viele Snacks (Vorschlag: mehr als 3 pro Tag) machen das Tier übergewichtig, und es wird eher krank.
 - Das Tier braucht **3 Mahlzeiten pro Tag**. Der Hunger sinkt gleichmäßig über den Tag.
 - Ist die Sättigung voll (100 %, ab etwa 99 %), lehnt das Tier weiteres Essen ab. **Solange die Leiste sichtbar nicht voll ist, kann man füttern**: Eine Mahlzeit gibt genau +25 % obendrauf (bis 100 %), ohne Auf- oder Abrunden. Genauso geben Snack und Spielen genau +25 % Laune.
@@ -153,7 +153,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.4 Spielen
 
-**Jedes zu Ende gespielte Minispiel gibt +1 Laune, egal ob gewonnen oder verloren.** Wer das Spiel mittendrin abbricht, bekommt nichts. Spielen senkt außerdem das Gewicht (−1 g) und macht etwas müde. Es gibt 8 Minispiele (siehe unten). Jede Tierart hat dafür ein eigenes Thema, die Spielmechanik ist bei allen gleich. Beim Fuchs:
+**Jedes zu Ende gespielte Minispiel gibt +1 Laune, egal ob gewonnen oder verloren.** Wer das Spiel mittendrin abbricht, bekommt nichts. Spielen senkt außerdem das Gewicht (−1 g, nur solange es über dem Normalgewicht liegt) und macht etwas müde. Es gibt 8 Minispiele (siehe unten). Jede Tierart hat dafür ein eigenes Thema, die Spielmechanik ist bei allen gleich. Beim Fuchs:
 
 1. **Mäusesprung:** Unter dem Schnee raschelt eine Maus. Im richtigen Moment tippen, damit der Fuchs kopfüber hineinspringt. Ein Timing-Spiel.
 2. **Links oder rechts?** Der Fuchs versteckt sich hinter einem von zwei Büschen. Man rät, wo er ist. Wer 3 von 5 Mal richtig liegt, gewinnt.
@@ -207,6 +207,7 @@ Ist die Laune zu lange auf 0, zählt das als Pflegefehler (ergänzt).
 - es zu lange hungrig ist (6.1),
 - ein Häufchen länger als 4 Stunden liegt (6.3),
 - es dauerhaft zu wenig Schlaf bekommt (6.2),
+- es zu dünn ist, also nach dem Hungern unter 75 % des Normalgewichts wiegt (Zufallschance, im Schnitt nach etwa einer Stunde; Grund: „weil Rudi zu dünn ist (hat bei leerem Bauch abgenommen)“),
 - es übergewichtig ist (Zufallschance).
 
 Wird es krank, sagt die Meldung immer, **warum** (z. B. „Oh nein, Rudi ist krank geworden, weil ein Häufchen über 4 Stunden liegen geblieben ist. Gib Rudi Medizin!“). Der Grund steht auch im Tagebuch.
