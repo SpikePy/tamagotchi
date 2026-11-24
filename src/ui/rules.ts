@@ -56,8 +56,8 @@ export function rulesView(current: Difficulty): HTMLElement {
     '👀 Worauf du achten musst',
     list(
       `**Wenn es ruft, schnell reagieren.** Es ruft bei leerer Sättigung, leerer Laune, einem Häufchen, Krankheit, Müdigkeit und wenn beim Schlafen das Licht noch an ist.`,
-      `**Höchstens ${R.snackLimitPerDay} Snacks am Tag.** Snacks und viele Mahlzeiten machen dick. Wer zu dick ist (mehr als das ${String(R.overweightFactor).replace('.', ',')}-Fache des normalen Gewichts), wird leichter krank. Spielen macht wieder schlanker.`,
-      `**Nicht hungern lassen.** Bei leerer Sättigung nimmt es ab: pro Stunde ${pct(R.starveWeightLossPerHour)} seines Normalgewichts. Wiegt es weniger als ${pct(R.underweightFactor)} davon, ist es zu dünn und wird leicht krank. Den Stand zeigt die Skala unter der Sättigung: Mitte ist genau richtig, links dünner, rechts dicker. Unter dem Normalgewicht bringt jede Mahlzeit ${R.underweightMealGain === 2 ? 'doppelt' : `${R.underweightMealGain}-mal`} so viel Gewicht zurück.`,
+      `**Höchstens ${R.snackLimitPerDay} Snacks am Tag.** Snacks machen dick, Mahlzeiten nur, wenn die Sättigung schon (fast) voll ist: Was nicht mehr in die Leiste passt, setzt an. Wer zu dick ist (mehr als das ${String(R.overweightFactor).replace('.', ',')}-Fache des normalen Gewichts), wird leichter krank. Spielen macht wieder schlanker.`,
+      `**Nicht hungern lassen.** Bei leerer Sättigung nimmt es ab: pro Stunde ${pct(R.starveWeightLossPerHour)} seines Normalgewichts. Wiegt es weniger als ${pct(R.underweightFactor)} davon, ist es zu dünn und wird leicht krank. Den Stand zeigt die Skala unter der Sättigung: Mitte ist genau richtig, links dünner, rechts dicker. Ist es dünner als normal, bringt jede Mahlzeit wieder Gewicht zurück, bis zum Normalgewicht.`,
       `**Licht aus beim Schlafen** und **nicht wecken:** Zu früh geweckt ist es richtig schlecht gelaunt.`,
       `**Genug Schlaf:** Weniger als ${fmtMin(R.sleepDeficitMin)} Schlaf in 24 Stunden drückt die Laune.`,
       `**Medizin nur, wenn es krank ist.**`,

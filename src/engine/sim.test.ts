@@ -181,7 +181,22 @@ describe('Krankheit', () => {
     p.sick = null;
     const w = p.weight;
     feedMeal(s, never);
-    expect(p.weight).toBe(w + RULES.underweightMealGain);
+    expect(p.weight).toBe(Math.min(base, w + RULES.underweightMealGain));
+  });
+
+  it('Füttern macht nur dicker, wenn die Mahlzeit über die volle Sättigung hinausgeht', () => {
+    const s = game();
+    run(s, MIN);
+    const p = activePet(s)!;
+    const base = RULES.baseWeight[p.stage];
+    p.weight = base;
+    p.hunger = 1;
+    feedMeal(s, never);
+    expect(p.weight).toBe(base); // passt noch in die Leiste
+    p.hunger = RULES.hearts - 0.25;
+    feedMeal(s, never);
+    expect(p.hunger).toBe(RULES.hearts);
+    expect(p.weight).toBeCloseTo(base + 0.75, 5); // nur der überschüssige Teil setzt an
   });
 });
 

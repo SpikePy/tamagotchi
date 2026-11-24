@@ -26,7 +26,7 @@ export const RULES = {
   minWeightFactor: 0.5, // dünner wird es nie
   underweightFactor: 0.75, // Gewicht < Basis * Faktor = zu dünn
   underweightSickChancePerMin: 1 / 60, // zu dünn: im Schnitt nach etwa einer Stunde krank
-  underweightMealGain: 2, // unter dem Normalgewicht bringt eine Mahlzeit so viel statt 1
+  underweightMealGain: 2, // unter dem Normalgewicht bringt jede Mahlzeit so viel zurück (bis zum Normalgewicht)
 
   sleepNeedMin: 8 * 60, // nach 8 h Schlaf (insgesamt) wacht es auf
   dayStartHour: 7, // beim Schlüpfen: Müdigkeit so, als wäre es um 7 Uhr aufgewacht

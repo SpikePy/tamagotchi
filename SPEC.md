@@ -29,7 +29,7 @@ Abschnitte mit **(ergänzt)** stammen nicht aus der ursprünglichen Anforderung,
 | Sättigung (Hunger) | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit, **im Schlaf nur mit einem Viertel des Tempos**. Mahlzeiten füllen sie wieder auf. |
 | Laune | durchgehende Leiste (0–4, intern als Kommazahl) | Sinkt mit der Zeit, solange es wach ist. **Im Schlaf erholt sie sich langsam** (+25 % über eine volle Nacht). Spielen und Snacks heben sie. (ergänzt) |
 | Müdigkeit | 0–100 % | Steigt, solange es wach ist, und sinkt im Schlaf. |
-| Gewicht | in g/kg | Steigt durch Essen und sinkt durch Spielen (aber nicht unter das Normalgewicht). **Bei leerer Sättigung nimmt es ab** (Nutzerwunsch): wach 10 % des Normalgewichts der Lebensphase pro Stunde, höchstens bis auf 50 %. Unter 75 % ist es **zu dünn** (Status: „zu dünn!“) und wird leicht krank. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
+| Gewicht | in g/kg | Steigt durch Snacks und durch Mahlzeiten über die volle Sättigung hinaus und sinkt durch Spielen (aber nicht unter das Normalgewicht). **Bei leerer Sättigung nimmt es ab** (Nutzerwunsch): wach 10 % des Normalgewichts der Lebensphase pro Stunde, höchstens bis auf 50 %. Unter 75 % ist es **zu dünn** (Status: „zu dünn!“) und wird leicht krank. (ergänzt) Angezeigt wird ein **realistisches Gewicht je Art** bei Normalgewicht: Fuchs 100 g → 1 kg → 3 kg → 6 kg, Igel 25 g → 150 g → 450 g → 1 kg, Katze 100 g → 1 kg → 2,5 kg → 4,5 kg (Baby → Kind → Teenager → Erwachsen). |
 | Alter | in Tagen, mit einer Nachkommastelle (z. B. „3,4 Tage“) | Zählt ab dem Schlüpfen. |
 | Gesundheit | gesund / krank | Siehe Abschnitt 6. |
 | Pflegefehler | Zähler | Zählt verpasste Bedürfnisse. Beeinflusst Entwicklung und Lebensdauer. (ergänzt) |
@@ -118,7 +118,7 @@ Den Status kann man jederzeit über einen eigenen Statusbildschirm ansehen.
 
 ### 6.1 Füttern
 
-- **Mahlzeit:** +25 % Sättigung, +1 g Gewicht (unter dem Normalgewicht +2, damit ein abgemagertes Tier schneller wieder zunimmt).
+- **Mahlzeit:** +25 % Sättigung. **Dicker wird es nur vom Überschuss** (Nutzerwunsch): Was über die volle Sättigungsleiste hinausgehen würde, setzt an (ein volles Herz Überschuss = +1 g, bei 3,5 Herzen also +0,5 g). Unter dem Normalgewicht bringt jede Mahlzeit +2 g zurück, höchstens bis zum Normalgewicht.
 - **Snack** (ergänzt): +25 % Laune, +2 g Gewicht. Zu viele Snacks (Vorschlag: mehr als 3 pro Tag) machen das Tier übergewichtig, und es wird eher krank.
 - Das Tier braucht **3 Mahlzeiten pro Tag**. Der Hunger sinkt gleichmäßig über den Tag.
 - Ist die Sättigung voll (100 %, ab etwa 99 %), lehnt das Tier weiteres Essen ab. **Solange die Leiste sichtbar nicht voll ist, kann man füttern**: Eine Mahlzeit gibt genau +25 % obendrauf (bis 100 %), ohne Auf- oder Abrunden. Genauso geben Snack und Spielen genau +25 % Laune.

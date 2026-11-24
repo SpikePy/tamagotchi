@@ -82,9 +82,13 @@ export function feedMeal(s: GameState, rng: Rng = Math.random): ActionResult {
   // satt erst, wenn die Leiste (fast) voll ist – die Leiste ist stufenlos
   if (p.hunger >= RULES.hearts - FULL_EPS) return no(pick(T.full));
   if (p.sick && rng() < 0.5) return no(pick(T.noAppetite));
+  // dicker wird es nur von dem Teil der Mahlzeit, der nicht mehr in die Sättigungsleiste passt
+  const over = Math.max(0, p.hunger + 1 - RULES.hearts);
   p.hunger = Math.min(RULES.hearts, p.hunger + 1);
-  // abgemagert nimmt es schneller wieder zu
-  p.weight += p.weight < RULES.baseWeight[p.stage] ? RULES.underweightMealGain : 1;
+  // abgemagert: jede Mahlzeit bringt Gewicht zurück, bis zum Normalgewicht
+  const base = RULES.baseWeight[p.stage];
+  if (p.weight < base) p.weight = Math.min(base, p.weight + RULES.underweightMealGain);
+  p.weight += over;
   return yes(pickFor(p.species, T.mealBy, T.meal));
 }
 
